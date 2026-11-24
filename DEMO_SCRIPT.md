@@ -52,7 +52,7 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 
 ### 1:45–2:00 — Does the graph help? (scroll to the "Does the graph help?" card)
 
-> "We benchmarked 80 synthetic cases. Documents only: 56% accuracy, and one defective chain in three called clean.
+> "We built 80 synthetic cases and scored the 40 held out. Documents only: 56% accuracy, and one defective chain in three called clean.
 > A graph alone: no better. The graph plus the rule engine: 100%, none missed. We report our losses and publish the answer key.
 > That's Vestigium, built on Relate."
 
