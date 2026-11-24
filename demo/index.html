@@ -40,6 +40,7 @@ input[type=range]{width:100%}.row{display:grid;grid-template-columns:1fr 1fr;gap
     <div class="card" style="margin-top:14px"><h2>Replay: what we knew on…</h2>
       <input type="range" id="slider" min="0" value="0"><div class="strip" id="strip"></div>
       <div id="tlabel" class="mut"></div></div>
+    <div class="card" style="margin-top:14px"><h2>Does the graph help? <small>held-out benchmark · 40 cases · same model, same evidence</small></h2><div id="bench"></div></div>
     <div class="card" style="margin-top:14px"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div></div>
   </div>
   <div>
@@ -97,6 +98,12 @@ function graph(items,known){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer
 function race(){const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b>${t}</b><div class="mut">no recorded run</div></div>`;
     const ok=r.verdict===c.label;return`<div class="arm"><b>${t}</b><div>${V(r.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+c.label}</small></div><div class="mut" style="margin-top:4px">${r.transfer?'Pointed at '+r.transfer:''}</div></div>`};
   $('race').innerHTML=cell('A','Document-only agent')+cell('C','Vestigium (graph + rule engine)')}
+function bench(){const B=window.VESTIGIUM_BENCH||[];
+  $('bench').innerHTML=`<div class="mut" style="display:grid;grid-template-columns:150px 1fr 1fr;gap:6px 12px;font-size:12px"><span></span><span>Accuracy (higher is better)</span><span>Defective chains called clean (lower is better)</span></div>`+
+  B.map(b=>`<div style="display:grid;grid-template-columns:150px 1fr 1fr;gap:6px 12px;align-items:center;margin:6px 0"><div><b>${b.arm}</b> <span class="mut">${b.name}</span><br><small>${b.repeats} repeat${b.repeats>1?'s':''} · ${b.tokens.toLocaleString()} tokens/case</small></div>
+   <div style="background:var(--line);border-radius:4px;height:20px;position:relative"><div style="width:${b.acc}%;background:${b.acc>90?'var(--ok)':'var(--acc)'};height:100%;border-radius:4px"></div><span style="position:absolute;left:8px;top:1px;font-size:12px;${b.acc<15?"color:var(--tx)":"color:#fff;text-shadow:0 0 3px #000"}">${b.acc}%</span></div>
+   <div style="background:var(--line);border-radius:4px;height:20px;position:relative"><div style="width:${b.false_clean}%;background:var(--bad);height:100%;border-radius:4px"></div><span style="position:absolute;left:8px;top:1px;font-size:12px;${b.false_clean<15?"color:var(--tx)":"color:#fff;text-shadow:0 0 3px #000"}">${b.false_clean}%</span></div></div>`).join('')+
+  `<div class="mut" style="font-size:12px;margin-top:6px">Arm B has 1 repeat; the rest have 3. The rules and the cases were written together, so D is the ceiling of the rules, not a real-world claim.</div>`}
 $('pick').onchange=e=>pick(e.target.value);
 $('slider').oninput=e=>{step=+e.target.value;render()};
 $('strip').onclick=e=>{if(e.target.dataset.i){step=+e.target.dataset.i;$('slider').value=step;render()}};
@@ -104,6 +111,7 @@ $('findings').onclick=e=>{const f=e.target.closest('.finding');if(f){sel=+f.data
 $('fixbtn').onclick=()=>{$('fix').innerHTML=`<div class="pass" style="border-color:var(--ok)">Adding <b>${cur.fix}</b> to a throwaway copy of the graph and rerunning every check → ${V(cur.fix_verdict)}</div>`};
 $('pp').onclick=()=>{pack='property';$('pp').classList.add('on');$('pv').classList.remove('on');fill()};
 $('pv').onclick=()=>{pack='vehicle';$('pv').classList.add('on');$('pp').classList.remove('on');fill()};
+bench();
 const q=new URLSearchParams(location.search).get('case');
 const start=D.find(c=>c.id===q)||D.find(c=>c.domain==='property'&&c.label==='defective'&&c.kind==='PROP-AUTH'&&c.agents.A&&c.agents.C&&c.agents.A.verdict==='clean')||D.find(c=>c.agents.A&&c.label==='defective');
 if(start.domain==='vehicle')$('pv').click();else fill();pick(start.id);

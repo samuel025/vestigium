@@ -16,6 +16,26 @@ def runs():
                 out.setdefault(r["case"], {})[r["arm"]] = r["answer"]
     return out
 
+def bench_summary():
+    """Per-arm held-out summary (mean over repeats) for the demo's benchmark card."""
+    import statistics as st
+    f = ROOT / "results" / "heldout.jsonl"
+    rows = [json.loads(l) for l in f.read_text().splitlines()] if f.exists() else []
+    rows = [r for r in rows if not (r["stats"] or {}).get("error")]
+    names = {"A": "Documents only", "B": "Graph + own Cypher", "C": "Graph + rule-engine tools", "D": "Rule engine alone"}
+    out = []
+    for arm in "ABCD":
+        S = [r for r in rows if r["arm"] == arm]
+        if not S: continue
+        reps = sorted({r["rep"] for r in S})
+        rate = lambda k, T: 100 * sum(r[k] for r in T) / len(T) if T else 0
+        acc = [rate("correct", [r for r in S if r["rep"] == p]) for p in reps]
+        fc = [rate("false_clean", [r for r in S if r["rep"] == p and r["label"] == "defective"]) for p in reps]
+        out.append(dict(arm=arm, name=names[arm], repeats=len(reps), cases=len({r["case"] for r in S}), acc=round(st.mean(acc), 1),
+                        false_clean=round(st.mean(fc), 1), tokens=int(st.mean(r["stats"].get("tokens", 0) for r in S))))
+    return out
+
+
 def export():
     rec = runs()
     cases = []
@@ -32,7 +52,7 @@ def export():
             nodes=[dict(label=l, **p) for l, p in c["nodes"]], rels=c["rels"],
             result=r, timeline=tl, fix=(c["key"]["fix"] or {}).get("describe"), fix_verdict=fixv,
             documents=documents(c), agents=rec.get(c["id"], {})))
-    (ROOT / "demo" / "data.js").write_text("window.VESTIGIUM = " + json.dumps(cases, default=str) + ";")
+    (ROOT / "demo" / "data.js").write_text("window.VESTIGIUM = " + json.dumps(cases, default=str) + ";\nwindow.VESTIGIUM_BENCH = " + json.dumps(bench_summary()) + ";")
     print(f"exported {len(cases)} cases, {sum(1 for c in cases if c['agents'])} with recorded agent runs")
 
 if __name__ == "__main__":

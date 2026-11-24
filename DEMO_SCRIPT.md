@@ -1,8 +1,7 @@
 # Demo video script — 2 minutes
 
 **Setup before recording:** `cd demo && python3 -m http.server 8000`, then open `http://127.0.0.1:8000/index.html?case=prop-014`.
-Browser at about 1400 px wide, dark or light theme either way. Have the README results table open in a second tab for the last scene.
-Case `prop-014` is a synthetic 5-transfer property chain. The seller of T5 signed as an agent on 2019-05-01, but the power of attorney ended 2019-01-17.
+Browser at about 1400 px wide, dark or light theme either way. Case `prop-014` is a synthetic 5-transfer property chain. The seller of T5 signed as an agent on 2019-05-01, but the power of attorney ended 2019-01-17.
 A planted "title is clear and free of encumbrances" summary sits in the dossier to mislead.
 
 Speaking pace is about 140 words a minute; the narration below is about 270 words.
@@ -51,13 +50,13 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 
 *On screen: slider moves, verdict strip goes green, then red at 2019-05-04; later transfers fade when not yet recorded.*
 
-### 1:45–2:00 — Does the graph help? (switch to README table)
+### 1:45–2:00 — Does the graph help? (scroll to the "Does the graph help?" card)
 
 > "We benchmarked 80 synthetic cases. Documents only: 56% accuracy, and one defective chain in three called clean.
 > A graph alone: no better. The graph plus the rule engine: 100%, none missed. We report our losses and publish the answer key.
 > That's Vestigium, built on Relate."
 
-*On screen: README results table, A 55.8% / B 52.5% / C 100% / D 100%.*
+*On screen: the benchmark card on the same page, accuracy bars A 55.8% / B 52.5% / C 100% / D 100% and the red "called clean" bars.*
 
 ---
 
@@ -68,4 +67,4 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 - Do not claim 100% generalises. If asked: the rules and generator were written together, and Arm D is the control. This is in the README.
 - Arm B has one repeat. The table says so; do not read it as three.
 - A fallback case if `prop-014` misbehaves: `prop-059` (an unreleased lien, T10; the fix button shows the release).
-- The UI has no benchmark panel; the final scene uses the README table. The Devpost "demo link" can be this video.
+- The benchmark card is on the page (below the replay strip), so the whole demo stays in one tab.
