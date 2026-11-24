@@ -71,24 +71,27 @@ Four arms, same evidence, same model (`gemini-3.5-flash-lite`, temperature 0.2):
 - **C** the full system: Relate graph + the rule engine's checks as tools.
 - **D** the rule engine alone, no agent.
 
-### Results (held-out, 1 repeat)
+### Results (held-out, 40 cases)
 
-| Arm | Cases | Accuracy | False-clean¹ | Abstains correctly | Localizes defect | Fix type | Tokens / case |
+| Arm | Repeats | Accuracy (mean ± spread) | False-clean¹ | Abstains correctly | Localizes defect | Fix type | Tokens / case |
 |---|---|---|---|---|---|---|---|
-| A: documents only | 40 | 55% | 36% | 14% | 0% | 27% | 606 |
-| B: graph + own Cypher | 36 of 40 | 58% | 32% | 0% | 41% | 42% | 19,517 |
-| C: graph + rule tools | 39 of 40 | 100% | 0% | 100% | 100% | 100% | 2,498 |
-| D: rules alone | 40 | 100% | 0% | 100% | 100% | 100% | 0 |
+| A: documents only | 3 | 55.8% ± 1.2 | 34.7% ± 1.9 | 14% | 0% | 27% | 606 |
+| B: graph + own Cypher | **1** | 52.5% | 32.0% | 0% | 44% | 47% | 19,263 |
+| C: graph + rule tools | 3 | 100% ± 0 | 0% | 100% | 100% | 100% | 2,486 |
+| D: rules alone | 3 | 100% ± 0 | 0% | 100% | 100% | 100% | 0 |
 
-¹ share of *defective* cases called clean, the worst error. Citation validity: A 90%, B 88%, C 100%, D 100%. Property and vehicle packs show the same pattern.
+¹ share of *defective* cases called clean, the worst error. Spread is the standard deviation of per-repeat accuracy. Citation validity: A 92%, B 90%, C 100%, D 100%.
+Property and vehicle show the same pattern (A 55% / 57%, B 60% / 45%, C and D 100% / 100%). Raw answers, tool calls and tokens for every run are in `results/heldout.jsonl`.
 
-**Reading it:** a graph by itself did not help (B ≈ A, at ~32× the tokens). Giving the agent the rule engine's checks did (A 55% → C 100%, false-clean 36% → 0%).
-C matches D on verdicts; the agent's contribution is investigation and explanation, which this benchmark does not score.
+**Reading it:** a graph by itself did not help (B is no better than A, at ~30× the tokens). Giving the agent the rule engine's checks did (A 56% → C 100%, false-clean 35% → 0%),
+and it did so in every repeat. C matches D on every verdict; the agent's contribution is investigation and explanation, which this benchmark does not score.
 
 ### Limitations — please read
 
-- **Results are incomplete and small.** One repeat, not three. Arm B finished 36 of 40 held-out cases and Arm C 39 of 40: Gemini's free-tier daily quota ran out. One C case (prop-011) failed on a malformed
-  answer, was removed, and will be rerun after the harness fix (JSON repair retry); until then C is over 39 cases. The run is resumable: `./run_benchmark.sh`.
+- **Arm B has one repeat, the others three.** Gemini's free-tier daily quota made B (about 12.6 requests per case) too expensive to repeat; its spread is unknown. Rerun with
+  `./run_benchmark.sh` (`REPEATS=3`); it resumes and fills the gaps. One C case (prop-011) failed on a malformed answer in the first run; we removed that row, added a JSON repair retry to the harness
+  and reran it (correct in all 3 repeats). Across the 120 C runs the repair retry fired once (prop-050, repeat 3) and the repaired answer was correct.
+- **Small sample.** 40 cases (3 inconclusive and 4 clean per pack-side are few), one model, so the percentages for A and B are rough.
 - **The rules and the generator were written together by the same people.** 100% for C and D is expected and is not evidence the rules are right for the real world. Arm D exists to show this: it is the ceiling of the rules themselves, and it is the agent-free baseline.
 - **The held-out split is a flag, not a time gap.** Every third case is marked held-out and not used to tune; cases were not written after a rule freeze.
 - **One small model.** A stronger model might narrow the gap for A and B.
