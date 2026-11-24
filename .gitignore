@@ -1,0 +1,5 @@
+.env
+.venv/
+__pycache__/
+results_v1_pre-vehicle/
+*.rl.auth-token

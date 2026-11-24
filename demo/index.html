@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vestigium — ownership evidence, checked</title>
+<style>
+:root{--bg:#0f1318;--panel:#171d25;--line:#2a3340;--tx:#e6ebf2;--mut:#8b97a8;--ok:#3fb27f;--bad:#e5564d;--gap:#e0a73a;--acc:#6aa8ff}
+@media(prefers-color-scheme:light){:root{--bg:#f5f7fa;--panel:#fff;--line:#d8dee8;--tx:#18202c;--mut:#5d6b7f;--ok:#14804f;--bad:#c93a31;--gap:#a8730a;--acc:#1d5fd1}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,sans-serif}
+header{display:flex;gap:12px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+h1{font-size:17px;margin:0 8px 0 0}h1 span{color:var(--mut);font-weight:400;font-size:13px}
+select,button{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit}
+button{cursor:pointer}button:hover{border-color:var(--acc)}button.on{border-color:var(--acc);color:var(--acc)}
+main{display:grid;grid-template-columns:1fr 360px;gap:14px;padding:14px 18px}
+main>div{min-width:0}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0 0 8px}
+.verdict{display:inline-block;padding:3px 10px;border-radius:99px;font-weight:600;font-size:13px}
+.v-clean{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.v-defective{background:color-mix(in srgb,var(--bad) 20%,transparent);color:var(--bad)}
+.v-inconclusive{background:color-mix(in srgb,var(--gap) 20%,transparent);color:var(--gap)}
+#graph{overflow-x:auto}svg text{font:12px system-ui,sans-serif;fill:var(--tx)}svg .m{fill:var(--mut)}
+.finding{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;cursor:pointer}
+.finding:hover,.finding.sel{border-color:var(--acc)}.rule{font:600 12px ui-monospace,monospace}
+.pass{border-left:3px solid var(--acc);padding:4px 8px;margin:6px 0;color:var(--mut);font-size:13px}
+.strip{display:flex;gap:2px;margin:8px 0}.strip i{flex:1;height:14px;border-radius:2px;opacity:.9}
+.strip i.cur{outline:2px solid var(--tx);outline-offset:1px}
+input[type=range]{width:100%}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.arm{border:1px solid var(--line);border-radius:8px;padding:8px 10px}.arm b{font-size:12px;color:var(--mut)}
+.mut{color:var(--mut)}small{color:var(--mut)}code{font:12px ui-monospace,monospace}
+</style></head><body>
+<header>
+  <h1>Vestigium <span>evidence-backed ownership investigation · synthetic data, not legal advice</span></h1>
+  <span class="mut">Pack</span>
+  <button id="pp" class="on">Property</button><button id="pv">Vehicle</button>
+  <select id="pick"></select>
+</header>
+<main>
+  <div>
+    <div class="card"><h2>Ownership chain <small id="asof"></small></h2><div id="graph"></div></div>
+    <div class="card" style="margin-top:14px"><h2>Replay: what we knew on…</h2>
+      <input type="range" id="slider" min="0" value="0"><div class="strip" id="strip"></div>
+      <div id="tlabel" class="mut"></div></div>
+    <div class="card" style="margin-top:14px"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div></div>
+  </div>
+  <div>
+    <div class="card"><h2>Verdict</h2><div id="verdict"></div><div id="findings"></div>
+      <button id="fixbtn" style="margin-top:8px;display:none">What would fix it?</button><div id="fix"></div></div>
+    <div class="card" style="margin-top:14px"><h2>Evidence</h2><div id="evidence" class="mut">Click a finding to see the exact document passage.</div></div>
+  </div>
+</main>
+<script src="data.js"></script>
+<script>
+const D=window.VESTIGIUM,$=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0;
+const V=l=>`<span class="verdict v-${l}">${l.toUpperCase()}</span>`;
+const col={clean:'var(--ok)',defective:'var(--bad)',inconclusive:'var(--gap)'};
+function fill(){const list=D.filter(c=>c.domain===pack);
+  $('pick').innerHTML=list.map(c=>`<option value="${c.id}">${c.id} — ${c.kind==='clean'?'clean':c.kind} (${c.split})</option>`).join('');
+  pick(list[0].id)}
+function pick(id){cur=D.find(c=>c.id===id);sel=null;step=cur.timeline.length-1;
+  $('slider').max=cur.timeline.length-1;$('slider').value=step;$('pick').value=id;render()}
+const byId=(c,i)=>c.nodes.find(n=>n.id===i);
+function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1];
+  $('asof').textContent=`· valid as of ${c.as_of}`;
+  // timeline strip
+  $('strip').innerHTML=c.timeline.map((t,i)=>`<i title="${t[0]}: ${t[1]}" style="background:${col[t[1]]}" class="${i===step?'cur':''}" data-i="${i}"></i>`).join('');
+  $('tlabel').innerHTML=`Known as of <b>${known}</b> → ${V(ver)}`;
+  // verdict (full, at latest known date) vs replay
+  const full=step===c.timeline.length-1,res=c.result;
+  $('verdict').innerHTML=V(full?res.verdict:ver)+(full?'':' <small>(replay — slide right for the full result)</small>');
+  const items=full?[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))]:[];
+  $('findings').innerHTML=items.map((f,i)=>`<div class="finding ${sel===i?'sel':''}" data-i="${i}"><div class="rule" style="color:${f.t==='gap'?'var(--gap)':'var(--bad)'}">${f.rule} · ${f.transfer}</div>${f.detail}${f.missing?`<div class="mut">Missing: ${f.missing}</div>`:''}</div>`).join('')||(full?'<div class="mut" style="margin-top:6px">Every transfer links to the one before; no check finds a defect.</div>':'');
+  $('fixbtn').style.display=full&&c.fix?'':'none';$('fix').innerHTML='';
+  // evidence
+  if(sel!==null&&items[sel]){const f=items[sel];$('evidence').innerHTML=`<div><code>${f.rule}</code> at <code>${f.transfer}</code></div>`+[...new Set(f.evidence)].map(p=>{const n=byId(c,p);return n?`<div class="pass"><code>${p}</code> ${n.text}</div>`:''}).join('')}
+  else $('evidence').textContent='Click a finding to see the exact document passage.';
+  graph(items,known);race()}
+function graph(items,known){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer').sort((a,b)=>{const k=t=>/^T\d+$/.test(t.id)?+t.id.slice(1):1e3;return k(a)-k(b)||(a.id<b.id?-1:1)});
+  const bad=new Set(items.filter(i=>i.t==='defect').map(i=>i.transfer)),gap=new Set(items.filter(i=>i.t==='gap').map(i=>i.transfer));
+  const name=(t,r,dir)=>{const rel=c.rels.find(x=>dir==='from'?(x[1]==='FROM'&&x[2]===t):(x[0]===t&&x[1]==='TO'));const p=rel&&byId(c,dir==='from'?rel[0]:rel[2]);return p?p.name:'?'};
+  const W=150,G=46,H=84,x0=10,y0=26;let s=`<svg width="${x0*2+ts.length*(W+G)}" height="190">`;
+  ts.forEach((t,i)=>{const x=x0+i*(W+G),seen=t.recorded<=known,isB=bad.has(t.id),isG=gap.has(t.id);
+    const stroke=isB?'var(--bad)':isG?'var(--gap)':'var(--line)';
+    s+=`<g opacity="${seen?1:.25}"><rect x="${x}" y="${y0}" width="${W}" height="${H}" rx="8" fill="var(--panel)" stroke="${stroke}" stroke-width="${isB||isG?2.5:1}"/>
+      <text x="${x+8}" y="${y0+17}" style="font-weight:600">${t.id} <tspan class="m">${t.effective}</tspan></text>
+      <text x="${x+8}" y="${y0+38}" class="m">from</text><text x="${x+38}" y="${y0+38}">${name(t.id,0,'from')}</text>
+      <text x="${x+8}" y="${y0+56}" class="m">to</text><text x="${x+38}" y="${y0+56}">${name(t.id,0,'to')}</text>
+      ${t.odometer!==undefined?`<text x="${x+8}" y="${y0+74}" class="m">odo ${t.odometer}</text>`:(c.domain==='vehicle'?`<text x="${x+8}" y="${y0+74}" class="m">odo —</text>`:'')}</g>`;
+    if(i>0){const f=c.rels.some(r=>r[0]===t.id&&r[1]==='FOLLOWS'),px=x-G;
+      s+=f?`<path d="M${px+6} ${y0+H/2}H${x-4}" stroke="var(--mut)" stroke-width="1.5" marker-end="url(#a)"/>`
+        :`<path d="M${px+6} ${y0+H/2}H${x-4}" stroke="var(--gap)" stroke-width="2" stroke-dasharray="4 4"/><text x="${px-2}" y="${y0-8}" style="fill:var(--gap)">gap</text>`}});
+  // claims & authority chips
+  let cx=x0;const chips=c.nodes.filter(n=>['Claim','Authority'].includes(n.label));
+  chips.forEach(n=>{const txt=n.label==='Claim'?`${n.kind}: ${n.holder}`:`authority: ${n.agent} (${n.valid_from}→${n.valid_to||'open'})`;
+    const w=txt.length*6.4+16;s+=`<rect x="${cx}" y="${y0+H+26}" width="${w}" height="24" rx="12" fill="none" stroke="var(--mut)"/><text x="${cx+8}" y="${y0+H+42}">${txt}</text>`;cx+=w+8});
+  s+=`<defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="var(--mut)"/></marker></defs></svg>`;
+  $('graph').innerHTML=s}
+function race(){const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b>${t}</b><div class="mut">no recorded run</div></div>`;
+    const ok=r.verdict===c.label;return`<div class="arm"><b>${t}</b><div>${V(r.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+c.label}</small></div><div class="mut" style="margin-top:4px">${r.transfer?'Pointed at '+r.transfer:''}</div></div>`};
+  $('race').innerHTML=cell('A','Document-only agent')+cell('C','Vestigium (graph + rule engine)')}
+$('pick').onchange=e=>pick(e.target.value);
+$('slider').oninput=e=>{step=+e.target.value;render()};
+$('strip').onclick=e=>{if(e.target.dataset.i){step=+e.target.dataset.i;$('slider').value=step;render()}};
+$('findings').onclick=e=>{const f=e.target.closest('.finding');if(f){sel=+f.dataset.i;render()}};
+$('fixbtn').onclick=()=>{$('fix').innerHTML=`<div class="pass" style="border-color:var(--ok)">Adding <b>${cur.fix}</b> to a throwaway copy of the graph and rerunning every check → ${V(cur.fix_verdict)}</div>`};
+$('pp').onclick=()=>{pack='property';$('pp').classList.add('on');$('pv').classList.remove('on');fill()};
+$('pv').onclick=()=>{pack='vehicle';$('pv').classList.add('on');$('pp').classList.remove('on');fill()};
+const q=new URLSearchParams(location.search).get('case');
+const start=D.find(c=>c.id===q)||D.find(c=>c.domain==='property'&&c.label==='defective'&&c.kind==='PROP-AUTH'&&c.agents.A&&c.agents.C&&c.agents.A.verdict==='clean')||D.find(c=>c.agents.A&&c.label==='defective');
+if(start.domain==='vehicle')$('pv').click();else fill();pick(start.id);
+</script></body></html>
