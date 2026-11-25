@@ -58,7 +58,7 @@ def _auto_fix(case, res):
 
 
 def analyze(text, reader="auto", as_of=None):
-    warnings, used, stats = [], reader, {}
+    used, stats = reader, {}
     if reader in ("auto", "rules"):
         ir = read_rules(text); used = "rules"
         n = sum(r["type"] in ("deed", "title") for r in ir["records"])
@@ -71,17 +71,28 @@ def analyze(text, reader="auto", as_of=None):
             return dict(error=f"The language-model reader is unavailable ({str(e)[:90]}). Use canonical wording for the offline reader.")
         if not ir:
             return dict(error="The reader could not parse that dossier.")
-    case = assemble(ir, as_of=as_of)
+    return analyze_ir(ir, as_of=as_of, text=text, used=used, stats=stats)
+
+
+def package(case, ir=None, text="", used="", stats=None, fix=None):
+    """Judge a case graph and shape the result the UI and the MCP tools both use."""
+    stats = stats or {}
     res = run_checks(build(case), case["asset"], case["as_of"], pack=case["pack"])
     transfers = [p for l, p in case["nodes"] if l == "Transfer"]
-    if not transfers:
-        warnings.append("No deeds or titles were recognised, so nothing could be checked.")
+    warnings = [] if transfers else ["No deeds or titles were recognised, so nothing could be checked."]
     dates = sorted({p["recorded"] for p in transfers if p.get("recorded")} | {case["as_of"]})
     tl = [(d, run_checks(build(case), case["asset"], case["as_of"], known=d, pack=case["pack"])["verdict"]) for d in dates]
-    fx = _auto_fix(case, res) if res["verdict"] != "clean" else None
-    return dict(id="pasted", domain=case["pack"], label=None, split="pasted", as_of=case["as_of"], kind="pasted dossier",
+    fx = fix if fix is not None else (_auto_fix(case, res) if res["verdict"] != "clean" else None)
+    passages = {p["id"]: p.get("text", "") for l, p in case["nodes"] if l == "Passage"}
+    cited = {e for f in res["findings"] + res["missing"] for e in f.get("evidence", [])}
+    return dict(id=case.get("id", "pasted"), domain=case["pack"], label=None, split="pasted", as_of=case["as_of"], kind="pasted dossier",
                 title=f"{case['pack'].title()} · pasted dossier · {len(transfers)} transfers",
                 nodes=[dict(label=l, **p) for l, p in case["nodes"]], rels=case["rels"], result=res, timeline=tl,
                 fix=fx and fx["describe"], fix_verdict=fx and fx["verdict"], documents=text, agents={},
-                reader=used, tokens=stats.get("tokens", 0), warnings=warnings,
-                extracted=[{k: v for k, v in r.items() if k != "text"} for r in ir["records"] if r.get("type") != "other"])
+                reader=used, tokens=stats.get("tokens", 0), warnings=warnings, evidence_text={e: passages.get(e, "") for e in sorted(cited)},
+                extracted=[{k: v for k, v in r.items() if k != "text"} for r in (ir or {}).get("records", []) if r.get("type") != "other"])
+
+
+def analyze_ir(ir, as_of=None, text="", used="ir", stats=None):
+    """Records already read (by regex, Gemini, or an MCP client's own model) -> graph -> verdict. The engine decides."""
+    return package(assemble(ir, as_of=as_of), ir=ir, text=text, used=used, stats=stats)

@@ -108,6 +108,20 @@ schema, so real scanned deeds would be harder (OCR noise, free-form clauses); a 
 We changed the extraction prompt once after seeing results on this same held-out set (the first prompt let the model invent a first name for "N. Stone", which wrongly broke 2 of 120 messy runs; we now tell it to copy
 names exactly and let code match abbreviations). The first run is kept in `results/intake_v1_prompt.jsonl` (98.3% messy verdict accuracy). Raw runs, including each extracted record list, are in `results/intake.jsonl`.
 
+### Use it from your own agent (MCP)
+
+`vestigium/mcp_server.py` serves the engine over the Model Context Protocol, so Claude Desktop, Claude Code or any MCP client can investigate a chain. Your model *reads* the documents and sends structured
+records; the server *decides* with the deterministic rule engine and returns the verdict, rule ids, and the exact text of every cited record. Tools are read-only and need no API key: `rules`, `list_cases`,
+`read_dossier`, `check_case` (with `as_of` / `known` dates), and `check_records` (a dossier your model has read). Invalid input is rejected, not guessed at.
+
+```bash
+claude mcp add vestigium -- uv run --directory /path/to/vestigium python -m vestigium.mcp_server
+# Claude Desktop: add {"command": "uv", "args": ["run", "--directory", "/path/to/vestigium", "python", "-m", "vestigium.mcp_server"]} under mcpServers
+```
+
+Then ask: *"Use vestigium to check the dossier for prop-014 and explain the verdict."* A test drives it over a real stdio MCP connection (`tests/test_mcp.py`). This serves the *rule engine*; it is not Relate's own
+`relate serve` MCP endpoint for the `.rl` store, which we did not test.
+
 ### Robustness checks (no LLM, no answer key needed for the first two)
 
 Because the rules and the generator were written together, we also test the rule engine on its own (`vestigium/metamorphic.py`, `tests/test_metamorphic.py`, run the big sweep with `uv run python -m vestigium.metamorphic`):
@@ -133,7 +147,7 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
 - **Arms A-D assume a correct graph.** Extraction is scored separately (section above), not chained into the four-arm table. Not scored: per-case fix-by-copy accuracy for agent-proposed records
   (we score the *type* of record the agent names against the answer key; each answer-key fix is separately verified to turn its case clean).
 - **Single-file Relate store only for the demo;** benchmark graphs are in-memory per case.
-- Not built: running Relate in the browser (WASM), serving the store over MCP (`relate serve`), reading scanned or PDF documents (paste text only).
+- Not built: running Relate in the browser (WASM), Relate's own `relate serve` MCP endpoint for the `.rl` store (our MCP server exposes the rule engine instead), reading scanned or PDF documents (paste text only).
 
 ## Layout
 
