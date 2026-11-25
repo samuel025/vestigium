@@ -24,6 +24,7 @@ An **AI agent** investigates the graph, calls the checks and explains the result
 - **What would fix it.** The engine copies the graph into a throwaway Relate instance, adds a hypothetical record (a release, a ratifying authority, a missing link), reruns every check, and reports which record turns the verdict clean.
 - **Two-date replay and verdict timeline.** Slide the known-as-of date and watch the verdict change, for example clean until a late-recorded record arrives.
 - **Honest inconclusive verdicts.** A gap or missing document stops a check from deciding, and the answer names the missing record instead of guessing.
+- **Paste a dossier.** Paste deeds, titles, liens and powers of attorney in any wording; a reader extracts the facts, the rule engine decides, and the same proof trail appears. On messy wording a pattern-matching reader gets 17.5% right and Gemini gets 100% (held-out, 3 repeats), and nothing unreadable is ever called clean.
 - **Side-by-side race.** A document-only agent next to the rule-backed agent, from recorded runs.
 
 ## Does the graph help? A benchmark, with the losses reported
@@ -52,6 +53,6 @@ parameters from the model and unfairly hurt Arm B, which is the kind of error a 
 
 ## What's next
 
-Score the document-to-graph extraction stage, run the held-out set with more repeats and a stronger model, serve the store over MCP, and run the whole demo in the browser with Relate's WebAssembly build.
+Read scanned and PDF documents (the extraction stage is scored on synthetic text only), run the held-out set with more repeats and a stronger model, serve the store over MCP, and run the whole demo in the browser with Relate's WebAssembly build.
 
 **Built with:** Relate (Neo4j), Python, Cypher, Google Gemini, Claude Code

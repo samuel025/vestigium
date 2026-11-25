@@ -7,7 +7,7 @@ Scored against the gold graph. Resumable; stops cleanly when the daily quota is 
 import argparse, json, pathlib, statistics, time
 from .dossier import dossier
 from .engine import run_checks
-from .extract import read_rules, read_llm, assemble
+from .extract import read_rules, read_llm, assemble, _canon
 from .generator import all_cases
 from .llm import DailyQuotaExhausted
 from .whatif import build
@@ -26,14 +26,21 @@ def gold_ir(case):
 def score_ir(case, ir):
     """Field accuracy over the facts the rules read, record-exact rate, and whether the engine's finding matches gold."""
     gold = {r["id"]: r for r in gold_ir(case)["records"]}
-    got = {r.get("id"): r for r in (ir or {}).get("records", [])}
+    got = {r.get("id"): dict(r) for r in (ir or {}).get("records", [])}
+    canon = _canon([r.get(k) for r in got.values() for k in ("from", "to", "person")])   # the assembler resolves "G. Stone" the same way
+    for r in got.values():
+        for k in ("from", "to", "person"):
+            if r.get(k): r[k] = canon.get(r[k], r[k])
     fields = ok = rec_ok = rec_n = 0
     for rid, g in gold.items():
         if g["type"] not in FIELDS: continue
         rec_n += 1; all_ok = True
         for f in FIELDS[g["type"]]:
             fields += 1
-            match = got.get(rid, {}).get("type") == g["type"] and norm(got.get(rid, {}).get(f)) == norm(g.get(f))
+            a, b = norm(got.get(rid, {}).get(f)), norm(g.get(f))
+            if f in ("from", "to", "person") and a and b and a != b:   # "N. Stone" is a correct reading of "Nova Stone": the text may only ever abbreviate it
+                a = b if a == f"{b[0]}. {b.split(' ', 1)[-1]}" else a
+            match = got.get(rid, {}).get("type") == g["type"] and a == b
             ok += match; all_ok &= match
         rec_ok += all_ok
     return dict(field_acc=ok / fields if fields else 1, record_exact=rec_ok / rec_n if rec_n else 1)
@@ -64,7 +71,7 @@ def run_one(case, reader, style, rep):
     else: ir, st = read_llm(text)
     verdict, where, err = judge(case, ir) if ir else (None, set(), "no IR")
     sc = score_ir(case, ir)
-    return dict(reader=reader, style=style, case=case["id"], rep=rep, label=case["label"], verdict=verdict, correct=verdict == case["label"],
+    return dict(ir=[{k: v for k, v in r.items() if k != "text"} for r in (ir or {}).get("records", [])], reader=reader, style=style, case=case["id"], rep=rep, label=case["label"], verdict=verdict, correct=verdict == case["label"],
                 false_clean=(verdict == "clean") if case["label"] == "defective" else None,
                 located=where == gold_where(case), error=err, tokens=st.get("tokens", 0), secs=round(time.time() - t, 1), **sc)
 

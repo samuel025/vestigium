@@ -38,7 +38,8 @@ Run the investigation on one case, or open the UI:
 
 ```bash
 uv run python -m vestigium.cli prop-014                  # verdict, rule, evidence, fix, verdict timeline
-cd demo && python3 -m http.server 8000                   # then open http://127.0.0.1:8000/index.html  (?case=veh-003 to jump)
+uv run python -m vestigium.serve                         # UI + "Paste a dossier"; open http://127.0.0.1:8000/index.html  (?case=veh-003 to jump)
+cd demo && python3 -m http.server 8000                   # static-only alternative (no paste box, no Gemini)
 ```
 
 Everything runs offline except the LLM arms. The demo UI is a static page over exported data (`demo/data.js`).
@@ -86,6 +87,27 @@ Property and vehicle show the same pattern (A 55% / 57%, B 58% / 50%, C and D 10
 **Reading it:** a graph by itself did not help (B is no better than A, at ~39× the tokens, and swings from 47.5% to 62.5% between repeats). Giving the agent the rule engine's checks did (A 56% → C 100%, false-clean 35% → 0%),
 and it did so in every repeat. C matches D on every verdict; the agent's contribution is investigation and explanation, which this benchmark does not score.
 
+### Paste a dossier: reading documents into the graph
+
+The UI's **Paste a dossier** box takes deeds, titles, liens, powers of attorney, releases and death certificates, extracts the facts, and hands them to the same rule engine
+(`vestigium/intake.py`, `extract.py`, `dossier.py`). The reader only *reads*: it never decides legality, every verdict still comes from the rules, and the extracted facts are listed
+so a person can check them. Nothing that could not be read is called clean: an empty chain is *inconclusive* ("no ownership records could be read").
+
+We score this stage too (`vestigium/intake_bench.py`, held-out 40 cases, 3 repeats). Dossiers are rendered from the gold graph with every fact stated in text; "messy" wording varies date formats,
+abbreviates names ("G. Stone") and shuffles record order. The reader's output is rebuilt into a graph, the engine judges it, and the result is compared with the gold graph.
+
+| Reader | Wording | Verdict accuracy | Defective called clean | Right finding at the right record | Records read exactly |
+|---|---|---|---|---|---|
+| Offline regex | canonical | 100% | 0% | 100% | 100% |
+| Offline regex | messy | 17.5% | 2.7% | 2.5% | 5.4% |
+| Gemini (`gemini-3.5-flash-lite`) | canonical | 100% | 0% | 100% | 100% |
+| Gemini | messy | 100% | 0% | 100% | 99.6% |
+
+What to take from it: wording variety breaks a pattern-matching reader, and a language model recovers it, with the rule engine still making the call. Honest caveats: the dossiers are synthetic and generated from the same
+schema, so real scanned deeds would be harder (OCR noise, free-form clauses); a name that is only ever abbreviated in a dossier stays abbreviated, which is correct to copy and the scorer accepts.
+We changed the extraction prompt once after seeing results on this same held-out set (the first prompt let the model invent a first name for "N. Stone", which wrongly broke 2 of 120 messy runs; we now tell it to copy
+names exactly and let code match abbreviations). The first run is kept in `results/intake_v1_prompt.jsonl` (98.3% messy verdict accuracy). Raw runs, including each extracted record list, are in `results/intake.jsonl`.
+
 ### Robustness checks (no LLM, no answer key needed for the first two)
 
 Because the rules and the generator were written together, we also test the rule engine on its own (`vestigium/metamorphic.py`, `tests/test_metamorphic.py`, run the big sweep with `uv run python -m vestigium.metamorphic`):
@@ -108,10 +130,10 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
 - **The rules and the generator were written together by the same people.** 100% for C and D is expected and is not evidence the rules are right for the real world. Arm D exists to show this: it is the ceiling of the rules themselves, and it is the agent-free baseline.
 - **The held-out split is a flag, not a time gap.** Every third case is marked held-out and not used to tune; cases were not written after a rule freeze.
 - **One small model.** A stronger model might narrow the gap for A and B.
-- **Not scored yet:** the graph-extraction stage (documents → graph), which the evaluation assumes correct, and per-case fix-by-copy accuracy for agent-proposed records
+- **Arms A-D assume a correct graph.** Extraction is scored separately (section above), not chained into the four-arm table. Not scored: per-case fix-by-copy accuracy for agent-proposed records
   (we score the *type* of record the agent names against the answer key; each answer-key fix is separately verified to turn its case clean).
 - **Single-file Relate store only for the demo;** benchmark graphs are in-memory per case.
-- Not built: running Relate in the browser (WASM), serving the store over MCP (`relate serve`), a document-upload UI.
+- Not built: running Relate in the browser (WASM), serving the store over MCP (`relate serve`), reading scanned or PDF documents (paste text only).
 
 ## Layout
 

@@ -82,7 +82,8 @@ with one entry per dossier record, keeping its bracketed id, in any order. Each 
 - "authority": "agent", "valid_from", "valid_to" (null if no end date).
 - "lien" or "brand": "holder", "date", "recorded".  - "release": "date", "recorded", "releases" (id of the lien record).
 - "death": "person", "died", "recorded".  - "other": surveys, receipts, summaries, anything else.
-Convert every date to ISO yyyy-mm-dd. If a person appears abbreviated (e.g. "G. Stone"), use the full name from elsewhere in the dossier.
+Convert every date to ISO yyyy-mm-dd. Copy every person's name EXACTLY as written in that record, even if it is abbreviated (e.g. "G. Stone"):
+never expand an initial into a first name and never invent one; the program matches abbreviations to full names itself.
 Use null for anything the record does not state. Reply with the JSON object only.
 
 DOSSIER:
