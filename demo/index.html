@@ -70,15 +70,37 @@ input[type=range]{width:100%;accent-color:#e6e6e6}
 .track i{display:block;height:100%;border-radius:9999px}
 .bar span{font:500 12px var(--mono);width:44px;text-align:right;color:var(--hi)}
 .foot{margin-top:20px;text-align:center;font:400 11px var(--mono);color:var(--dim);letter-spacing:.02em}
+textarea{width:100%;min-height:150px;resize:vertical;background:rgba(255,255,255,.05);color:var(--tx);border:0;border-radius:10px;padding:12px;font:12px/1.55 var(--mono);box-shadow:0 0 0 1px var(--line)}
+textarea:focus{outline:none;box-shadow:0 0 0 1px var(--hi)}
+.btn2{background:var(--chip);color:var(--tx);border:0;border-radius:8px;padding:7px 12px;font-weight:500;font-size:13px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 1px var(--line)}
+.btn2:hover{color:var(--hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 1px var(--edge)}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.note{font-size:12px;color:var(--mut)}.warn{color:var(--gap)}
+details{margin-top:12px}summary{cursor:pointer;color:var(--mut);font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+table.ex{width:100%;border-collapse:collapse;margin-top:8px;font:11px var(--mono)}
+table.ex td,table.ex th{padding:4px 8px;text-align:left;border-bottom:1px solid var(--line);color:var(--mut);vertical-align:top}table.ex th{color:var(--dim);font-weight:500}
+table.ex td:first-child{color:var(--hi)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body><div class="wrap">
 <header>
   <div class="brand"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><rect x="13.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><path d="M9.6 14.2L12.4 7.8" stroke="#ff6363" stroke-width="1.8" stroke-linecap="round"/></svg>Vestigium</div>
-  <span class="eyebrow">Ownership evidence, checked · synthetic data · not legal advice</span>
+  <span class="eyebrow">Synthetic data · not legal advice</span>
   <span class="sp"></span>
+  <button id="intakebtn" class="btn2">Paste a dossier</button>
   <div class="seg"><button id="pp" class="on">Property</button><button id="pv">Vehicle</button></div>
   <select id="pick" aria-label="Case"></select>
 </header>
+<section id="intake" class="card" hidden style="margin-bottom:16px">
+  <h2>Paste a dossier <small>deeds, titles, liens, powers of attorney, releases · the reader extracts facts, the rule engine decides</small></h2>
+  <textarea id="dtext" spellcheck="false" placeholder="[P1] DEED dated 2016-11-15, recorded 2016-11-18: Gale Marsh (Grantor) conveys the property at 20 Fictional Lane, Arden to Cedar Wren (Grantee)."></textarea>
+  <div class="tools">
+    <button id="dgo" class="btn">Check this dossier</button>
+    <button id="ds1" class="btn2">Load a messy sample</button><button id="ds2" class="btn2">Load a clean sample</button>
+    <select id="dreader" aria-label="Reader"><option value="auto">Reader: automatic</option><option value="rules">Reader: offline rules</option><option value="llm">Reader: Gemini</option></select>
+    <span id="dstat" class="note"></span>
+  </div>
+  <div id="dex"></div>
+</section>
 <main>
   <div>
     <div class="card"><h2>Ownership chain <small id="asof"></small></h2><div id="graph"></div></div>
@@ -86,7 +108,7 @@ input[type=range]{width:100%;accent-color:#e6e6e6}
       <input type="range" id="slider" min="0" value="0"><div class="strip" id="strip"></div>
       <div id="tlabel" class="mut"></div></div>
     <div class="card"><h2>Does the graph help? <small>held-out benchmark · 40 cases · same model, same evidence</small></h2><div id="bench"></div></div>
-    <div class="card"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div></div>
+    <div class="card" id="racecard"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div></div>
   </div>
   <div>
     <div class="card"><h2>Verdict</h2><div id="verdict"></div><div id="findings"></div>
@@ -98,7 +120,7 @@ input[type=range]{width:100%;accent-color:#e6e6e6}
 </div>
 <script src="data.js"></script>
 <script>
-const D=window.VESTIGIUM,$=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0;
+let D=window.VESTIGIUM;const $=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0;
 const V=l=>`<span class="verdict v-${l}">${l.toUpperCase()}</span>`;
 const col={clean:'var(--ok)',defective:'var(--bad)',inconclusive:'var(--gap)'};
 function fill(){const list=D.filter(c=>c.domain===pack);
@@ -145,7 +167,7 @@ function graph(items,known){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer
   // keep the flagged transfer in view on long chains
   const fi=ts.findIndex(t=>bad.has(t.id)||gap.has(t.id)),el=$('graph'),sv=el.firstChild;
   el.scrollLeft=fi<0?0:Math.max(0,(x0+fi*(W+G)+W/2)/VW*sv.getBoundingClientRect().width-el.clientWidth/2)}
-function race(){const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b>${t}</b><div class="mut">no recorded run</div></div>`;
+function race(){$('racecard').style.display=cur.split==='pasted'?'none':'';const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b>${t}</b><div class="mut">no recorded run</div></div>`;
     const ok=r.verdict===c.label;return`<div class="arm"><b>${t}</b><div>${V(r.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+c.label}</small></div><div class="mut" style="margin-top:4px">${r.transfer?'Pointed at '+r.transfer:''}</div></div>`};
   $('race').innerHTML=cell('A','Document-only agent')+cell('C','Vestigium (graph + rule engine)')}
 function bench(){const B=window.VESTIGIUM_BENCH||[];
@@ -160,8 +182,32 @@ $('findings').onclick=e=>{const f=e.target.closest('.finding');if(f){sel=+f.data
 $('fixbtn').onclick=()=>{$('fix').innerHTML=`<div class="pass" style="border-color:var(--ok);margin-top:12px">Adding <b>${cur.fix}</b> to a throwaway copy of the graph and rerunning every check → ${V(cur.fix_verdict)}</div>`};
 $('pp').onclick=()=>{pack='property';$('pp').classList.add('on');$('pv').classList.remove('on');fill()};
 $('pv').onclick=()=>{pack='vehicle';$('pv').classList.add('on');$('pp').classList.remove('on');fill()};
+
+// ---- paste a dossier (needs `uv run python -m vestigium.serve`; falls back with a note on static hosting)
+let SERVER=false;fetch('/api/ping').then(r=>r.ok&&r.json()).then(j=>{SERVER=!!(j&&j.ok)}).catch(()=>{});
+const esc=t=>String(t??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function noServer(){$('dstat').innerHTML='<span class="warn">Live paste needs the local server:</span> <code>uv run python -m vestigium.serve</code>'}
+$('intakebtn').onclick=()=>{$('intake').hidden=!$('intake').hidden;if(!$('intake').hidden&&!SERVER)noServer()};
+async function sample(style){try{const r=await fetch(`/api/sample?case=${cur&&cur.id!=='pasted'?cur.id:'prop-014'}&style=${style}`);const j=await r.json();$('dtext').value=j.text;$('dstat').textContent=`Sample ${j.case} · ${style} wording`}catch(e){noServer()}}
+$('ds1').onclick=()=>sample('messy');$('ds2').onclick=()=>sample('clean');
+$('dgo').onclick=async()=>{const text=$('dtext').value.trim();if(!text){$('dstat').textContent='Paste a dossier first.';return}
+  $('dstat').textContent='Reading the dossier…';$('dgo').disabled=true;
+  try{const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,reader:$('dreader').value})});const c=await r.json();
+    if(c.error){$('dstat').innerHTML=`<span class="warn">${esc(c.error)}</span>`;return}
+    D=D.filter(x=>x.id!=='pasted');D.push(c);pack=c.domain;$('pp').classList.toggle('on',pack==='property');$('pv').classList.toggle('on',pack==='vehicle');
+    const list=D.filter(x=>x.domain===pack);$('pick').innerHTML=list.map(x=>`<option value="${x.id}">${x.id==='pasted'?'pasted dossier':x.id+' — '+x.kind+' ('+x.split+')'}</option>`).join('');
+    pick('pasted');
+    $('dstat').innerHTML=`Read with <b>${c.reader==='llm'?'Gemini':'offline rules'}</b>${c.tokens?` · ${c.tokens.toLocaleString()} tokens`:''}. ${(c.warnings||[]).map(w=>`<span class="warn">${esc(w)}</span>`).join(' ')}`;
+    const keys=['date','recorded','from','to','follows','signed_by_agent','authority','odometer','agent','valid_from','valid_to','holder','releases','person','died'];
+    $('dex').innerHTML=`<details><summary>What the reader extracted · ${c.extracted.length} records · check it against your documents</summary><table class="ex"><tr><th>id</th><th>type</th><th>facts</th></tr>`+
+      c.extracted.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.type)}</td><td>${keys.filter(k=>e[k]!=null&&e[k]!==false).map(k=>`${k}: ${esc(e[k])}`).join(' · ')}</td></tr>`).join('')+'</table></details>';
+    $('graph').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(e){noServer()}finally{$('dgo').disabled=false}};
 bench();
 const q=new URLSearchParams(location.search).get('case');
 const start=D.find(c=>c.id===q)||D.find(c=>c.domain==='property'&&c.label==='defective'&&c.kind==='PROP-AUTH'&&c.agents.A&&c.agents.C&&c.agents.A.verdict==='clean')||D.find(c=>c.agents.A&&c.label==='defective');
 if(start.domain==='vehicle')$('pv').click();else fill();pick(start.id);
+// deep link for recording/testing: ?intake=clean|messy opens the panel, loads a sample of the current case and checks it
+const iq=new URLSearchParams(location.search).get('intake');
+if(iq){setTimeout(async()=>{$('intake').hidden=false;await sample(iq);$('dgo').click()},600)}
 </script></body></html>

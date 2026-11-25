@@ -42,3 +42,9 @@ def test_known_as_of_replay():
     case = base(t2_by="Alice")
     db = open_graph(); load_case(db, case)
     assert run_checks(db, "A1", "2025-06-01", known="2024-02-01")["verdict"] == "clean"  # T2 not yet recorded
+
+
+def test_empty_chain_is_inconclusive_not_clean():
+    db = open_graph(); load_case(db, dict(nodes=[("Asset", dict(id="A1"))], rels=[]))
+    r = run_checks(db, "A1", "2025-06-01")
+    assert r["verdict"] == "inconclusive" and r["missing"][0]["rule"] == "NO-RECORDS"

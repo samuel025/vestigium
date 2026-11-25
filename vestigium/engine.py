@@ -27,6 +27,10 @@ def run_checks(db, asset, as_of, known=None, pack="property"):
             f = {"rule": rule_id, "text": rule["text"], "fix_type": rule.get("fix_type"), **row}
             (missing if rule["kind"] == "gap" else findings).append(f)
     order = lambda f: (len(f["transfer"]), f["transfer"], f["rule"])   # deterministic: chain order, then rule
+    if not db.execute("MATCH (:Transfer)-[:MOVES]->(:Asset {id:$asset}) RETURN count(*) AS n", params).data()[0]["n"]:
+        # nothing to check is not "clean": say what is missing instead of vouching for an empty chain
+        missing.append({"rule": "NO-RECORDS", "text": "No ownership records could be read", "fix_type": "provide_records", "transfer": "-",
+                        "detail": "No transfer of this asset was found, so no check could run", "missing": "the deeds or titles for this asset", "evidence": []})
     findings.sort(key=order); missing.sort(key=order)
     verdict = "defective" if findings else "inconclusive" if missing else "clean"
     return {"verdict": verdict, "findings": findings, "missing": missing}
