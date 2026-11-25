@@ -9,6 +9,7 @@ from .dossier import dossier
 from .generator import all_cases
 from .intake import analyze
 from .scan import scan_analyze, render_scan, TIERS
+from .graphlab import run_cypher, remove_edge, case_from_client, without
 
 DEMO = pathlib.Path(__file__).resolve().parent.parent / "demo"
 CASES = {c["id"]: c for c in all_cases()}
@@ -54,8 +55,25 @@ class H(SimpleHTTPRequestHandler):
         try: self._json(scan_analyze(files))
         except Exception as e: self._json({"error": f"The scanner is unavailable right now ({str(e)[:80]}). Try again in a minute."})
 
+    def _lab(self):
+        """The graph lab: a read-only Cypher query, or 'remove one relationship', on a throwaway copy of a case graph."""
+        n = int(self.headers.get("Content-Length", 0))
+        if n > 400_000: return self._json({"error": "graph too large"}, 413)
+        try: body = json.loads(self.rfile.read(n))
+        except Exception: return self._json({"error": "bad request"}, 400)
+        case = case_from_client(body, CASES)
+        if case is None: return self._json({"error": "unknown case"}, 400)
+        e = body.get("remove")
+        if isinstance(e, list) and len(e) == 3: case = without(case, e)        # run the query on the graph with that relationship removed
+        if urlparse(self.path).path == "/api/remove":
+            e = body.get("edge")
+            if not (isinstance(e, list) and len(e) == 3): return self._json({"error": "bad edge"}, 400)
+            return self._json(remove_edge(case_from_client(body, CASES), e))
+        self._json(run_cypher(case, str(body.get("query", ""))))
+
     def do_POST(self):
         if urlparse(self.path).path == "/api/scan": return self._scan()
+        if urlparse(self.path).path in ("/api/cypher", "/api/remove"): return self._lab()
         if urlparse(self.path).path != "/api/analyze": return self._json({"error": "not found"}, 404)
         n = int(self.headers.get("Content-Length", 0))
         if n > 200_000: return self._json({"error": "dossier too large"}, 413)

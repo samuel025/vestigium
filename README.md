@@ -86,6 +86,7 @@ Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini 
 |---|---|
 | **Verdicts with a proof trail** | verdict → rule id → graph path → evidence → exact passage, in the UI and over MCP |
 | **Minimal proof** | the smallest set of records a finding rests on (1.8 of a 10.3-record dossier on average) |
+| **The graph itself** | the real nodes and relationships, a Cypher console with the exact rule queries (and your own, read-only), a chain walk, and *remove a relationship* to watch the verdict change |
 | **Two-date replay** | slide the *known-as-of* date and watch the verdict change, e.g. clean until a late-recorded deed arrives |
 | **What would fix it** | copy the graph, add a hypothetical record (a release, a ratifying authority, a missing link), rerun every check |
 | **Honest "inconclusive"** | a missing record is named, never guessed |
@@ -93,6 +94,14 @@ Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini 
 | **Scanned documents** | PDFs and photos, with per-record confidence carried into the verdict |
 | **Replay the investigation** | real agent transcripts, tool call by tool call, with every citation checked against the store |
 | **MCP server** | any MCP client can send records and get a verdict, rule ids and exact cited text |
+
+### The graph, live
+
+![The graph lab: nodes and relationships, the Cypher behind each rule, and a removed relationship](docs/img/graph-lab.png)
+
+The app shows the case as the graph Relate actually holds. Click any transfer, party or line to inspect it; **Walk the chain** traverses `FOLLOWS` from the newest transfer back to the root, checking each link and each signing authority. Every rule has a tab with its exact Cypher and the rows it returns on this case; click a row to light up the nodes it matched. You can edit a query and run your own (read-only, on a throwaway in-memory copy; needs `uv run python -m vestigium.serve`).
+
+The strongest demo: select a `FOLLOWS`, `ACTED_UNDER` or `CLEARED_BY` line and **remove it**. On a clean chain, dropping one `FOLLOWS` makes `PROP-GAP` fire and the verdict turns *inconclusive*; on `prop-014`, dropping the authority link replaces the `PROP-AUTH` defect with `PROP-AUTH-MISSING`. The engine reports what is now missing instead of guessing. Outcomes for every removable relationship of all 80 cases are precomputed, so this works on static hosting too. Deep links: `app.html?case=prop-014&remove=T5>ACTED_UNDER>AU1`, `&walk=1`, `&graph=1`, `&tab=rule:PROP-GAP`.
 
 ![Replaying an agent investigation next to a documents-only agent](docs/img/app-replay.png)
 
@@ -221,6 +230,7 @@ vestigium/intake.py       paste a dossier -> verdict   vestigium/scan.py        
 vestigium/mcp_server.py   MCP tools                    vestigium/serve.py        local server: UI + paste + upload
 vestigium/arms.py         benchmark arms A-D           vestigium/bench.py        scoring + report (resumable)
 vestigium/intake_bench.py extraction benchmark         vestigium/scan_bench.py   scan benchmark (resumable)
+vestigium/graphlab.py     read-only Cypher, remove-a-relationship experiments
 vestigium/llm.py          Gemini wrapper: key rotation, pacing, tool loop, vision
 demo/index.html           overview / landing page      demo/app.html             the app
 demo/data.js, bench.js    exported data                vestigium.rl              persistent Relate store

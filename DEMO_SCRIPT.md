@@ -68,3 +68,10 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 - Arm B has three repeats but is noisy (47.5%–62.5%); say "about the same as documents only", not an exact number.
 - A fallback case if `prop-014` misbehaves: `prop-059` (an unreleased lien, T10; the fix button shows the release).
 - The benchmark card is on the page (below the replay strip), so the whole demo stays in one tab.
+
+
+---
+
+### Optional beat (15–20 s): show Relate working
+
+*Use `app.html?case=prop-014&graph=1`.* Say: "This is the graph itself, in Relate. The rule is plain Cypher." Click the **PROP-AUTH** tab (query and one row appear, T5 lights up with its authority node). Click **Walk the chain** (each link is checked back to the root). Then click **Break a link in the graph**: the authority relationship is removed, `PROP-AUTH` disappears, `PROP-AUTH-MISSING` appears and the verdict turns INCONCLUSIVE. "Take away a relationship and the engine tells you what is missing, instead of guessing." Deep link: `app.html?case=prop-014&remove=T5>ACTED_UNDER>AU1`.

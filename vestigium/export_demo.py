@@ -4,6 +4,7 @@ from .generator import all_cases, documents
 from .engine import run_checks, timeline
 from .whatif import build, would_fix
 from .proof import proofs
+from .graphlab import experiments, preset_rows, rules_info, PRESETS
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -84,8 +85,8 @@ def export():
             title=f"{c['domain'].title()} · {c['kind']} · {c['n_transfers']} transfers",
             nodes=[dict(label=l, **p) for l, p in c["nodes"]], rels=c["rels"],
             result=r, timeline=tl, proof=[dict(rule=x['rule'], transfer=x['transfer'], passages=x.get('passages', []), records_total=x.get('records_total', 0)) for x in proofs(c, r)], fix=(c["key"]["fix"] or {}).get("describe"), fix_verdict=fixv,
-            documents=documents(c), agents=rec.get(c["id"], {})))
-    (ROOT / "demo" / "data.js").write_text("window.VESTIGIUM = " + json.dumps(cases, default=str) + ";\nwindow.VESTIGIUM_BENCH = " + json.dumps(bench_summary()) + ";\nwindow.VESTIGIUM_TRACES = " + json.dumps(traces()) + ";")
+            documents=documents(c), agents=rec.get(c["id"], {}), rm=experiments(c), presets=preset_rows(c), asset=c["asset"]))
+    (ROOT / "demo" / "data.js").write_text("window.VESTIGIUM = " + json.dumps(cases, default=str) + ";\nwindow.VESTIGIUM_BENCH = " + json.dumps(bench_summary()) + ";\nwindow.VESTIGIUM_LAB = " + json.dumps(dict(rules={p: rules_info(p) for p in ("property", "vehicle")}, presets={k: dict(title=v["title"], text=v["text"], cypher=v["cypher"].strip()) for k, v in PRESETS.items()})) + ";\nwindow.VESTIGIUM_TRACES = " + json.dumps(traces()) + ";")
     (ROOT / "demo" / "bench.js").write_text("window.VBENCH = " + json.dumps(landing_data(cases)) + ";")
     print(f"exported {len(cases)} cases, {sum(1 for c in cases if c['agents'])} with recorded agent runs")
 
