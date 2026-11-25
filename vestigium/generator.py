@@ -27,6 +27,10 @@ def _chain(rng, n):
     return dict(nodes=nodes, rels=rels, parties=parties, ts=ts, n=n)
 
 
+def _latest_recorded(c):
+    return max(date.fromisoformat(p["recorded"]) for lab, p in c["nodes"] if lab == "Transfer")
+
+
 def _node(c, id_):
     return next(p for _, p in c["nodes"] if p.get("id") == id_)
 
@@ -145,6 +149,7 @@ def make_case(i, rng, kind):
     if c.get("distractors_extra"):
         c["distractors"].append(dict(id="XA", doc="summary", text=c.pop("distractors_extra")))
     last = date.fromisoformat(c["ts"][-1]["effective"]) + timedelta(days=60)
+    last = max(last, _latest_recorded(c) + timedelta(days=1))   # judge with full knowledge: nothing recorded after as_of
     return dict(id=f"prop-{i:03d}", domain="property", pack="property", kind=kind, label=label, adversarial=adversarial,
                 hard=kind == "PROP-AUTH" or adversarial, asset="A1", as_of=iso(last), n_transfers=n,
                 key=key, nodes=c["nodes"], rels=c["rels"], distractors=c["distractors"])
@@ -236,6 +241,7 @@ def make_vcase(i, rng, kind):
         key["fix"] = dict(nodes=[], rels=[], set=[(f"T{k}", "odometer", prev["odometer"] + 5000)], describe=key["missing"])
     dist = [dict(id=f"X{j}", doc=f"misc-{j}", text=rng.choice(["Emissions inspection passed.", "Registration renewal receipt.", "Insurance card copy.", "Service record: oil change."])) for j in range(rng.randint(2, 3))]
     last = date.fromisoformat(_node(c, f"T{n}")["effective"]) + timedelta(days=45)
+    last = max(last, _latest_recorded(c) + timedelta(days=1))
     return dict(id=f"veh-{i:03d}", domain="vehicle", pack="vehicle", kind=kind, label=label, adversarial=False, hard=False, asset="V1",
                 as_of=iso(last), n_transfers=n, key=key, nodes=c["nodes"], rels=c["rels"], distractors=dist, split="heldout")
 

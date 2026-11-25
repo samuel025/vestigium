@@ -25,7 +25,9 @@ RETURN t.id AS transfer, 'No record links this transfer to a previous owner' AS 
 MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (t2:Transfer)-[:MOVES]->(:Asset {{id:$asset}}),
       (g:Party)-[:FROM]->(t), (g)-[:FROM]->(t2)
 WHERE {VIS} AND t2.effective <= date($as_of) AND t2.recorded <= date($known)
-  AND t.id < t2.id AND NOT (t2)-[:FOLLOWS*]->(t)
+  AND (t.effective < t2.effective OR (t.effective = t2.effective AND (t.recorded < t2.recorded
+       OR (t.recorded = t2.recorded AND t.id < t2.id))))   // the LATER conveyance is the duplicate; id only breaks exact ties
+  AND NOT (t2)-[:FOLLOWS*]->(t)
 RETURN t2.id AS transfer, g.name + ' conveyed the asset in both ' + t.id + ' and ' + t2.id AS detail,
        [(t2)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 
