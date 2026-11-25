@@ -1,7 +1,7 @@
 # Demo video script — 2 minutes
 
 **Setup before recording:** `cd demo && python3 -m http.server 8000`, then open `http://127.0.0.1:8000/index.html?case=prop-014`.
-Browser at about 1400 px wide, dark or light theme either way. Case `prop-014` is a synthetic 5-transfer property chain. The seller of T5 signed as an agent on 2019-05-01, but the power of attorney ended 2019-01-17.
+Browser at about 1400 px wide (the page is dark-only now, so there is no theme to match). Case `prop-014` is a synthetic 5-transfer property chain. The seller of T5 signed as an agent on 2019-05-01, but the power of attorney ended 2019-01-17.
 A planted "title is clear and free of encumbrances" summary sits in the dossier to mislead.
 
 Speaking pace is about 140 words a minute; the narration below is about 270 words.
@@ -13,7 +13,7 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 > "Before you buy a property, someone has to be sure the seller could really sell. Defects hide *between* records:
 > a signature under a power of attorney that had expired, a lien nobody released. Vestigium finds them, and shows the proof."
 
-*On screen: the five transfer boxes joined by arrows, and the claims-and-authority chip underneath.*
+*On screen: the transfer boxes joined by arrows, with T5 glowing red in the middle, and the claims-and-authority chip underneath.*
 
 ### 0:15–0:35 — The race (scroll or point to the Race panel)
 

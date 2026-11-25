@@ -2,53 +2,100 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vestigium — ownership evidence, checked</title>
 <style>
-:root{--bg:#0f1318;--panel:#171d25;--line:#2a3340;--tx:#e6ebf2;--mut:#8b97a8;--ok:#3fb27f;--bad:#e5564d;--gap:#e0a73a;--acc:#6aa8ff}
-@media(prefers-color-scheme:light){:root{--bg:#f5f7fa;--panel:#fff;--line:#d8dee8;--tx:#18202c;--mut:#5d6b7f;--ok:#14804f;--bad:#c93a31;--gap:#a8730a;--acc:#1d5fd1}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,sans-serif}
-header{display:flex;gap:12px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-h1{font-size:17px;margin:0 8px 0 0}h1 span{color:var(--mut);font-weight:400;font-size:13px}
-select,button{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit}
-button{cursor:pointer}button:hover{border-color:var(--acc)}button.on{border-color:var(--acc);color:var(--acc)}
-main{display:grid;grid-template-columns:1fr 360px;gap:14px;padding:14px 18px}
-main>div{min-width:0}
+/* Design notes (adapted from a Raycast-style dark system, tuned for an evidence tool):
+   - Colour is rationed so it MEANS something: coral = a defect / broken link, amber = a gap, green = clean.
+     Everything else is neutral grey, so the one red box in the chain is the first thing the eye finds.
+   - Dark only: one theme means one thing to record, and red/amber/green read the same everywhere.
+   - Cards are defined by hairlines + a soft inset highlight (no drop shadows), so dense panels stay quiet. */
+:root{color-scheme:dark;
+ --bg:#040506;--panel:#07080a;--well:#111214;--chip:#1b1c1e;
+ --line:#26272a;--edge:#363739;
+ --tx:#e6e6e6;--hi:#ffffff;--mut:#9c9c9d;--dim:#6a6b6c;
+ --ok:#59d499;--bad:#ff6363;--gap:#e8b04a;--acc:#e6e6e6;
+ --mono:'Geist Mono','JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 var(--sans);font-feature-settings:'calt','kern','liga','ss03';
+ background-image:radial-gradient(ellipse 70% 38% at 50% -8%,rgba(4,63,150,.28),transparent 70%);background-repeat:no-repeat}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 28px}
+/* floating glass bar */
+header{position:sticky;top:12px;z-index:5;margin:12px 0 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+ padding:8px 14px;border:1px solid var(--edge);border-radius:12px;background:rgba(7,8,10,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px;color:var(--hi);letter-spacing:.01em}
+.eyebrow{font:500 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.sp{flex:1}
+.seg{display:flex;gap:2px;padding:3px;border-radius:9999px;background:var(--well);box-shadow:0 0 0 1px var(--line)}
+select,button{font:inherit;color:var(--tx)}
+.seg button{background:none;border:0;border-radius:9999px;padding:4px 14px;color:var(--mut);cursor:pointer;font-weight:500;font-size:13px}
+.seg button:hover{color:var(--hi)}.seg button.on{background:var(--chip);color:var(--hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+select{background:rgba(255,255,255,.05);border:0;box-shadow:0 0 0 1px var(--line);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:12px}
+select:hover{box-shadow:0 0 0 1px var(--edge)}
+/* neutral filled action: the only "button" look, never a chromatic CTA */
+.btn{background:#e6e6e6;color:#2a2b2c;border:0;border-radius:8px;padding:7px 12px;font-weight:500;font-size:13px;cursor:pointer;
+ box-shadow:rgba(0,0,0,.25) 0 4px 4px,inset 0 1px 0 rgba(255,255,255,.6)}
+.btn:hover{background:#fff}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+main{display:grid;grid-template-columns:1fr 380px;gap:16px}
+main>div{min-width:0}main>div>.card+.card{margin-top:16px}
 @media(max-width:1000px){main{grid-template-columns:1fr}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0 0 8px}
-.verdict{display:inline-block;padding:3px 10px;border-radius:99px;font-weight:600;font-size:13px}
-.v-clean{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
-.v-defective{background:color-mix(in srgb,var(--bad) 20%,transparent);color:var(--bad)}
-.v-inconclusive{background:color-mix(in srgb,var(--gap) 20%,transparent);color:var(--gap)}
-#graph{overflow-x:auto}svg text{font:12px system-ui,sans-serif;fill:var(--tx)}svg .m{fill:var(--mut)}
-.finding{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;cursor:pointer}
-.finding:hover,.finding.sel{border-color:var(--acc)}.rule{font:600 12px ui-monospace,monospace}
-.pass{border-left:3px solid var(--acc);padding:4px 8px;margin:6px 0;color:var(--mut);font-size:13px}
-.strip{display:flex;gap:2px;margin:8px 0}.strip i{flex:1;height:14px;border-radius:2px;opacity:.9}
-.strip i.cur{outline:2px solid var(--tx);outline-offset:1px}
-input[type=range]{width:100%}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.arm{border:1px solid var(--line);border-radius:8px;padding:8px 10px}.arm b{font-size:12px;color:var(--mut)}
-.mut{color:var(--mut)}small{color:var(--mut)}code{font:12px ui-monospace,monospace}
-</style></head><body>
+.card{background:var(--panel);border-radius:16px;padding:20px 22px;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -1px 0 rgba(0,0,0,.2),0 0 0 1px var(--line)}
+.card h2{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 14px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.card h2 small{font:400 11px/1.3 var(--sans);letter-spacing:0;text-transform:none;color:var(--dim)}
+/* verdict is the headline of the page: large, one word */
+.verdict{display:inline-block;padding:2px 10px;border-radius:9999px;font:600 12px/1.6 var(--mono);letter-spacing:.06em}
+#verdict .verdict{font-size:20px;padding:6px 18px;letter-spacing:.08em}
+.v-clean{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 35%,transparent)}
+.v-defective{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);box-shadow:0 0 0 1px color-mix(in srgb,var(--bad) 40%,transparent)}
+.v-inconclusive{background:color-mix(in srgb,var(--gap) 14%,transparent);color:var(--gap);box-shadow:0 0 0 1px color-mix(in srgb,var(--gap) 35%,transparent)}
+#graph{overflow-x:auto;padding-bottom:4px}
+svg text{font:12px var(--sans);fill:var(--tx)}svg .m{fill:var(--mut)}svg .mono{font-family:var(--mono);font-size:11px}
+.finding{border-radius:10px;padding:10px 12px;margin:8px 0;cursor:pointer;background:var(--well);box-shadow:0 0 0 1px var(--line);transition:box-shadow .15s}
+.finding:hover{box-shadow:0 0 0 1px var(--edge)}.finding.sel{box-shadow:0 0 0 1px var(--hi)}
+.rule{font:600 12px var(--mono);letter-spacing:.03em;margin-bottom:2px}
+.pass{border-left:2px solid var(--edge);padding:6px 10px;margin:8px 0;color:var(--mut);font-size:13px;background:rgba(255,255,255,.02);border-radius:0 8px 8px 0}
+.pass code{color:var(--hi)}
+.strip{display:flex;gap:3px;margin:12px 0 8px}.strip i{flex:1;height:16px;border-radius:3px;opacity:.85;cursor:pointer;transition:opacity .15s}
+.strip i:hover{opacity:1}.strip i.cur{opacity:1;outline:2px solid var(--hi);outline-offset:2px}
+input[type=range]{width:100%;accent-color:#e6e6e6}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.arm{background:var(--well);border-radius:12px;padding:12px 14px;box-shadow:0 0 0 1px var(--line)}
+.arm b{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:6px}
+.mut{color:var(--mut)}small{color:var(--mut)}code{font:12px var(--mono)}
+/* benchmark rows */
+.bh,.br{display:grid;grid-template-columns:170px 1fr 1fr;gap:6px 18px;align-items:center}
+.bh{font-size:11px;color:var(--dim);margin-bottom:6px}.br{margin:12px 0}
+.bar{display:flex;align-items:center;gap:10px}
+.track{flex:1;height:8px;border-radius:9999px;background:var(--well);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.track i{display:block;height:100%;border-radius:9999px}
+.bar span{font:500 12px var(--mono);width:44px;text-align:right;color:var(--hi)}
+.foot{margin-top:20px;text-align:center;font:400 11px var(--mono);color:var(--dim);letter-spacing:.02em}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body><div class="wrap">
 <header>
-  <h1>Vestigium <span>evidence-backed ownership investigation · synthetic data, not legal advice</span></h1>
-  <span class="mut">Pack</span>
-  <button id="pp" class="on">Property</button><button id="pv">Vehicle</button>
-  <select id="pick"></select>
+  <div class="brand"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><rect x="13.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><path d="M9.6 14.2L12.4 7.8" stroke="#ff6363" stroke-width="1.8" stroke-linecap="round"/></svg>Vestigium</div>
+  <span class="eyebrow">Ownership evidence, checked · synthetic data · not legal advice</span>
+  <span class="sp"></span>
+  <div class="seg"><button id="pp" class="on">Property</button><button id="pv">Vehicle</button></div>
+  <select id="pick" aria-label="Case"></select>
 </header>
 <main>
   <div>
     <div class="card"><h2>Ownership chain <small id="asof"></small></h2><div id="graph"></div></div>
-    <div class="card" style="margin-top:14px"><h2>Replay: what we knew on…</h2>
+    <div class="card"><h2>Replay: what we knew on…</h2>
       <input type="range" id="slider" min="0" value="0"><div class="strip" id="strip"></div>
       <div id="tlabel" class="mut"></div></div>
-    <div class="card" style="margin-top:14px"><h2>Does the graph help? <small>held-out benchmark · 40 cases · same model, same evidence</small></h2><div id="bench"></div></div>
-    <div class="card" style="margin-top:14px"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div></div>
+    <div class="card"><h2>Does the graph help? <small>held-out benchmark · 40 cases · same model, same evidence</small></h2><div id="bench"></div></div>
+    <div class="card"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div></div>
   </div>
   <div>
     <div class="card"><h2>Verdict</h2><div id="verdict"></div><div id="findings"></div>
-      <button id="fixbtn" style="margin-top:8px;display:none">What would fix it?</button><div id="fix"></div></div>
-    <div class="card" style="margin-top:14px"><h2>Evidence</h2><div id="evidence" class="mut">Click a finding to see the exact document passage.</div></div>
+      <button id="fixbtn" class="btn" style="margin-top:10px;display:none">What would fix it?</button><div id="fix"></div></div>
+    <div class="card"><h2>Evidence</h2><div id="evidence" class="mut">Click a finding to see the exact document passage.</div></div>
   </div>
 </main>
+<div class="foot">synthetic data | 80 cases, 40 held out | rules decide, the agent explains | Relate (relate-db 1.2.0) | gemini-3.5-flash-lite</div>
+</div>
 <script src="data.js"></script>
 <script>
 const D=window.VESTIGIUM,$=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0;
@@ -78,37 +125,39 @@ function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1];
 function graph(items,known){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer').sort((a,b)=>{const k=t=>/^T\d+$/.test(t.id)?+t.id.slice(1):1e3;return k(a)-k(b)||(a.id<b.id?-1:1)});
   const bad=new Set(items.filter(i=>i.t==='defect').map(i=>i.transfer)),gap=new Set(items.filter(i=>i.t==='gap').map(i=>i.transfer));
   const name=(t,r,dir)=>{const rel=c.rels.find(x=>dir==='from'?(x[1]==='FROM'&&x[2]===t):(x[0]===t&&x[1]==='TO'));const p=rel&&byId(c,dir==='from'?rel[0]:rel[2]);return p?p.name:'?'};
-  const W=150,G=46,H=84,x0=10,y0=26;let s=`<svg width="${x0*2+ts.length*(W+G)}" height="190">`;
+  const W=150,G=46,H=84,x0=10,y0=26;const VW=x0*2+ts.length*(W+G);let s=`<svg viewBox="0 0 ${VW} 190" style="width:100%;min-width:${ts.length*172}px;height:auto;display:block">`;
   ts.forEach((t,i)=>{const x=x0+i*(W+G),seen=t.recorded<=known,isB=bad.has(t.id),isG=gap.has(t.id);
-    const stroke=isB?'var(--bad)':isG?'var(--gap)':'var(--line)';
-    s+=`<g opacity="${seen?1:.25}"><rect x="${x}" y="${y0}" width="${W}" height="${H}" rx="8" fill="var(--panel)" stroke="${stroke}" stroke-width="${isB||isG?2.5:1}"/>
-      <text x="${x+8}" y="${y0+17}" style="font-weight:600">${t.id} <tspan class="m">${t.effective}</tspan></text>
-      <text x="${x+8}" y="${y0+38}" class="m">from</text><text x="${x+38}" y="${y0+38}">${name(t.id,0,'from')}</text>
-      <text x="${x+8}" y="${y0+56}" class="m">to</text><text x="${x+38}" y="${y0+56}">${name(t.id,0,'to')}</text>
-      ${t.odometer!==undefined?`<text x="${x+8}" y="${y0+74}" class="m">odo ${t.odometer}</text>`:(c.domain==='vehicle'?`<text x="${x+8}" y="${y0+74}" class="m">odo —</text>`:'')}</g>`;
+    const stroke=isB?'var(--bad)':isG?'var(--gap)':'var(--edge)',glow=isB?'filter:drop-shadow(0 0 10px rgba(255,99,99,.4))':isG?'filter:drop-shadow(0 0 8px rgba(232,176,74,.3))':'';
+    s+=`<g opacity="${seen?1:.25}" style="${glow}"><rect x="${x}" y="${y0}" width="${W}" height="${H}" rx="12" fill="var(--well)" stroke="${stroke}" stroke-width="${isB||isG?2:1}"/>
+      <text x="${x+10}" y="${y0+18}" style="font-weight:600;fill:var(--hi)">${t.id} <tspan class="m mono" style="font-weight:400">${t.effective}</tspan></text>
+      <text x="${x+10}" y="${y0+40}" class="m">from</text><text x="${x+42}" y="${y0+40}">${name(t.id,0,'from')}</text>
+      <text x="${x+10}" y="${y0+58}" class="m">to</text><text x="${x+42}" y="${y0+58}">${name(t.id,0,'to')}</text>
+      ${t.odometer!==undefined?`<text x="${x+10}" y="${y0+76}" class="m mono">odo ${t.odometer}</text>`:(c.domain==='vehicle'?`<text x="${x+10}" y="${y0+76}" class="m mono">odo —</text>`:'')}</g>`;
     if(i>0){const f=c.rels.some(r=>r[0]===t.id&&r[1]==='FOLLOWS'),px=x-G;
-      s+=f?`<path d="M${px+6} ${y0+H/2}H${x-4}" stroke="var(--mut)" stroke-width="1.5" marker-end="url(#a)"/>`
-        :`<path d="M${px+6} ${y0+H/2}H${x-4}" stroke="var(--gap)" stroke-width="2" stroke-dasharray="4 4"/><text x="${px-2}" y="${y0-8}" style="fill:var(--gap)">gap</text>`}});
+      s+=f?`<path d="M${px+6} ${y0+H/2}H${x-4}" stroke="var(--dim)" stroke-width="1.5" marker-end="url(#a)"/>`
+        :`<path d="M${px+6} ${y0+H/2}H${x-4}" stroke="var(--gap)" stroke-width="2" stroke-dasharray="4 4"/><text class="mono" x="${px-2}" y="${y0-8}" style="fill:var(--gap)">gap</text>`}});
   // claims & authority chips
   let cx=x0;const chips=c.nodes.filter(n=>['Claim','Authority'].includes(n.label));
   chips.forEach(n=>{const txt=n.label==='Claim'?`${n.kind}: ${n.holder}`:`authority: ${n.agent} (${n.valid_from}→${n.valid_to||'open'})`;
-    const w=txt.length*6.4+16;s+=`<rect x="${cx}" y="${y0+H+26}" width="${w}" height="24" rx="12" fill="none" stroke="var(--mut)"/><text x="${cx+8}" y="${y0+H+42}">${txt}</text>`;cx+=w+8});
-  s+=`<defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="var(--mut)"/></marker></defs></svg>`;
-  $('graph').innerHTML=s}
+    const w=txt.length*6.6+20;s+=`<rect x="${cx}" y="${y0+H+26}" width="${w}" height="24" rx="12" fill="var(--chip)" stroke="var(--edge)"/><text class="mono" x="${cx+10}" y="${y0+H+42}" style="fill:var(--mut)">${txt}</text>`;cx+=w+8});
+  s+=`<defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="var(--dim)"/></marker></defs></svg>`;
+  $('graph').innerHTML=s;
+  // keep the flagged transfer in view on long chains
+  const fi=ts.findIndex(t=>bad.has(t.id)||gap.has(t.id)),el=$('graph'),sv=el.firstChild;
+  el.scrollLeft=fi<0?0:Math.max(0,(x0+fi*(W+G)+W/2)/VW*sv.getBoundingClientRect().width-el.clientWidth/2)}
 function race(){const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b>${t}</b><div class="mut">no recorded run</div></div>`;
     const ok=r.verdict===c.label;return`<div class="arm"><b>${t}</b><div>${V(r.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+c.label}</small></div><div class="mut" style="margin-top:4px">${r.transfer?'Pointed at '+r.transfer:''}</div></div>`};
   $('race').innerHTML=cell('A','Document-only agent')+cell('C','Vestigium (graph + rule engine)')}
 function bench(){const B=window.VESTIGIUM_BENCH||[];
-  $('bench').innerHTML=`<div class="mut" style="display:grid;grid-template-columns:150px 1fr 1fr;gap:6px 12px;font-size:12px"><span></span><span>Accuracy (higher is better)</span><span>Defective chains called clean (lower is better)</span></div>`+
-  B.map(b=>`<div style="display:grid;grid-template-columns:150px 1fr 1fr;gap:6px 12px;align-items:center;margin:6px 0"><div><b>${b.arm}</b> <span class="mut">${b.name}</span><br><small>${b.repeats} repeat${b.repeats>1?'s':''} · ${b.tokens.toLocaleString()} tokens/case</small></div>
-   <div style="background:var(--line);border-radius:4px;height:20px;position:relative"><div style="width:${b.acc}%;background:${b.acc>90?'var(--ok)':'var(--acc)'};height:100%;border-radius:4px"></div><span style="position:absolute;left:8px;top:1px;font-size:12px;${b.acc<15?"color:var(--tx)":"color:#fff;text-shadow:0 0 3px #000"}">${b.acc}%</span></div>
-   <div style="background:var(--line);border-radius:4px;height:20px;position:relative"><div style="width:${b.false_clean}%;background:var(--bad);height:100%;border-radius:4px"></div><span style="position:absolute;left:8px;top:1px;font-size:12px;${b.false_clean<15?"color:var(--tx)":"color:#fff;text-shadow:0 0 3px #000"}">${b.false_clean}%</span></div></div>`).join('')+
-  `<div class="mut" style="font-size:12px;margin-top:6px">All arms have 3 repeats; B swings from 47.5% to 62.5% between them. The rules and the cases were written together, so D is the ceiling of the rules, not a real-world claim.</div>`}
+  const bar=(v,c)=>`<div class="bar"><div class="track"><i style="width:${Math.max(v,0.8)}%;background:${c}"></i></div><span>${v}%</span></div>`;
+  $('bench').innerHTML=`<div class="bh"><span></span><span>Accuracy (higher is better)</span><span>Defective chains called clean (lower is better)</span></div>`+
+  B.map(b=>`<div class="br"><div><b style="color:var(--hi)">${b.arm}</b> <span class="mut">${b.name}</span><br><small>${b.repeats} repeat${b.repeats>1?'s':''} · ${b.tokens.toLocaleString()} tokens/case</small></div>${bar(b.acc,b.acc>90?'var(--ok)':'#9c9c9d')}${bar(b.false_clean,'var(--bad)')}</div>`).join('')+
+  `<div class="mut" style="font-size:12px;margin-top:10px">All arms have 3 repeats; B swings from 47.5% to 62.5% between them. The rules and the cases were written together, so D is the ceiling of the rules, not a real-world claim.</div>`}
 $('pick').onchange=e=>pick(e.target.value);
 $('slider').oninput=e=>{step=+e.target.value;render()};
 $('strip').onclick=e=>{if(e.target.dataset.i){step=+e.target.dataset.i;$('slider').value=step;render()}};
 $('findings').onclick=e=>{const f=e.target.closest('.finding');if(f){sel=+f.dataset.i;render()}};
-$('fixbtn').onclick=()=>{$('fix').innerHTML=`<div class="pass" style="border-color:var(--ok)">Adding <b>${cur.fix}</b> to a throwaway copy of the graph and rerunning every check → ${V(cur.fix_verdict)}</div>`};
+$('fixbtn').onclick=()=>{$('fix').innerHTML=`<div class="pass" style="border-color:var(--ok);margin-top:12px">Adding <b>${cur.fix}</b> to a throwaway copy of the graph and rerunning every check → ${V(cur.fix_verdict)}</div>`};
 $('pp').onclick=()=>{pack='property';$('pp').classList.add('on');$('pv').classList.remove('on');fill()};
 $('pv').onclick=()=>{pack='vehicle';$('pv').classList.add('on');$('pp').classList.remove('on');fill()};
 bench();
