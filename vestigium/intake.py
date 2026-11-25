@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from .engine import run_checks
 from .extract import read_rules, read_llm, assemble
 from .whatif import build
+from .proof import proofs
 
 iso = lambda d: d.isoformat()
 
@@ -83,11 +84,12 @@ def package(case, ir=None, text="", used="", stats=None, fix=None):
     dates = sorted({p["recorded"] for p in transfers if p.get("recorded")} | {case["as_of"]})
     tl = [(d, run_checks(build(case), case["asset"], case["as_of"], known=d, pack=case["pack"])["verdict"]) for d in dates]
     fx = fix if fix is not None else (_auto_fix(case, res) if res["verdict"] != "clean" else None)
+    pf = [dict(rule=x["rule"], transfer=x["transfer"], passages=x.get("passages", []), records_total=x.get("records_total", 0)) for x in proofs(case, res)]
     passages = {p["id"]: p.get("text", "") for l, p in case["nodes"] if l == "Passage"}
     cited = {e for f in res["findings"] + res["missing"] for e in f.get("evidence", [])}
     return dict(id=case.get("id", "pasted"), domain=case["pack"], label=None, split="pasted", as_of=case["as_of"], kind="pasted dossier",
                 title=f"{case['pack'].title()} · pasted dossier · {len(transfers)} transfers",
-                nodes=[dict(label=l, **p) for l, p in case["nodes"]], rels=case["rels"], result=res, timeline=tl,
+                nodes=[dict(label=l, **p) for l, p in case["nodes"]], rels=case["rels"], result=res, timeline=tl, proof=pf,
                 fix=fx and fx["describe"], fix_verdict=fx and fx["verdict"], documents=text, agents={},
                 reader=used, tokens=stats.get("tokens", 0), warnings=warnings, evidence_text={e: passages.get(e, "") for e in sorted(cited)},
                 extracted=[{k: v for k, v in r.items() if k != "text"} for r in (ir or {}).get("records", []) if r.get("type") != "other"])

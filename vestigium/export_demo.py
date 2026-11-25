@@ -3,6 +3,7 @@ import json, pathlib
 from .generator import all_cases, documents
 from .engine import run_checks, timeline
 from .whatif import build, would_fix
+from .proof import proofs
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -50,7 +51,7 @@ def export():
             id=c["id"], domain=c["domain"], label=c["label"], split=c["split"], as_of=c["as_of"], kind=c["kind"],
             title=f"{c['domain'].title()} · {c['kind']} · {c['n_transfers']} transfers",
             nodes=[dict(label=l, **p) for l, p in c["nodes"]], rels=c["rels"],
-            result=r, timeline=tl, fix=(c["key"]["fix"] or {}).get("describe"), fix_verdict=fixv,
+            result=r, timeline=tl, proof=[dict(rule=x['rule'], transfer=x['transfer'], passages=x.get('passages', []), records_total=x.get('records_total', 0)) for x in proofs(c, r)], fix=(c["key"]["fix"] or {}).get("describe"), fix_verdict=fixv,
             documents=documents(c), agents=rec.get(c["id"], {})))
     (ROOT / "demo" / "data.js").write_text("window.VESTIGIUM = " + json.dumps(cases, default=str) + ";\nwindow.VESTIGIUM_BENCH = " + json.dumps(bench_summary()) + ";")
     print(f"exported {len(cases)} cases, {sum(1 for c in cases if c['agents'])} with recorded agent runs")

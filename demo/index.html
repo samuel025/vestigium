@@ -55,6 +55,7 @@ svg text{font:12px var(--sans);fill:var(--tx)}svg .m{fill:var(--mut)}svg .mono{f
 .rule{font:600 12px var(--mono);letter-spacing:.03em;margin-bottom:2px}
 .pass{border-left:2px solid var(--edge);padding:6px 10px;margin:8px 0;color:var(--mut);font-size:13px;background:rgba(255,255,255,.02);border-radius:0 8px 8px 0}
 .pass code{color:var(--hi)}
+.proofnote{margin:8px 0;padding:8px 10px;border-radius:10px;background:var(--well);box-shadow:0 0 0 1px var(--line);color:var(--tx);font-size:13px}.proofnote b{color:var(--hi)}
 .strip{display:flex;gap:3px;margin:12px 0 8px}.strip i{flex:1;height:16px;border-radius:3px;opacity:.85;cursor:pointer;transition:opacity .15s}
 .strip i:hover{opacity:1}.strip i.cur{opacity:1;outline:2px solid var(--hi);outline-offset:2px}
 input[type=range]{width:100%;accent-color:#e6e6e6}
@@ -141,7 +142,7 @@ function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1];
   $('findings').innerHTML=items.map((f,i)=>`<div class="finding ${sel===i?'sel':''}" data-i="${i}"><div class="rule" style="color:${f.t==='gap'?'var(--gap)':'var(--bad)'}">${f.rule} · ${f.transfer}</div>${f.detail}${f.missing?`<div class="mut">Missing: ${f.missing}</div>`:''}</div>`).join('')||(full?'<div class="mut" style="margin-top:6px">Every transfer links to the one before; no check finds a defect.</div>':'');
   $('fixbtn').style.display=full&&c.fix?'':'none';$('fix').innerHTML='';
   // evidence
-  if(sel!==null&&items[sel]){const f=items[sel];$('evidence').innerHTML=`<div><code>${f.rule}</code> at <code>${f.transfer}</code></div>`+[...new Set(f.evidence)].map(p=>{const n=byId(c,p);return n?`<div class="pass"><code>${p}</code> ${n.text}</div>`:''}).join('')}
+  if(sel!==null&&items[sel]){const f=items[sel],pr=(c.proof||[])[sel],np=pr&&pr.records_total?`<div class="proofnote">Minimal proof: this finding rests on <b>${pr.passages.length} of ${pr.records_total}</b> records. The other ${pr.records_total-pr.passages.length} could be deleted without changing it.</div>`:'';$('evidence').innerHTML=`<div><code>${f.rule}</code> at <code>${f.transfer}</code></div>`+np+[...new Set(f.evidence)].map(p=>{const n=byId(c,p);return n?`<div class="pass"><code>${p}</code> ${n.text}</div>`:''}).join('')}
   else $('evidence').textContent='Click a finding to see the exact document passage.';
   graph(items,known);race()}
 function graph(items,known){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer').sort((a,b)=>{const k=t=>/^T\d+$/.test(t.id)?+t.id.slice(1):1e3;return k(a)-k(b)||(a.id<b.id?-1:1)});
@@ -210,4 +211,5 @@ if(start.domain==='vehicle')$('pv').click();else fill();pick(start.id);
 // deep link for recording/testing: ?intake=clean|messy opens the panel, loads a sample of the current case and checks it
 const iq=new URLSearchParams(location.search).get('intake');
 if(iq){setTimeout(async()=>{$('intake').hidden=false;await sample(iq);$('dgo').click()},600)}
+const sq=new URLSearchParams(location.search).get('sel');if(sq!==null){sel=+sq;render()}
 </script></body></html>

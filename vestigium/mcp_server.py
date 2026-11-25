@@ -30,7 +30,15 @@ mcp = MCPServer("vestigium", instructions=(
 
 
 def _compact(r):
-    f = lambda rows: [dict(rule=x["rule"], transfer=x["transfer"], detail=x.get("detail"), missing=x.get("missing"), evidence=x.get("evidence", []), fix_type=x.get("fix_type")) for x in rows]
+    pf = {(x["rule"], x["transfer"]): x for x in r["proof"]}
+    def f(rows):
+        out = []
+        for x in rows:
+            p = pf.get((x["rule"], x["transfer"]), {})
+            out.append(dict(rule=x["rule"], transfer=x["transfer"], detail=x.get("detail"), missing=x.get("missing"), evidence=x.get("evidence", []), fix_type=x.get("fix_type"),
+                            minimal_proof=dict(records=p.get("passages", []), of_total=p.get("records_total"),
+                                               note="the finding still fires on these records alone and loses its force if any one is removed; every other record could be deleted without changing it")))
+        return out
     return dict(verdict=r["result"]["verdict"], as_of=r["as_of"], findings=f(r["result"]["findings"]), missing=f(r["result"]["missing"]),
                 evidence_text=r["evidence_text"], verdict_by_known_date=r["timeline"], what_would_fix_it=r["fix"] and dict(record=r["fix"], verdict_after=r["fix_verdict"]),
                 warnings=r["warnings"], extracted_records=r["extracted"])

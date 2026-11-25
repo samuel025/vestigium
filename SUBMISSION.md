@@ -23,6 +23,7 @@ An **AI agent** investigates the graph, calls the checks and explains the result
 
 - **What would fix it.** The engine copies the graph into a throwaway Relate instance, adds a hypothetical record (a release, a ratifying authority, a missing link), reruns every check, and reports which record turns the verdict clean.
 - **Two-date replay and verdict timeline.** Slide the known-as-of date and watch the verdict change, for example clean until a late-recorded record arrives.
+- **Minimal proof.** Every finding comes with the smallest set of records it truly rests on, found by deleting facts until none can go: on average 1.8 records out of a 10-record dossier. It also audited our own citations and caught 33 incomplete ones, now fixed and tested.
 - **Honest inconclusive verdicts.** A gap or missing document stops a check from deciding, and the answer names the missing record instead of guessing.
 - **Paste a dossier.** Paste deeds, titles, liens and powers of attorney in any wording; a reader extracts the facts, the rule engine decides, and the same proof trail appears. On messy wording a pattern-matching reader gets 17.5% right and Gemini gets 100% (held-out, 3 repeats), and nothing unreadable is ever called clean.
 - **MCP server.** Any MCP client (Claude Desktop, Claude Code) can call the engine: its own model reads the documents, our deterministic engine decides, and every cited record comes back with its exact text.

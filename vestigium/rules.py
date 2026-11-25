@@ -12,7 +12,7 @@ MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (g:Party)-[:FROM]->(t),
       (t)-[:FOLLOWS]->(p:Transfer)-[:TO]->(prev:Party)
 WHERE {VIS} AND p.recorded <= date($known) AND g <> prev
 RETURN t.id AS transfer, g.name + ' sold but ' + prev.name + ' was the previous grantee' AS detail,
-       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(p)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 
     "PROP-GAP": dict(fix_type="link_previous_transfer", kind="gap", text="Gap in the chain", cypher=f"""
 MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}})
@@ -35,14 +35,14 @@ RETURN t2.id AS transfer, g.name + ' conveyed the asset in both ' + t.id + ' and
 MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (t)-[:FOLLOWS]->(p:Transfer)
 WHERE {VIS} AND t.effective < p.effective
 RETURN t.id AS transfer, 'Deed dated ' + toString(t.effective) + ' precedes grantor acquisition on ' + toString(p.effective) AS detail,
-       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(p)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 
     "PROP-LIEN": dict(fix_type="release_of_lien", kind="defect", text="Lien never released", cypher=f"""
 MATCH (c:Claim)-[:AGAINST]->(:Asset {{id:$asset}}), (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}})
 WHERE {VIS} AND c.kind = 'lien' AND c.effective < t.effective AND c.recorded <= date($known)
   AND NOT EXISTS {{ (c)-[:CLEARED_BY]->(d:Document) WHERE d.effective <= t.effective AND d.recorded <= date($known) }}
 RETURN t.id AS transfer, c.id + ' (' + c.holder + ') was open at transfer' AS detail,
-       [(c)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+       [(c)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 
     "PROP-AUTH": dict(fix_type="valid_authority", kind="defect", text="Authority not valid on signing date", cypher=f"""
 MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (t)-[:ACTED_UNDER]->(au:Authority)
@@ -63,7 +63,7 @@ RETURN t.id AS transfer, 'Signed by an agent but no authority record exists' AS 
 MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (g:Party)-[:FROM]->(t)
 WHERE {VIS} AND g.died IS NOT NULL AND g.died < t.effective AND g.died_recorded <= date($known)
 RETURN t.id AS transfer, g.name + ' died ' + toString(g.died) + ' before signing' AS detail,
-       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(g)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 }
 
 
@@ -73,14 +73,14 @@ MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (g:Party)-[:FROM]->(t),
       (t)-[:FOLLOWS]->(p:Transfer)-[:TO]->(prev:Party)
 WHERE {VIS} AND g <> prev
 RETURN t.id AS transfer, g.name + ' sold but ' + prev.name + ' is the titled owner' AS detail,
-       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(p)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 
     "VEH-LIEN": dict(kind="defect", fix_type="release_of_lien", text="Lien not released", cypher=f"""
 MATCH (c:Claim)-[:AGAINST]->(:Asset {{id:$asset}}), (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}})
 WHERE {VIS} AND c.kind = 'lien' AND c.effective < t.effective AND c.recorded <= date($known)
   AND NOT EXISTS {{ (c)-[:CLEARED_BY]->(d:Document) WHERE d.effective <= t.effective AND d.recorded <= date($known) }}
 RETURN t.id AS transfer, c.id + ' (' + c.holder + ') was open at sale' AS detail,
-       [(c)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+       [(c)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 
     "VEH-BRAND": dict(kind="defect", fix_type=None, text="Salvage brand not carried forward", cypher=f"""
 MATCH (c:Claim)-[:AGAINST]->(:Asset {{id:$asset}}), (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}})
@@ -92,7 +92,7 @@ RETURN t.id AS transfer, 'Title issued ' + toString(t.effective) + ' omits the s
 MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (t)-[:FOLLOWS]->(p:Transfer)
 WHERE {VIS} AND t.odometer IS NOT NULL AND p.odometer IS NOT NULL AND t.odometer < p.odometer
 RETURN t.id AS transfer, 'Odometer ' + toString(t.odometer) + ' is below the earlier reading ' + toString(p.odometer) AS detail,
-       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(p)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 
     "VEH-GAP": dict(kind="gap", fix_type="link_previous_transfer", text="Gap in the title chain", cypher=f"""
 MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}})
