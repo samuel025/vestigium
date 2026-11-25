@@ -33,12 +33,12 @@ An **AI agent** investigates the graph, calls the checks and explains the result
 | Arm | Accuracy | Defective chains called clean |
 |---|---|---|
 | A: documents only | 55.8% | 34.7% |
-| B: graph, agent writes its own Cypher (1 repeat) | 52.5% | 32.0% |
+| B: graph, agent writes its own Cypher (3 repeats) | 54.2% | 33.3% |
 | C: graph + rule-engine tools (3 repeats) | 100% | 0% |
 | D: rule engine alone (3 repeats) | 100% | 0% |
 
 A graph by itself did not help; connected context plus deterministic checks did. We say plainly that the rules and the generator were written together (so 100% is a ceiling, not a real-world claim,
-which is why Arm D exists), that Arm B has one repeat because of free-tier API quota, and that the held-out split is a flag, not a time gap. The generator, answer key, raw transcripts and a one-command rerun are in the repo.
+which is why Arm D exists), that Arm B is noisy (47.5% to 62.5% across its three repeats), that the held-out split is a flag, not a time gap. The generator, answer key, raw transcripts and a one-command rerun are in the repo.
 
 ## How we built it
 

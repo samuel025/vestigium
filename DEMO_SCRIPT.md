@@ -56,7 +56,7 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 > A graph alone: no better. The graph plus the rule engine: 100%, none missed. We report our losses and publish the answer key.
 > That's Vestigium, built on Relate."
 
-*On screen: the benchmark card on the same page, accuracy bars A 55.8% / B 52.5% / C 100% / D 100% and the red "called clean" bars.*
+*On screen: the benchmark card on the same page, accuracy bars A 55.8% / B 54.2% / C 100% / D 100% and the red "called clean" bars.*
 
 ---
 
@@ -65,6 +65,6 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 - If a click is slow, the page is fully static: reload with `?case=prop-014`.
 - Say "synthetic data" once if there is room; the page header already says it.
 - Do not claim 100% generalises. If asked: the rules and generator were written together, and Arm D is the control. This is in the README.
-- Arm B has one repeat. The table says so; do not read it as three.
+- Arm B has three repeats but is noisy (47.5%–62.5%); say "about the same as documents only", not an exact number.
 - A fallback case if `prop-014` misbehaves: `prop-059` (an unreleased lien, T10; the fix button shows the release).
 - The benchmark card is on the page (below the replay strip), so the whole demo stays in one tab.

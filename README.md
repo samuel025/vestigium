@@ -76,19 +76,19 @@ Four arms, same evidence, same model (`gemini-3.5-flash-lite`, temperature 0.2):
 | Arm | Repeats | Accuracy (mean ± spread) | False-clean¹ | Abstains correctly | Localizes defect | Fix type | Tokens / case |
 |---|---|---|---|---|---|---|---|
 | A: documents only | 3 | 55.8% ± 1.2 | 34.7% ± 1.9 | 14% | 0% | 27% | 606 |
-| B: graph + own Cypher | **1** | 52.5% | 32.0% | 0% | 44% | 47% | 19,263 |
+| B: graph + own Cypher | 3 | 54.2% ± 6.2 | 33.3% ± 11.5 | 5% | 46% | 64% | 23,369 |
 | C: graph + rule tools | 3 | 100% ± 0 | 0% | 100% | 100% | 100% | 2,486 |
 | D: rules alone | 3 | 100% ± 0 | 0% | 100% | 100% | 100% | 0 |
 
-¹ share of *defective* cases called clean, the worst error. Spread is the standard deviation of per-repeat accuracy. Citation validity: A 92%, B 90%, C 100%, D 100%.
-Property and vehicle show the same pattern (A 55% / 57%, B 60% / 45%, C and D 100% / 100%). Raw answers, tool calls and tokens for every run are in `results/heldout.jsonl`.
+¹ share of *defective* cases called clean, the worst error. Spread is the standard deviation of per-repeat accuracy. Citation validity: A 92%, B 87%, C 100%, D 100%.
+Property and vehicle show the same pattern (A 55% / 57%, B 58% / 50%, C and D 100% / 100%). Raw answers, tool calls and tokens for every run are in `results/heldout.jsonl`.
 
-**Reading it:** a graph by itself did not help (B is no better than A, at ~30× the tokens). Giving the agent the rule engine's checks did (A 56% → C 100%, false-clean 35% → 0%),
+**Reading it:** a graph by itself did not help (B is no better than A, at ~39× the tokens, and swings from 47.5% to 62.5% between repeats). Giving the agent the rule engine's checks did (A 56% → C 100%, false-clean 35% → 0%),
 and it did so in every repeat. C matches D on every verdict; the agent's contribution is investigation and explanation, which this benchmark does not score.
 
 ### Limitations — please read
 
-- **Arm B has one repeat, the others three.** Gemini's free-tier daily quota made B (about 12.6 requests per case) too expensive to repeat; its spread is unknown. Rerun with
+- **Arm B is noisy.** Its three repeats scored 52.5%, 62.5% and 47.5%, so its spread is wide; the free-tier quota meant B (about 12.6 requests per case) took two days to finish. Rerun with
   `./run_benchmark.sh` (`REPEATS=3`); it resumes and fills the gaps. One C case (prop-011) failed on a malformed answer in the first run; we removed that row, added a JSON repair retry to the harness
   and reran it (correct in all 3 repeats). Across the 120 C runs the repair retry fired once (prop-050, repeat 3) and the repaired answer was correct.
 - **Small sample.** 40 cases (3 inconclusive and 4 clean per pack-side are few), one model, so the percentages for A and B are rough.
