@@ -55,7 +55,7 @@ flowchart LR
 
 ## Why Relate, and why single-file mode
 
-Ownership is a chain of *relationships*: who gave up the asset, who received it, what authority the signer had, which claim was open. "Was the grantor the previous grantee?" and "was a lien released before this sale?" are graph patterns, so each rule is a short Cypher query on Relate. We store the demo graph in single-file mode, `vestigium.rl`: persistent, one file a judge can open and inspect, no server. Each benchmark case is built in its own in-memory graph, so every case is isolated, and "what would fix it" copies a graph into a throwaway instance to rehearse a hypothetical record.
+Ownership is a chain of *relationships*: who gave up the asset, who received it, what authority the signer had, which claim was open. "Was the grantor the previous grantee?" and "was a lien released before this sale?" are graph patterns, so each rule is a short Cypher query on Relate, and the app lets you see exactly that: the graph itself, each rule's query, and what happens when you delete a relationship (see *The graph, live*). We store the demo graph in single-file mode, `vestigium.rl`: persistent, one file a judge can open and inspect, no server. Each benchmark case is built in its own in-memory graph, so every case is isolated, and "what would fix it" copies a graph into a throwaway instance to rehearse a hypothetical record.
 
 ## Quick start
 
@@ -63,7 +63,7 @@ Ownership is a chain of *relationships*: who gave up the asset, who received it,
 git clone https://github.com/samuel025/vestigium && cd vestigium
 uv sync                                   # installs relate-db (Relate's Python package), google-genai, mcp, pillow
 cp .env.example .env                      # only for the LLM parts; add GEMINI_API_KEY (several keys can be rotated)
-uv run pytest -q                          # 33 tests, no network needed
+uv run pytest -q                          # 38 tests, no network needed
 uv run python -m vestigium.build_store    # writes vestigium.rl and answer_key.json
 uv run python -m vestigium.serve          # overview at http://127.0.0.1:8000/ , app at /app.html
 uv run python -m vestigium.cli prop-014   # one case in the terminal: verdict, rule, evidence, fix, timeline
@@ -76,7 +76,7 @@ import relate; db = relate.connect("vestigium.rl")
 db.execute("MATCH (t:Transfer)-[:ACTED_UNDER]->(a:Authority) RETURN t.id, a.agent, a.valid_to").data()
 ```
 
-Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini reader, scan reading). `uv run python -m vestigium.serve` serves the UI and the paste and upload endpoints; `cd demo && python3 -m http.server 8000` serves the static pages only.
+Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini reader, scan reading). `uv run python -m vestigium.serve` serves the UI, the paste and upload endpoints, and the graph lab's custom-query endpoint; `cd demo && python3 -m http.server 8000` serves the static pages only.
 
 ## What you can do with it
 
@@ -95,6 +95,10 @@ Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini 
 | **Replay the investigation** | real agent transcripts, tool call by tool call, with every citation checked against the store |
 | **MCP server** | any MCP client can send records and get a verdict, rule ids and exact cited text |
 
+![Replaying an agent investigation next to a documents-only agent](docs/img/app-replay.png)
+
+**Rule packs** (`vestigium/rules.py`): *Property*: PROP-CHAIN, PROP-DUP, PROP-LIEN, PROP-AUTH, PROP-DATE, PROP-DEATH, PROP-GAP, PROP-AUTH-MISSING. *Vehicle*: VEH-OWN, VEH-LIEN, VEH-BRAND, VEH-ODO, VEH-GAP, VEH-ODO-MISSING.
+
 ### The graph, live
 
 ![The graph lab: nodes and relationships, the Cypher behind each rule, and a removed relationship](docs/img/graph-lab.png)
@@ -102,10 +106,6 @@ Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini 
 The app shows the case as the graph Relate actually holds. Click any transfer, party or line to inspect it; **Walk the chain** traverses `FOLLOWS` from the newest transfer back to the root, checking each link and each signing authority. Every rule has a tab with its exact Cypher and the rows it returns on this case; click a row to light up the nodes it matched. You can edit a query and run your own (read-only, on a throwaway in-memory copy; needs `uv run python -m vestigium.serve`).
 
 The strongest demo: select a `FOLLOWS`, `ACTED_UNDER` or `CLEARED_BY` line and **remove it**. On a clean chain, dropping one `FOLLOWS` makes `PROP-GAP` fire and the verdict turns *inconclusive*; on `prop-014`, dropping the authority link replaces the `PROP-AUTH` defect with `PROP-AUTH-MISSING`. The engine reports what is now missing instead of guessing. Outcomes for every removable relationship of all 80 cases are precomputed, so this works on static hosting too. Deep links: `app.html?case=prop-014&remove=T5>ACTED_UNDER>AU1`, `&walk=1`, `&graph=1`, `&tab=rule:PROP-GAP`.
-
-![Replaying an agent investigation next to a documents-only agent](docs/img/app-replay.png)
-
-**Rule packs** (`vestigium/rules.py`): *Property*: PROP-CHAIN, PROP-DUP, PROP-LIEN, PROP-AUTH, PROP-DATE, PROP-DEATH, PROP-GAP, PROP-AUTH-MISSING. *Vehicle*: VEH-OWN, VEH-LIEN, VEH-BRAND, VEH-ODO, VEH-GAP, VEH-ODO-MISSING.
 
 ## Benchmark
 
@@ -215,6 +215,7 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
 - **One small model.** A stronger model might narrow the gap for A and B.
 - **Arms A-D assume a correct graph.** Extraction is scored separately (section above), not chained into the four-arm table. Not scored: per-case fix-by-copy accuracy for agent-proposed records
   (we score the *type* of record the agent names against the answer key; each answer-key fix is separately verified to turn its case clean).
+- **The graph lab's edge removal is limited** to `FOLLOWS`, `ACTED_UNDER` and `CLEARED_BY` (the relationships the rules can notice); outcomes are precomputed for the 80 built-in cases, and editing or running your own Cypher, or removing from a pasted dossier, needs the local server. The query console is read-only by keyword filtering on a throwaway copy, a guard for a local demo, not a hardened sandbox.
 - **Single-file Relate store only for the demo;** benchmark graphs are in-memory per case.
 - **Scans are tested on synthetic photos only** (see *Scanned documents*), and that benchmark is not finished.
 - Not built: running Relate in the browser (WASM), Relate's own `relate serve` MCP endpoint for the `.rl` store (our MCP server exposes the rule engine instead), Google Document AI or AWS Textract (we use a vision model).
@@ -241,7 +242,7 @@ answer_key.json           planted errors, all 80 cases docs/img/                
 
 ## Product capabilities, third-party and AI tools
 
-- **Product:** deterministic ownership-chain checks, evidence-cited verdicts, minimal proofs, replay by two dates, what-would-fix-it, paste and scan intake with confidence, an MCP server, a benchmark harness, and a web app with an overview page.
+- **Product:** deterministic ownership-chain checks, evidence-cited verdicts, minimal proofs, a live graph view with a read-only Cypher console and remove-a-relationship experiments, replay by two dates, what-would-fix-it, paste and scan intake with confidence, an MCP server, a benchmark harness, and a web app with an overview page.
 - **Third-party:** Relate (`relate-db`, embedded Cypher graph database), `google-genai`, `mcp`, `pillow`, `numpy`, `pytest`, `uv`.
 - **AI tools:** Google Gemini powers benchmark Arms A to C and the readers (`gemini-3.5-flash-lite`) and scan reading (`gemini-3.5-flash`). The project was built with Claude Code (Anthropic) as the coding assistant.
 
