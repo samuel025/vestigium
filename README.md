@@ -82,7 +82,7 @@ Four arms, same evidence, same model (`gemini-3.5-flash-lite`, temperature 0.2):
 | D: rules alone | 3 | 100% ± 0 | 0% | 100% | 100% | 100% | 0 |
 
 ¹ share of *defective* cases called clean, the worst error. Spread is the standard deviation of per-repeat accuracy. Citation validity: A 92%, B 87%, C 100%, D 100%.
-Property and vehicle show the same pattern (A 55% / 57%, B 58% / 50%, C and D 100% / 100%). Raw answers, tool calls and tokens for every run are in `results/heldout.jsonl`.
+Property and vehicle show the same pattern (A 55% / 57%, B 58% / 50%, C and D 100% / 100%). Raw answers, tool-call counts and tokens for every run are in `results/heldout.jsonl`; full transcripts (every tool call, its arguments and result) are recorded for 12 showcase cases in `results/traces.jsonl`.
 
 **Reading it:** a graph by itself did not help (B is no better than A, at ~39× the tokens, and swings from 47.5% to 62.5% between repeats). Giving the agent the rule engine's checks did (A 56% → C 100%, false-clean 35% → 0%),
 and it did so in every repeat. C matches D on every verdict; the agent's contribution is investigation and explanation, which this benchmark does not score.
@@ -166,7 +166,7 @@ vestigium/rules.py       rule packs (Cypher)        vestigium/generator.py  seed
 vestigium/engine.py      load graph, run checks     vestigium/whatif.py     "what would fix it"
 vestigium/arms.py        benchmark arms A–D         vestigium/bench.py      scoring + report (resumable)
 vestigium/llm.py         Gemini wrapper, key rotation, pacing, hand-written tool loop
-demo/                    static UI                  results/heldout.jsonl   raw answers, tool calls, tokens per run
+demo/                    static UI                  results/heldout.jsonl   raw answers, call counts, tokens per run   results/traces.jsonl   full transcripts, 12 showcase cases
 vestigium.rl             persistent Relate store    answer_key.json         planted errors for all 80 cases
 ```
 

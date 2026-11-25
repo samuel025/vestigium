@@ -37,6 +37,17 @@ def bench_summary():
     return out
 
 
+def traces():
+    f = ROOT / "results" / "traces.jsonl"
+    out = {}
+    if f.exists():
+        for l in f.read_text().splitlines():
+            r = json.loads(l)
+            if not r.get("error"):
+                out.setdefault(r["case"], {})[r["arm"]] = dict(answer=r["answer"], trace=r["trace"], citations=r["citations"], tokens=r["tokens"], tool_calls=r["tool_calls"], label=r["label"])
+    return out
+
+
 def export():
     rec = runs()
     cases = []
@@ -53,7 +64,7 @@ def export():
             nodes=[dict(label=l, **p) for l, p in c["nodes"]], rels=c["rels"],
             result=r, timeline=tl, proof=[dict(rule=x['rule'], transfer=x['transfer'], passages=x.get('passages', []), records_total=x.get('records_total', 0)) for x in proofs(c, r)], fix=(c["key"]["fix"] or {}).get("describe"), fix_verdict=fixv,
             documents=documents(c), agents=rec.get(c["id"], {})))
-    (ROOT / "demo" / "data.js").write_text("window.VESTIGIUM = " + json.dumps(cases, default=str) + ";\nwindow.VESTIGIUM_BENCH = " + json.dumps(bench_summary()) + ";")
+    (ROOT / "demo" / "data.js").write_text("window.VESTIGIUM = " + json.dumps(cases, default=str) + ";\nwindow.VESTIGIUM_BENCH = " + json.dumps(bench_summary()) + ";\nwindow.VESTIGIUM_TRACES = " + json.dumps(traces()) + ";")
     print(f"exported {len(cases)} cases, {sum(1 for c in cases if c['agents'])} with recorded agent runs")
 
 if __name__ == "__main__":

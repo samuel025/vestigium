@@ -81,6 +81,10 @@ details{margin-top:12px}summary{cursor:pointer;color:var(--mut);font:500 11px va
 table.ex{width:100%;border-collapse:collapse;margin-top:8px;font:11px var(--mono)}
 table.ex td,table.ex th{padding:4px 8px;text-align:left;border-bottom:1px solid var(--line);color:var(--mut);vertical-align:top}table.ex th{color:var(--dim);font-weight:500}
 table.ex td:first-child{color:var(--hi)}
+.step{margin:8px 0;padding:8px 10px;border-radius:10px;background:var(--well);box-shadow:0 0 0 1px var(--line)}
+.step .call{font:12px var(--mono);color:var(--hi)}.step .call i{font-style:normal;color:var(--mut)}
+.step.new{animation:fadein .35s}@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.cite{font-size:12px;margin:4px 0}.cite .ok{color:var(--ok)}.cite .no{color:var(--bad)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body><div class="wrap">
 <header>
@@ -108,8 +112,8 @@ table.ex td:first-child{color:var(--hi)}
     <div class="card"><h2>Replay: what we knew on…</h2>
       <input type="range" id="slider" min="0" value="0"><div class="strip" id="strip"></div>
       <div id="tlabel" class="mut"></div></div>
+    <div class="card" id="racecard"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div><div class="tools"><button id="trbtn" class="btn2" hidden>Replay the investigation</button></div><div id="trace"></div></div>
     <div class="card"><h2>Does the graph help? <small>held-out benchmark · 40 cases · same model, same evidence</small></h2><div id="bench"></div></div>
-    <div class="card" id="racecard"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div></div>
   </div>
   <div>
     <div class="card"><h2>Verdict</h2><div id="verdict"></div><div id="findings"></div>
@@ -127,7 +131,7 @@ const col={clean:'var(--ok)',defective:'var(--bad)',inconclusive:'var(--gap)'};
 function fill(){const list=D.filter(c=>c.domain===pack);
   $('pick').innerHTML=list.map(c=>`<option value="${c.id}">${c.id} — ${c.kind==='clean'?'clean':c.kind} (${c.split})</option>`).join('');
   pick(list[0].id)}
-function pick(id){cur=D.find(c=>c.id===id);sel=null;step=cur.timeline.length-1;
+function pick(id){cur=D.find(c=>c.id===id);sel=null;tshow=false;tstep=0;clearInterval(tplay);$('trbtn').textContent='Replay the investigation';step=cur.timeline.length-1;
   $('slider').max=cur.timeline.length-1;$('slider').value=step;$('pick').value=id;render()}
 const byId=(c,i)=>c.nodes.find(n=>n.id===i);
 function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1];
@@ -168,7 +172,7 @@ function graph(items,known){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer
   // keep the flagged transfer in view on long chains
   const fi=ts.findIndex(t=>bad.has(t.id)||gap.has(t.id)),el=$('graph'),sv=el.firstChild;
   el.scrollLeft=fi<0?0:Math.max(0,(x0+fi*(W+G)+W/2)/VW*sv.getBoundingClientRect().width-el.clientWidth/2)}
-function race(){$('racecard').style.display=cur.split==='pasted'?'none':'';const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b>${t}</b><div class="mut">no recorded run</div></div>`;
+function race(){renderTrace();$('racecard').style.display=cur.split==='pasted'?'none':'';const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b>${t}</b><div class="mut">no recorded run</div></div>`;
     const ok=r.verdict===c.label;return`<div class="arm"><b>${t}</b><div>${V(r.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+c.label}</small></div><div class="mut" style="margin-top:4px">${r.transfer?'Pointed at '+r.transfer:''}</div></div>`};
   $('race').innerHTML=cell('A','Document-only agent')+cell('C','Vestigium (graph + rule engine)')}
 function bench(){const B=window.VESTIGIUM_BENCH||[];
@@ -204,6 +208,28 @@ $('dgo').onclick=async()=>{const text=$('dtext').value.trim();if(!text){$('dstat
       c.extracted.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.type)}</td><td>${keys.filter(k=>e[k]!=null&&e[k]!==false).map(k=>`${k}: ${esc(e[k])}`).join(' · ')}</td></tr>`).join('')+'</table></details>';
     $('graph').scrollIntoView({behavior:'smooth',block:'nearest'});
   }catch(e){noServer()}finally{$('dgo').disabled=false}};
+
+// ---- replay a recorded investigation (real transcripts: results/traces.jsonl)
+const TR=window.VESTIGIUM_TRACES||{};let tshow=false,tstep=0,tplay=null;
+function stepResult(s){let o=null;try{o=JSON.parse(s.result)}catch(e){}
+  if(o&&o.verdict)return `${V(o.verdict)} <small>${[...(o.findings||[]),...(o.missing||[])].map(f=>`${f.rule} at ${f.transfer}`).join(', ')||'no findings'}</small>`;
+  const r=o&&o.result;if(r&&r[0]&&r[0].text)return `<div class="pass"><code>${esc(r[0].id)}</code> ${esc(r[0].text)}</div>`;
+  if(r&&r[0]&&r[0].rule)return `<small>${r.length} checks listed</small>`;
+  return `<small>${esc(String(s.result).slice(0,160))}</small>`}
+function answerBox(t,label){const a=t.answer||{};const ok=a.verdict===t.label;
+  const cs=t.citations||[];const cites=cs.length>4?`<div class="cite"><span class="${cs.every(c=>c.valid)?'ok':'no'}">✓ all exist in the store</span> but it cites <span style="color:var(--hi);font-weight:600">${cs.length}</span> records, so nothing says which one matters</div>`:cs.map(c=>`<div class="cite"><span class="${c.valid?'ok':'no'}">${c.valid?'✓ exists in the store':'✗ rejected, no such record'}</span> <code>${esc(c.id)}</code> ${c.text?esc(c.text.slice(0,90)):''}</div>`).join('');
+  return `<div style="margin-top:8px">${V(a.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+t.label}</small>${a.rule_id?`<div class="mut" style="margin-top:4px"><code>${esc(a.rule_id)}</code> at <code>${esc(a.transfer)}</code></div>`:''}${cites}</div>`}
+function renderTrace(){const t=TR[cur.id];$('trbtn').hidden=!t;
+  if(!t||!tshow){$('trace').innerHTML='';return}
+  const C=t.C,A=t.A,n=C?C.trace.length:0,done=tstep>=n;
+  const left=A?`<div class="arm"><b>Documents only · no tools</b><div class="step"><div class="call">reads the whole dossier at once <i>(${(cur.documents||'').split('\n\n').length} records)</i></div><small>No checks to run, so nothing to verify against.</small></div>${answerBox(A,'A')}</div>`:'<div class="arm"><b>Documents only</b><div class="mut">no recorded run</div></div>';
+  const steps=C?C.trace.slice(0,tstep).map((s,i)=>`<div class="step ${i===tstep-1?'new':''}"><div class="call"><i>${s.step}.</i> ${esc(s.tool)}<i>(${esc(Object.entries(s.args||{}).map(([k,v])=>k+'='+v).join(', '))})</i></div>${stepResult(s)}</div>`).join(''):'';
+  const right=`<div class="arm"><b>Vestigium agent · step ${Math.min(tstep,n)} of ${n}</b>${steps||'<div class="mut">Press Next to follow the agent.</div>'}${done&&C?answerBox(C,'C'):''}${done?'<div class="note" style="margin-top:8px">The rule engine decided. The agent only called checks, read the cited passages and explained.</div>':''}</div>`;
+  $('trace').innerHTML=`<div class="row" style="margin-top:12px">${left}${right}</div><div class="note" style="margin-top:10px">A recorded run, not live: every call and result below is what the agent actually did (<code>results/traces.jsonl</code>).</div><div class="tools"><button id="trnext" class="btn">${done?'Done':'Next step'}</button><button id="trplay" class="btn2">Play</button><button id="trreset" class="btn2">Reset</button></div>`;
+  $('trnext').onclick=()=>{if(tstep<n){tstep++;renderTrace()}};
+  $('trreset').onclick=()=>{clearInterval(tplay);tstep=0;renderTrace()};
+  $('trplay').onclick=()=>{clearInterval(tplay);tplay=setInterval(()=>{if(tstep<n){tstep++;renderTrace()}else clearInterval(tplay)},1300)}}
+$('trbtn').onclick=()=>{tshow=!tshow;tstep=0;clearInterval(tplay);$('trbtn').textContent=tshow?'Hide the replay':'Replay the investigation';renderTrace()};
 bench();
 const q=new URLSearchParams(location.search).get('case');
 const start=D.find(c=>c.id===q)||D.find(c=>c.domain==='property'&&c.label==='defective'&&c.kind==='PROP-AUTH'&&c.agents.A&&c.agents.C&&c.agents.A.verdict==='clean')||D.find(c=>c.agents.A&&c.label==='defective');
@@ -212,4 +238,5 @@ if(start.domain==='vehicle')$('pv').click();else fill();pick(start.id);
 const iq=new URLSearchParams(location.search).get('intake');
 if(iq){setTimeout(async()=>{$('intake').hidden=false;await sample(iq);$('dgo').click()},600)}
 const sq=new URLSearchParams(location.search).get('sel');if(sq!==null){sel=+sq;render()}
+const rq=new URLSearchParams(location.search).get('replay');if(rq!==null&&TR[cur.id]){tshow=true;tstep=+rq;$('trbtn').textContent='Hide the replay';renderTrace()}
 </script></body></html>

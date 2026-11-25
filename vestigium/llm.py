@@ -68,7 +68,7 @@ def ask(system, prompt, tools=(), max_calls=12):
     """Agent turn with a hand-written tool loop: every model call is paced, retries resume the run,
     and tool calls are hard-capped at max_calls. Returns (parsed_json|None, stats)."""
     fns = {t.__name__: t for t in tools}
-    st = dict(tool_calls=0, tool_errors=0, tokens=0, model_calls=0, error_log=[])
+    st = dict(tool_calls=0, tool_errors=0, tokens=0, model_calls=0, error_log=[], trace=[])
     cfg = types.GenerateContentConfig(
         system_instruction=system, temperature=0.2, tools=list(tools) or None,
         automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True))
@@ -88,6 +88,7 @@ def ask(system, prompt, tools=(), max_calls=12):
             break
         contents.append(r.candidates[0].content)
         parts = []
+        said = " ".join(p.text for p in (r.candidates[0].content.parts or []) if getattr(p, "text", None))
         for fc in calls:
             st["tool_calls"] += 1
             try:
@@ -97,9 +98,13 @@ def ask(system, prompt, tools=(), max_calls=12):
                 st["tool_errors"] += 1
                 st["error_log"].append(f"{fc.name}: {str(e)[:120]}")
                 out = {"error": str(e)[:300]}
+            st["trace"].append(dict(step=len(st["trace"]) + 1, said=said[:400] if said else None, tool=fc.name, args=dict(fc.args or {}),
+                                    result=json.dumps(out, default=str)[:1800]))
+            said = ""   # only attach the model's words to the first call of a turn
             parts.append(types.Part.from_function_response(name=fc.name, response=out))
         contents.append(types.Content(role="user", parts=parts))
     st["error_log"] = st["error_log"][:3]
+    st["final_text"] = (text or "")[:1500]
     ans = _parse(text)
     if ans is None:  # one repair retry: same conversation, ask for the JSON object only
         st["raw_unparsed"] = text[:500]

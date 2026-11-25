@@ -20,7 +20,7 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 > "Here's a dossier with a planted trap: a summary saying 'title is clear'. An agent reading only the documents trusts it and says clean.
 > Vestigium's agent doesn't."
 
-*On screen: Race panel. Document-only agent: CLEAN ✗ answer key defective. Vestigium: DEFECTIVE ✓.*
+*On screen: Race panel. Document-only agent: CLEAN ✗ answer key defective. Vestigium: DEFECTIVE ✓. Optional, if there is time: click "Replay the investigation" and press Next step twice. The rule-engine agent calls the checks, then reads exactly the two cited passages; the document-only agent cites all 12 records. Deep link: `?case=prop-014&replay=4`.*
 
 ### 0:35–0:55 — The broken link (top right: verdict card)
 
