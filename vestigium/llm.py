@@ -18,7 +18,8 @@ class DailyQuotaExhausted(RuntimeError):
 
 
 _clients, _next_ok = [], []   # per-key earliest next-call time
-RPM = float(os.environ.get("VESTIGIUM_RPM", "6"))  # per key
+RPM = float(os.environ.get("VESTIGIUM_RPM", "6"))
+VISION_MODEL = os.environ.get("VESTIGIUM_VISION_MODEL", MODEL)   # scanning is the one place a stronger model is worth it  # per key
 
 
 def _init():
@@ -48,12 +49,12 @@ def cooldown(i, secs):
     _next_ok[i] = max(_next_ok[i], time.time() + secs)
 
 
-def _generate(contents, cfg):
+def _generate(contents, cfg, model=None):
     """One paced Gemini call; rotates keys and cools down on 429/503."""
     for attempt in range(10):
         i, c = pick()
         try:
-            return c.models.generate_content(model=MODEL, contents=contents, config=cfg)
+            return c.models.generate_content(model=model or MODEL, contents=contents, config=cfg)
         except Exception as e:
             msg = str(e)
             if isinstance(e, DailyQuotaExhausted) or attempt == 9 or not any(x in msg for x in ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE", "timed out", "Timeout", "disconnected", "ReadError", "ConnectError")):
@@ -130,3 +131,15 @@ def _parse(text):
         return json.loads(m.group(0)) if m else None
     except json.JSONDecodeError:
         return None
+
+
+def ask_vision(system, prompt, files):
+    """One paced multimodal call. files = [(name, mime, bytes)] (PDF or images). Returns (parsed_json|None, stats)."""
+    parts = [types.Part(text=prompt)] + [types.Part.from_bytes(data=b, mime_type=m) for _, m, b in files]
+    cfg = types.GenerateContentConfig(system_instruction=system, temperature=0.0, response_mime_type="application/json")
+    r = _generate([types.Content(role="user", parts=parts)], cfg, model=VISION_MODEL)
+    st = dict(model_calls=1, tokens=(r.usage_metadata.total_token_count or 0) if r.usage_metadata else 0)
+    text = r.text or ""
+    ans = _parse(text)
+    st["final_text"] = text[:1500]
+    return ans, st

@@ -11,6 +11,7 @@ from .whatif import build
 from .proof import proofs
 
 iso = lambda d: d.isoformat()
+LOOKS_LIKE_RECORD = __import__('re').compile(r'\b(DEED|VEHICLE TITLE|MORTGAGE|LIEN|RELEASE|POWER OF ATTORNEY|CERTIFICATE OF DEATH|SALVAGE BRAND)\b', 2)
 
 
 def _auto_fix(case, res):
@@ -59,12 +60,15 @@ def _auto_fix(case, res):
 
 
 def analyze(text, reader="auto", as_of=None):
-    used, stats = reader, {}
+    used, stats, dropped = reader, {}, []
     if reader in ("auto", "rules"):
         ir = read_rules(text); used = "rules"
         n = sum(r["type"] in ("deed", "title") for r in ir["records"])
-        if n == 0 and reader == "auto":
+        unread = [r["id"] for r in ir["records"] if r["type"] == "other" and LOOKS_LIKE_RECORD.search(r.get("text", ""))]
+        if reader == "auto" and (n == 0 or unread):      # a record that looks like a deed or lien but did not parse must not vanish silently
             reader = "llm"
+        elif unread:
+            dropped = unread
     if reader == "llm":
         try:
             ir, stats = read_llm(text); used = "llm"
@@ -72,7 +76,14 @@ def analyze(text, reader="auto", as_of=None):
             return dict(error=f"The language-model reader is unavailable ({str(e)[:90]}). Use canonical wording for the offline reader.")
         if not ir:
             return dict(error="The reader could not parse that dossier.")
-    return analyze_ir(ir, as_of=as_of, text=text, used=used, stats=stats)
+    out = analyze_ir(ir, as_of=as_of, text=text, used=used, stats=stats)
+    if dropped:
+        out["warnings"] += [f"Record {i} looks like a legal record but the offline reader could not parse it, so it was not checked." for i in dropped]
+        out["result"]["missing"] += [{"rule": "UNREAD-RECORD", "text": "A record could not be read", "fix_type": "readable_copy", "transfer": "-", "evidence": [i],
+                                      "detail": f"Record {i} looks like a legal record but could not be parsed", "missing": f"a readable copy of record {i}"} for i in dropped]
+        if out["result"]["verdict"] == "clean":
+            out["result"]["verdict"] = "inconclusive"
+    return out
 
 
 def package(case, ir=None, text="", used="", stats=None, fix=None):

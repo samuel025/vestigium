@@ -104,6 +104,7 @@ table.ex td:first-child{color:var(--hi)}
     <select id="dreader" aria-label="Reader"><option value="auto">Reader: automatic</option><option value="rules">Reader: offline rules</option><option value="llm">Reader: Gemini</option></select>
     <span id="dstat" class="note"></span>
   </div>
+  <div class="tools"><span class="note">Or upload scans:</span><input type="file" id="dfile" multiple accept="application/pdf,image/jpeg,image/png,image/webp" style="font-size:12px;color:var(--mut)"><button id="dscan" class="btn2">Read &amp; check scans</button><button id="dss" class="btn2">Try a sample phone photo</button></div>
   <div id="dex"></div>
 </section>
 <main>
@@ -142,6 +143,7 @@ function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1];
   // verdict (full, at latest known date) vs replay
   const full=step===c.timeline.length-1,res=c.result;
   $('verdict').innerHTML=V(full?res.verdict:ver)+(full?'':' <small>(replay — slide right for the full result)</small>');
+  if(full&&c.warnings&&c.warnings.length)$('verdict').innerHTML+=c.warnings.map(w=>`<div class="proofnote" style="margin-top:10px"><span class="warn">⚠</span> ${esc(w)}</div>`).join('');
   const items=full?[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))]:[];
   $('findings').innerHTML=items.map((f,i)=>`<div class="finding ${sel===i?'sel':''}" data-i="${i}"><div class="rule" style="color:${f.t==='gap'?'var(--gap)':'var(--bad)'}">${f.rule} · ${f.transfer}</div>${f.detail}${f.missing?`<div class="mut">Missing: ${f.missing}</div>`:''}</div>`).join('')||(full?'<div class="mut" style="margin-top:6px">Every transfer links to the one before; no check finds a defect.</div>':'');
   $('fixbtn').style.display=full&&c.fix?'':'none';$('fix').innerHTML='';
@@ -192,21 +194,39 @@ $('pv').onclick=()=>{pack='vehicle';$('pv').classList.add('on');$('pp').classLis
 let SERVER=false;fetch('/api/ping').then(r=>r.ok&&r.json()).then(j=>{SERVER=!!(j&&j.ok)}).catch(()=>{});
 const esc=t=>String(t??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function noServer(){$('dstat').innerHTML='<span class="warn">Live paste needs the local server:</span> <code>uv run python -m vestigium.serve</code>'}
+function showPasted(c){
+    D=D.filter(x=>x.id!=='pasted');D.push(c);pack=c.domain;$('pp').classList.toggle('on',pack==='property');$('pv').classList.toggle('on',pack==='vehicle');
+    const list=D.filter(x=>x.domain===pack);$('pick').innerHTML=list.map(x=>`<option value="${x.id}">${x.id==='pasted'?'pasted dossier':x.id+' — '+x.kind+' ('+x.split+')'}</option>`).join('');
+    pick('pasted');
+    $('dstat').innerHTML=`Read with <b>${c.scan?'the scanner + '+(c.reader==='llm'?'Gemini':'offline rules'):c.reader==='llm'?'Gemini':'offline rules'}</b>${c.tokens?` · ${c.tokens.toLocaleString()} tokens`:''}. ${(c.warnings||[]).map(w=>`<span class="warn">${esc(w)}</span>`).join(' ')}`;
+    const keys=['date','recorded','from','to','follows','signed_by_agent','authority','odometer','agent','valid_from','valid_to','holder','releases','person','died'];
+    $('dex').innerHTML=`<details><summary>What the reader extracted · ${c.extracted.length} records · check it against your documents</summary><table class="ex"><tr><th>id</th><th>type</th><th>facts</th></tr>`+
+      c.extracted.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.type)}</td><td>${keys.filter(k=>e[k]!=null&&e[k]!==false).map(k=>`${k}: ${esc(e[k])}`).join(' · ')}</td></tr>`).join('')+'</table></details>';
+    $('graph').scrollIntoView({behavior:'smooth',block:'nearest'});
+    if(c.scan){const fl=c.scan.flags.filter(f=>f.confidence!=='high');
+      $('dex').innerHTML+=`<details open><summary>What the scanner read · ${c.scan.pages} page${c.scan.pages>1?'s':''} · ${fl.length?fl.length+' record'+(fl.length>1?'s':'')+' flagged for checking':'every record read with high confidence'}</summary>
+      ${fl.map(f=>`<div class="proofnote"><b>${f.confidence==='low'?'Low':'Medium'} confidence:</b> record <code>${esc(f.id)}</code> (page ${f.page}) ${(f.unsure||[]).map(u=>esc(u.what)+' – '+esc(u.why)).join('; ')||''}</div>`).join('')}
+      ${c.preview?`<img src="${c.preview}" alt="the sample photo that was read" style="max-width:340px;width:100%;border-radius:10px;margin:10px 0;box-shadow:0 0 0 1px var(--line)">`:''}
+      <pre style="white-space:pre-wrap;font:11px/1.5 var(--mono);color:var(--mut);margin:8px 0 0">${esc(c.scan.transcript)}</pre></details>`}
+  }
 $('intakebtn').onclick=()=>{$('intake').hidden=!$('intake').hidden;if(!$('intake').hidden&&!SERVER)noServer()};
 async function sample(style){try{const r=await fetch(`/api/sample?case=${cur&&cur.id!=='pasted'?cur.id:'prop-014'}&style=${style}`);const j=await r.json();$('dtext').value=j.text;$('dstat').textContent=`Sample ${j.case} · ${style} wording`}catch(e){noServer()}}
+$('dscan').onclick=async()=>{const fs=[...$('dfile').files];if(!fs.length){$('dstat').textContent='Choose a PDF or photos first.';return}
+  const b64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f)});
+  $('dstat').textContent='Reading the scans… (a few seconds per page)';$('dscan').disabled=true;
+  try{const files=[];for(const f of fs)files.push({name:f.name,mime:f.type,data:await b64(f)});
+    const r=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({files})});const c=await r.json();
+    if(c.error){$('dstat').innerHTML=`<span class="warn">${esc(c.error)}</span>`;return}
+    showPasted(c)}catch(e){noServer()}finally{$('dscan').disabled=false}};
+$('dss').onclick=async()=>{$('dstat').textContent='Rendering a sample photo and reading it… (about 15 s)';$('dss').disabled=true;
+  try{const r=await fetch(`/api/scan_sample?case=${cur&&cur.id!=='pasted'?cur.id:'prop-014'}&tier=phone`);const c=await r.json();
+    if(c.error){$('dstat').innerHTML=`<span class="warn">${esc(c.error)}</span>`;return}showPasted(c)}catch(e){noServer()}finally{$('dss').disabled=false}};
 $('ds1').onclick=()=>sample('messy');$('ds2').onclick=()=>sample('clean');
 $('dgo').onclick=async()=>{const text=$('dtext').value.trim();if(!text){$('dstat').textContent='Paste a dossier first.';return}
   $('dstat').textContent='Reading the dossier…';$('dgo').disabled=true;
   try{const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,reader:$('dreader').value})});const c=await r.json();
     if(c.error){$('dstat').innerHTML=`<span class="warn">${esc(c.error)}</span>`;return}
-    D=D.filter(x=>x.id!=='pasted');D.push(c);pack=c.domain;$('pp').classList.toggle('on',pack==='property');$('pv').classList.toggle('on',pack==='vehicle');
-    const list=D.filter(x=>x.domain===pack);$('pick').innerHTML=list.map(x=>`<option value="${x.id}">${x.id==='pasted'?'pasted dossier':x.id+' — '+x.kind+' ('+x.split+')'}</option>`).join('');
-    pick('pasted');
-    $('dstat').innerHTML=`Read with <b>${c.reader==='llm'?'Gemini':'offline rules'}</b>${c.tokens?` · ${c.tokens.toLocaleString()} tokens`:''}. ${(c.warnings||[]).map(w=>`<span class="warn">${esc(w)}</span>`).join(' ')}`;
-    const keys=['date','recorded','from','to','follows','signed_by_agent','authority','odometer','agent','valid_from','valid_to','holder','releases','person','died'];
-    $('dex').innerHTML=`<details><summary>What the reader extracted · ${c.extracted.length} records · check it against your documents</summary><table class="ex"><tr><th>id</th><th>type</th><th>facts</th></tr>`+
-      c.extracted.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.type)}</td><td>${keys.filter(k=>e[k]!=null&&e[k]!==false).map(k=>`${k}: ${esc(e[k])}`).join(' · ')}</td></tr>`).join('')+'</table></details>';
-    $('graph').scrollIntoView({behavior:'smooth',block:'nearest'});
+    showPasted(c);
   }catch(e){noServer()}finally{$('dgo').disabled=false}};
 
 // ---- replay a recorded investigation (real transcripts: results/traces.jsonl)
@@ -236,7 +256,7 @@ const start=D.find(c=>c.id===q)||D.find(c=>c.domain==='property'&&c.label==='def
 if(start.domain==='vehicle')$('pv').click();else fill();pick(start.id);
 // deep link for recording/testing: ?intake=clean|messy opens the panel, loads a sample of the current case and checks it
 const iq=new URLSearchParams(location.search).get('intake');
-if(iq){setTimeout(async()=>{$('intake').hidden=false;await sample(iq);$('dgo').click()},600)}
+if(iq==='scan'){setTimeout(()=>{$('intake').hidden=false;$('dss').click()},600)}else if(iq){setTimeout(async()=>{$('intake').hidden=false;await sample(iq);$('dgo').click()},600)}
 const sq=new URLSearchParams(location.search).get('sel');if(sq!==null){sel=+sq;render()}
 const rq=new URLSearchParams(location.search).get('replay');if(rq!==null&&TR[cur.id]){tshow=true;tstep=+rq;$('trbtn').textContent='Hide the replay';renderTrace()}
 </script></body></html>
