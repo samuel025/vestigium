@@ -175,3 +175,7 @@ vestigium.rl             persistent Relate store    answer_key.json         plan
 - **Product:** deterministic ownership-chain checks, evidence-cited verdicts, replay by two dates, what-would-fix-it, verdict timeline, benchmark harness, static UI.
 - **Third-party:** Relate (`relate-db`, embedded Cypher graph database), `google-genai`, `pytest`, `uv`.
 - **AI tools:** Google Gemini (`gemini-3.5-flash-lite`) powers benchmark Arms A–C. The project was built with Claude Code (Anthropic) as the coding assistant.
+
+## License
+
+MIT, see `LICENSE`. All data in this repository is synthetic; nothing here is legal advice.
