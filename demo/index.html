@@ -103,7 +103,7 @@ function bench(){const B=window.VESTIGIUM_BENCH||[];
   B.map(b=>`<div style="display:grid;grid-template-columns:150px 1fr 1fr;gap:6px 12px;align-items:center;margin:6px 0"><div><b>${b.arm}</b> <span class="mut">${b.name}</span><br><small>${b.repeats} repeat${b.repeats>1?'s':''} · ${b.tokens.toLocaleString()} tokens/case</small></div>
    <div style="background:var(--line);border-radius:4px;height:20px;position:relative"><div style="width:${b.acc}%;background:${b.acc>90?'var(--ok)':'var(--acc)'};height:100%;border-radius:4px"></div><span style="position:absolute;left:8px;top:1px;font-size:12px;${b.acc<15?"color:var(--tx)":"color:#fff;text-shadow:0 0 3px #000"}">${b.acc}%</span></div>
    <div style="background:var(--line);border-radius:4px;height:20px;position:relative"><div style="width:${b.false_clean}%;background:var(--bad);height:100%;border-radius:4px"></div><span style="position:absolute;left:8px;top:1px;font-size:12px;${b.false_clean<15?"color:var(--tx)":"color:#fff;text-shadow:0 0 3px #000"}">${b.false_clean}%</span></div></div>`).join('')+
-  `<div class="mut" style="font-size:12px;margin-top:6px">Arm B has 1 repeat; the rest have 3. The rules and the cases were written together, so D is the ceiling of the rules, not a real-world claim.</div>`}
+  `<div class="mut" style="font-size:12px;margin-top:6px">All arms have 3 repeats; B swings from 47.5% to 62.5% between them. The rules and the cases were written together, so D is the ceiling of the rules, not a real-world claim.</div>`}
 $('pick').onchange=e=>pick(e.target.value);
 $('slider').oninput=e=>{step=+e.target.value;render()};
 $('strip').onclick=e=>{if(e.target.dataset.i){step=+e.target.dataset.i;$('slider').value=step;render()}};
