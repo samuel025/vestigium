@@ -1,5 +1,5 @@
 """Local demo server: the static UI plus POST /api/analyze (paste a dossier) and GET /api/sample.
-  uv run python -m vestigium.serve        then open http://127.0.0.1:8000/index.html
+  uv run python -m vestigium.serve        then open http://127.0.0.1:8000/  (overview) or /app.html  (the app)
 Gemini keys stay server-side (.env); the browser never sees them.
 """
 import base64, json, pathlib
@@ -69,5 +69,5 @@ class H(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("Vestigium demo: http://127.0.0.1:8000/index.html  (Ctrl+C to stop)")
+    print("Vestigium: http://127.0.0.1:8000/  (overview)  ·  http://127.0.0.1:8000/app.html  (the app)  ·  Ctrl+C to stop")
     ThreadingHTTPServer(("127.0.0.1", 8000), H).serve_forever()

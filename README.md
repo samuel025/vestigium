@@ -1,62 +1,102 @@
 # Vestigium
 
-**Evidence-backed ownership investigation, on Relate.** Vestigium rebuilds the history of an asset (a property or a vehicle),
-checks whether every transfer had the ownership and authority evidence it needed *at the time*, and shows exactly where the
-chain breaks, which record proves it, and what missing record would resolve any doubt.
+**Every transfer in an ownership chain, checked against the evidence it needed at the time.**
+Vestigium rebuilds the history of a property or a vehicle, runs deterministic checks on every sale, and shows the broken link together with the exact record that proves it.
+Built on [Relate by Neo4j](https://relatedb.ai).
 
-> All data is **synthetic**: fictional parties, a fictional jurisdiction, generic rules. Nothing here is real or legal advice.
+![Vestigium checking a chain: three links pass, the fourth breaks](docs/img/landing.png)
 
-A deterministic rule engine (Cypher checks) reaches every verdict. An AI agent investigates the graph, calls the checks and explains
-the result, so it never invents legal reasoning. A benchmark compares document-only agents against graph-backed ones.
+> All data is **synthetic**: fictional parties, a fictional jurisdiction, generic rules. Nothing here is real, and nothing here is legal advice.
+
+**Open the overview:** `uv run python -m vestigium.serve`, then <http://127.0.0.1:8000/>. The app is at <http://127.0.0.1:8000/app.html>.
+
+---
+
+## What it is, in plain words
+
+Before money changes hands on a property or a vehicle, someone has to be sure the seller could actually sell. Defects hide in the *connections* between records, not in any single one:
+
+- a deed signed by an agent whose **power of attorney had already expired**,
+- a **lien that was never released** before the sale,
+- a **salvage brand that vanished** from a later vehicle title,
+- a seller who was **never the previous buyer**, or a deed dated before the seller owned the property.
+
+A person (or an AI) skimming the pile of documents tends to call such a chain "clean". Vestigium reads the documents into a graph, checks every transfer with named rules, and returns one of three verdicts:
+
+| Verdict | Meaning |
+|---|---|
+| **clean** | every transfer links to the one before it, and no check finds a defect |
+| **defective** | a check fails; the answer names the rule, the transfer and the records that prove it |
+| **inconclusive** | a record is missing; the answer names it and accuses no one |
+
+**The principle that keeps it honest: the AI reads, the rules decide.** A language model may *read* documents into structured facts, and every fact it read is shown back to you. It never judges legality. Every verdict comes from a deterministic rule engine: the same graph always gives the same answer, and a citation that points at text that does not exist is rejected.
+
+## How it works
+
+```mermaid
+flowchart LR
+  D["Documents<br/>paste · PDF · photo"] --> R["Reader<br/>copies facts, never judges"]
+  R --> G[("Relate graph<br/>Asset · Party · Transfer<br/>Claim · Authority · Document · Passage")]
+  G --> E["Rule engine<br/>14 named Cypher checks"]
+  E --> V{"Verdict"}
+  V --> C["clean"]
+  V --> X["defective<br/>+ rule id + transfer"]
+  V --> I["inconclusive<br/>+ the missing record"]
+  X --> P["Proof<br/>minimal records · exact passages<br/>what would fix it"]
+```
+
+1. **Documents.** Paste text, upload a PDF, or photograph a deed (stamps, handwritten notes and blur included).
+2. **Reader.** An offline regex reader handles canonical wording; a language model handles anything else; a vision model reads scans and reports how sure it is.
+3. **Graph.** Facts land in one Relate graph: `Asset`, `Party`, `Transfer`, `Claim`, `Authority`, `Document`, `Passage`, linked by `FROM`, `TO`, `MOVES`, `FOLLOWS`, `AGAINST`, `CLEARED_BY`, `ACTED_UNDER`, `EVIDENCED_BY`, and more. **Every fact carries two dates**: when it took effect and when it was recorded.
+4. **Rule engine.** Fourteen named Cypher checks (eight for property, six for vehicles). Gap rules produce *inconclusive*; the rest produce *defective*.
+5. **Proof.** The verdict comes with its trail: verdict → rule id → graph path → evidence → exact document passage, the *smallest set of records* it rests on, and *what record would fix it*.
+
+![How it works: five steps from documents to proof](docs/img/how-it-works.png)
 
 ## Why Relate, and why single-file mode
 
-Ownership is a chain of *relationships*: who gave up the asset, who received it, what authority the signer had, which claim was open.
-Checks like "was the grantor the previous grantee?" or "was a lien released before this sale?" are graph patterns, so they are short Cypher queries
-on Relate. We store the demo graph in single-file mode, `vestigium.rl`: it is persistent, one file a judge can open and inspect, and
-needs no server. Each benchmark case is built in its own in-memory Relate graph, so every case is isolated, and the
-"what would fix it" check copies a graph into a throwaway instance to rehearse a hypothetical record.
+Ownership is a chain of *relationships*: who gave up the asset, who received it, what authority the signer had, which claim was open. "Was the grantor the previous grantee?" and "was a lien released before this sale?" are graph patterns, so each rule is a short Cypher query on Relate. We store the demo graph in single-file mode, `vestigium.rl`: persistent, one file a judge can open and inspect, no server. Each benchmark case is built in its own in-memory graph, so every case is isolated, and "what would fix it" copies a graph into a throwaway instance to rehearse a hypothetical record.
 
-## Setup
+## Quick start
 
 ```bash
-git clone <this repo> && cd vestigium
-uv sync                                   # installs relate-db (Relate's Python package) and google-genai
-cp .env.example .env                      # only needed for the LLM arms (A, B, C); add GEMINI_API_KEY
-uv run pytest -q                          # 9 tests: engine matches the answer key on all 80 cases
+git clone https://github.com/samuel025/vestigium && cd vestigium
+uv sync                                   # installs relate-db (Relate's Python package), google-genai, mcp, pillow
+cp .env.example .env                      # only for the LLM parts; add GEMINI_API_KEY (several keys can be rotated)
+uv run pytest -q                          # 33 tests, no network needed
 uv run python -m vestigium.build_store    # writes vestigium.rl and answer_key.json
+uv run python -m vestigium.serve          # overview at http://127.0.0.1:8000/ , app at /app.html
+uv run python -m vestigium.cli prop-014   # one case in the terminal: verdict, rule, evidence, fix, timeline
 ```
 
-Inspect the persistent store with any Relate client (Python shown; the `relate` CLI works too):
+Inspect the persistent store with any Relate client:
 
 ```python
 import relate; db = relate.connect("vestigium.rl")
 db.execute("MATCH (t:Transfer)-[:ACTED_UNDER]->(a:Authority) RETURN t.id, a.agent, a.valid_to").data()
 ```
 
-Run the investigation on one case, or open the UI:
+Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini reader, scan reading). `uv run python -m vestigium.serve` serves the UI and the paste and upload endpoints; `cd demo && python3 -m http.server 8000` serves the static pages only.
 
-```bash
-uv run python -m vestigium.cli prop-014                  # verdict, rule, evidence, fix, verdict timeline
-uv run python -m vestigium.serve                         # UI + "Paste a dossier"; open http://127.0.0.1:8000/index.html  (?case=veh-003 to jump)
-cd demo && python3 -m http.server 8000                   # static-only alternative (no paste box, no Gemini)
-```
+## What you can do with it
 
-Everything runs offline except the LLM arms. The demo UI is a static page over exported data (`demo/data.js`).
-
-## What it does
+![The app: a finding, its minimal proof and the exact passages](docs/img/app-proof.png)
 
 | | |
 |---|---|
-| **Verdicts** | `clean`, `defective` (names the rule and the evidence), or `inconclusive` (lists each missing record, accuses no one). |
-| **Evidence trail** | verdict → rule ID → graph path → evidence → exact document passage. |
-| **Two dates** | every check takes *valid-as-of* and *known-as-of*, so a chain is replayed as it was true and as it was known (the replay slider). |
-| **What would fix it** | copy the graph, add a hypothetical record (a release, a ratifying authority, a missing link), rerun every check, report whether it turns clean. |
-| **Verdict timeline** | verdict across known-as-of dates, e.g. clean until a late-recorded deed arrives. |
-| **Race panel** | recorded runs of the document-only agent next to the rule-backed agent. |
+| **Verdicts with a proof trail** | verdict → rule id → graph path → evidence → exact passage, in the UI and over MCP |
+| **Minimal proof** | the smallest set of records a finding rests on (1.8 of a 10.3-record dossier on average) |
+| **Two-date replay** | slide the *known-as-of* date and watch the verdict change, e.g. clean until a late-recorded deed arrives |
+| **What would fix it** | copy the graph, add a hypothetical record (a release, a ratifying authority, a missing link), rerun every check |
+| **Honest "inconclusive"** | a missing record is named, never guessed |
+| **Paste a dossier** | any wording; a reader extracts, the rules decide; every extracted fact is listed to check |
+| **Scanned documents** | PDFs and photos, with per-record confidence carried into the verdict |
+| **Replay the investigation** | real agent transcripts, tool call by tool call, with every citation checked against the store |
+| **MCP server** | any MCP client can send records and get a verdict, rule ids and exact cited text |
 
-**Rule packs** (`vestigium/rules.py`): *Property* — PROP-CHAIN, PROP-DUP, PROP-LIEN, PROP-AUTH, PROP-DATE, PROP-DEATH, PROP-GAP, PROP-AUTH-MISSING.
-*Vehicle* — VEH-OWN, VEH-LIEN, VEH-BRAND, VEH-ODO, VEH-GAP, VEH-ODO-MISSING. Gap rules produce the *inconclusive* verdict; the rest produce *defective*.
+![Replaying an agent investigation next to a documents-only agent](docs/img/app-replay.png)
+
+**Rule packs** (`vestigium/rules.py`): *Property*: PROP-CHAIN, PROP-DUP, PROP-LIEN, PROP-AUTH, PROP-DATE, PROP-DEATH, PROP-GAP, PROP-AUTH-MISSING. *Vehicle*: VEH-OWN, VEH-LIEN, VEH-BRAND, VEH-ODO, VEH-GAP, VEH-ODO-MISSING.
 
 ## Benchmark
 
@@ -108,6 +148,16 @@ schema, so real scanned deeds would be harder (OCR noise, free-form clauses); a 
 We changed the extraction prompt once after seeing results on this same held-out set (the first prompt let the model invent a first name for "N. Stone", which wrongly broke 2 of 120 messy runs; we now tell it to copy
 names exactly and let code match abbreviations). The first run is kept in `results/intake_v1_prompt.jsonl` (98.3% messy verdict accuracy). Raw runs, including each extracted record list, are in `results/intake.jsonl`.
 
+### Scanned documents: PDFs and photos
+
+Nobody types out a 20-page deed. The upload box (and `POST /api/scan`) accepts PDFs and JPEG, PNG or WebP photos (`vestigium/scan.py`). Stage 1 is a vision model that transcribes each page record by record, including clerk's stamps and handwritten notes, and reports a **confidence** (high, medium or low) with *what* it is unsure about. It copies; it never judges. Stage 2 sends the transcript through the same reader, graph and rule engine.
+
+**Confidence is carried into the verdict.** If a finding rests on a record that was read with low confidence, the verdict card says which record and page to check against the original, instead of guessing silently. A CLEAN verdict with low-confidence records is warned about too, not presented as safe, and low confidence on an irrelevant record does not raise a false alarm. A record that looks like a deed or lien but cannot be parsed is never silently dropped: the verdict becomes *inconclusive* and names the unreadable record.
+
+How we test it: `render_scan()` makes synthetic scans from our dossiers, in three tiers (a clean PDF, a phone photo with rotation, uneven lighting, blur and JPEG damage, and a poor photo), with the recording date appearing *only* as a red stamp or a handwriting-style note, as on a real recorded deed. "Try a sample phone photo" in the app renders one and reads it.
+
+**Status, stated plainly:** the scan benchmark (`uv run python -m vestigium.scan_bench`, 40 held-out cases per tier) was cut off by the free-tier daily quota. So far only the clean-PDF tier has run (25 of 40 cases): 100% correct verdicts and every date read exactly. The phone and poor-photo tiers, and whether the low-confidence flags catch real misreadings, are **not measured yet**; `results/scan.jsonl` is resumable and the numbers will be added here. Scans use `gemini-3.5-flash` (`VESTIGIUM_VISION_MODEL`), because the lite model returned overload errors on multi-page images. Tested only on synthetic pages: true handwriting, real scanner noise, and dedicated OCR services (Google Document AI, AWS Textract) are untested.
+
 ### Use it from your own agent (MCP)
 
 `vestigium/mcp_server.py` serves the engine over the Model Context Protocol, so Claude Desktop, Claude Code or any MCP client can investigate a chain. Your model *reads* the documents and sends structured
@@ -157,24 +207,33 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
 - **Arms A-D assume a correct graph.** Extraction is scored separately (section above), not chained into the four-arm table. Not scored: per-case fix-by-copy accuracy for agent-proposed records
   (we score the *type* of record the agent names against the answer key; each answer-key fix is separately verified to turn its case clean).
 - **Single-file Relate store only for the demo;** benchmark graphs are in-memory per case.
-- Not built: running Relate in the browser (WASM), Relate's own `relate serve` MCP endpoint for the `.rl` store (our MCP server exposes the rule engine instead), reading scanned or PDF documents (paste text only).
+- **Scans are tested on synthetic photos only** (see *Scanned documents*), and that benchmark is not finished.
+- Not built: running Relate in the browser (WASM), Relate's own `relate serve` MCP endpoint for the `.rl` store (our MCP server exposes the rule engine instead), Google Document AI or AWS Textract (we use a vision model).
 
 ## Layout
 
 ```
-vestigium/rules.py       rule packs (Cypher)        vestigium/generator.py  seeded case generator + answer key
-vestigium/engine.py      load graph, run checks     vestigium/whatif.py     "what would fix it"
-vestigium/arms.py        benchmark arms A–D         vestigium/bench.py      scoring + report (resumable)
-vestigium/llm.py         Gemini wrapper, key rotation, pacing, hand-written tool loop
-demo/                    static UI                  results/heldout.jsonl   raw answers, call counts, tokens per run   results/traces.jsonl   full transcripts, 12 showcase cases
-vestigium.rl             persistent Relate store    answer_key.json         planted errors for all 80 cases
+vestigium/rules.py        rule packs (Cypher)          vestigium/engine.py       load graph, run checks, verdict
+vestigium/generator.py    seeded cases + answer key    vestigium/whatif.py       "what would fix it"
+vestigium/proof.py        minimal proof sets           vestigium/metamorphic.py  invariance + fresh-seed checks
+vestigium/dossier.py      full-fidelity dossier text   vestigium/extract.py      readers (regex, Gemini) + graph assembler
+vestigium/intake.py       paste a dossier -> verdict   vestigium/scan.py         PDFs and photos -> text + confidence
+vestigium/mcp_server.py   MCP tools                    vestigium/serve.py        local server: UI + paste + upload
+vestigium/arms.py         benchmark arms A-D           vestigium/bench.py        scoring + report (resumable)
+vestigium/intake_bench.py extraction benchmark         vestigium/scan_bench.py   scan benchmark (resumable)
+vestigium/llm.py          Gemini wrapper: key rotation, pacing, tool loop, vision
+demo/index.html           overview / landing page      demo/app.html             the app
+demo/data.js, bench.js    exported data                vestigium.rl              persistent Relate store
+results/heldout.jsonl     raw answers, call counts     results/traces.jsonl      full transcripts, 12 showcase cases
+results/intake.jsonl      extraction runs              results/scan.jsonl        scan runs (partial)
+answer_key.json           planted errors, all 80 cases docs/img/                  screenshots used above
 ```
 
 ## Product capabilities, third-party and AI tools
 
-- **Product:** deterministic ownership-chain checks, evidence-cited verdicts, replay by two dates, what-would-fix-it, verdict timeline, benchmark harness, static UI.
-- **Third-party:** Relate (`relate-db`, embedded Cypher graph database), `google-genai`, `pytest`, `uv`.
-- **AI tools:** Google Gemini (`gemini-3.5-flash-lite`) powers benchmark Arms A–C. The project was built with Claude Code (Anthropic) as the coding assistant.
+- **Product:** deterministic ownership-chain checks, evidence-cited verdicts, minimal proofs, replay by two dates, what-would-fix-it, paste and scan intake with confidence, an MCP server, a benchmark harness, and a web app with an overview page.
+- **Third-party:** Relate (`relate-db`, embedded Cypher graph database), `google-genai`, `mcp`, `pillow`, `numpy`, `pytest`, `uv`.
+- **AI tools:** Google Gemini powers benchmark Arms A to C and the readers (`gemini-3.5-flash-lite`) and scan reading (`gemini-3.5-flash`). The project was built with Claude Code (Anthropic) as the coding assistant.
 
 ## License
 

@@ -48,6 +48,27 @@ def traces():
     return out
 
 
+def intake_summary():
+    """Reader accuracy on the held-out extraction benchmark (regex vs Gemini, clean vs messy wording)."""
+    f = ROOT / "results" / "intake.jsonl"
+    rows = [json.loads(l) for l in f.read_text().splitlines()] if f.exists() else []
+    out = []
+    for rd in ("regex", "llm"):
+        for sty in ("clean", "messy"):
+            S = [r for r in rows if r["reader"] == rd and r["style"] == sty]
+            if S: out.append(dict(reader={"regex": "Offline rules", "llm": "Gemini"}[rd], style=sty, n=len(S), verdict=round(100 * sum(r["correct"] for r in S) / len(S), 1)))
+    return out
+
+
+def landing_data(cases):
+    c = next(x for x in cases if x["id"] == "prop-014")
+    tr = [dict(id=n["id"], effective=n["effective"], recorded=n["recorded"]) for n in c["nodes"] if n["label"] == "Transfer"]
+    tr.sort(key=lambda t: int(t["id"][1:]) if t["id"][1:].isdigit() else 999)
+    f = c["result"]["findings"][0]
+    return dict(arms=bench_summary(), intake=intake_summary(),
+                sample=dict(id=c["id"], as_of=c["as_of"], transfers=tr, timeline=c["timeline"], bad=f["transfer"], rule=f["rule"], detail=f["detail"]))
+
+
 def export():
     rec = runs()
     cases = []
@@ -65,6 +86,7 @@ def export():
             result=r, timeline=tl, proof=[dict(rule=x['rule'], transfer=x['transfer'], passages=x.get('passages', []), records_total=x.get('records_total', 0)) for x in proofs(c, r)], fix=(c["key"]["fix"] or {}).get("describe"), fix_verdict=fixv,
             documents=documents(c), agents=rec.get(c["id"], {})))
     (ROOT / "demo" / "data.js").write_text("window.VESTIGIUM = " + json.dumps(cases, default=str) + ";\nwindow.VESTIGIUM_BENCH = " + json.dumps(bench_summary()) + ";\nwindow.VESTIGIUM_TRACES = " + json.dumps(traces()) + ";")
+    (ROOT / "demo" / "bench.js").write_text("window.VBENCH = " + json.dumps(landing_data(cases)) + ";")
     print(f"exported {len(cases)} cases, {sum(1 for c in cases if c['agents'])} with recorded agent runs")
 
 if __name__ == "__main__":

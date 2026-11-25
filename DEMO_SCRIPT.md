@@ -1,6 +1,6 @@
 # Demo video script — 2 minutes
 
-**Setup before recording:** `cd demo && python3 -m http.server 8000`, then open `http://127.0.0.1:8000/index.html?case=prop-014`.
+**Setup before recording:** `cd demo && python3 -m http.server 8000`, then open `http://127.0.0.1:8000/app.html?case=prop-014` (the landing page is `index.html`; the app is `app.html`).
 Browser at about 1400 px wide (the page is dark-only now, so there is no theme to match). Case `prop-014` is a synthetic 5-transfer property chain. The seller of T5 signed as an agent on 2019-05-01, but the power of attorney ended 2019-01-17.
 A planted "title is clear and free of encumbrances" summary sits in the dossier to mislead.
 
@@ -20,7 +20,7 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 > "Here's a dossier with a planted trap: a summary saying 'title is clear'. An agent reading only the documents trusts it and says clean.
 > Vestigium's agent doesn't."
 
-*On screen: Race panel. Document-only agent: CLEAN ✗ answer key defective. Vestigium: DEFECTIVE ✓. Optional, if there is time: click "Replay the investigation" and press Next step twice. The rule-engine agent calls the checks, then reads exactly the two cited passages; the document-only agent cites all 12 records. Deep link: `?case=prop-014&replay=4`.*
+*On screen: Race panel. Document-only agent: CLEAN ✗ answer key defective. Vestigium: DEFECTIVE ✓. Optional, if there is time: click "Replay the investigation" and press Next step twice. The rule-engine agent calls the checks, then reads exactly the two cited passages; the document-only agent cites all 12 records. Deep link: `app.html?case=prop-014&replay=4`.*
 
 ### 0:35–0:55 — The broken link (top right: verdict card)
 

@@ -8,4 +8,4 @@ uv run pytest -q                                   # engine matches the answer k
 uv run python -m vestigium.build_store             # vestigium.rl + answer_key.json
 VESTIGIUM_RPM="${VESTIGIUM_RPM:-15}" uv run python -m vestigium.bench --arms D C A B --split heldout --repeats "${REPEATS:-1}"
 uv run python -m vestigium.export_demo             # refresh demo/data.js
-echo "Open demo/index.html (or: cd demo && python3 -m http.server 8000)"
+echo "Open demo/index.html for the overview and demo/app.html for the app (or: uv run python -m vestigium.serve)"

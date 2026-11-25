@@ -1,262 +1,418 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vestigium — ownership evidence, checked</title>
+<title>Vestigium — every transfer, checked against the evidence it needed</title>
+<meta name="description" content="Vestigium rebuilds the history of a property or vehicle, runs deterministic checks on every sale, and shows the broken link with the exact record that proves it. Built on Relate.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>if(/[?&](case|replay|intake|sel)=/.test(location.search))location.replace('app.html'+location.search)</script>
 <style>
-/* Design notes (adapted from a Raycast-style dark system, tuned for an evidence tool):
-   - Colour is rationed so it MEANS something: coral = a defect / broken link, amber = a gap, green = clean.
-     Everything else is neutral grey, so the one red box in the chain is the first thing the eye finds.
-   - Dark only: one theme means one thing to record, and red/amber/green read the same everywhere.
-   - Cards are defined by hairlines + a soft inset highlight (no drop shadows), so dense panels stay quiet. */
-:root{color-scheme:dark;
- --bg:#040506;--panel:#07080a;--well:#111214;--chip:#1b1c1e;
- --line:#26272a;--edge:#363739;
- --tx:#e6e6e6;--hi:#ffffff;--mut:#9c9c9d;--dim:#6a6b6c;
- --ok:#59d499;--bad:#ff6363;--gap:#e8b04a;--acc:#e6e6e6;
+/* Design notes: a dark command-centre language (hairline cards, tactile keys, one warm accent), adapted for an evidence tool.
+   Colour carries meaning here: coral = a defect / the broken link, amber = a gap, green = clean. Everything else is neutral. */
+:root{color-scheme:dark;--bg:#040506;--panel:#07080a;--well:#111214;--chip:#1b1c1e;--line:#26272a;--edge:#363739;
+ --tx:#e6e6e6;--hi:#fff;--mut:#9c9c9d;--dim:#6a6b6c;--ok:#59d499;--bad:#ff6363;--gap:#e8b04a;
  --mono:'Geist Mono','JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
- --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 var(--sans);font-feature-settings:'calt','kern','liga','ss03';
- background-image:radial-gradient(ellipse 70% 38% at 50% -8%,rgba(4,63,150,.28),transparent 70%);background-repeat:no-repeat}
-.wrap{max-width:1240px;margin:0 auto;padding:0 20px 28px}
-/* floating glass bar */
-header{position:sticky;top:12px;z-index:5;margin:12px 0 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
- padding:8px 14px;border:1px solid var(--edge);border-radius:12px;background:rgba(7,8,10,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
-.brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px;color:var(--hi);letter-spacing:.01em}
-.eyebrow{font:500 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
-.sp{flex:1}
-.seg{display:flex;gap:2px;padding:3px;border-radius:9999px;background:var(--well);box-shadow:0 0 0 1px var(--line)}
-select,button{font:inherit;color:var(--tx)}
-.seg button{background:none;border:0;border-radius:9999px;padding:4px 14px;color:var(--mut);cursor:pointer;font-weight:500;font-size:13px}
-.seg button:hover{color:var(--hi)}.seg button.on{background:var(--chip);color:var(--hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
-select{background:rgba(255,255,255,.05);border:0;box-shadow:0 0 0 1px var(--line);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:12px}
-select:hover{box-shadow:0 0 0 1px var(--edge)}
-/* neutral filled action: the only "button" look, never a chromatic CTA */
-.btn{background:#e6e6e6;color:#2a2b2c;border:0;border-radius:8px;padding:7px 12px;font-weight:500;font-size:13px;cursor:pointer;
- box-shadow:rgba(0,0,0,.25) 0 4px 4px,inset 0 1px 0 rgba(255,255,255,.6)}
-.btn:hover{background:#fff}
-:focus-visible{outline:2px solid #fff;outline-offset:2px}
-main{display:grid;grid-template-columns:1fr 380px;gap:16px}
-main>div{min-width:0}main>div>.card+.card{margin-top:16px}
-@media(max-width:1000px){main{grid-template-columns:1fr}}
-.card{background:var(--panel);border-radius:16px;padding:20px 22px;
- box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -1px 0 rgba(0,0,0,.2),0 0 0 1px var(--line)}
-.card h2{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 14px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-.card h2 small{font:400 11px/1.3 var(--sans);letter-spacing:0;text-transform:none;color:var(--dim)}
-/* verdict is the headline of the page: large, one word */
-.verdict{display:inline-block;padding:2px 10px;border-radius:9999px;font:600 12px/1.6 var(--mono);letter-spacing:.06em}
-#verdict .verdict{font-size:20px;padding:6px 18px;letter-spacing:.08em}
-.v-clean{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 35%,transparent)}
-.v-defective{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);box-shadow:0 0 0 1px color-mix(in srgb,var(--bad) 40%,transparent)}
-.v-inconclusive{background:color-mix(in srgb,var(--gap) 14%,transparent);color:var(--gap);box-shadow:0 0 0 1px color-mix(in srgb,var(--gap) 35%,transparent)}
-#graph{overflow-x:auto;padding-bottom:4px}
-svg text{font:12px var(--sans);fill:var(--tx)}svg .m{fill:var(--mut)}svg .mono{font-family:var(--mono);font-size:11px}
-.finding{border-radius:10px;padding:10px 12px;margin:8px 0;cursor:pointer;background:var(--well);box-shadow:0 0 0 1px var(--line);transition:box-shadow .15s}
-.finding:hover{box-shadow:0 0 0 1px var(--edge)}.finding.sel{box-shadow:0 0 0 1px var(--hi)}
-.rule{font:600 12px var(--mono);letter-spacing:.03em;margin-bottom:2px}
-.pass{border-left:2px solid var(--edge);padding:6px 10px;margin:8px 0;color:var(--mut);font-size:13px;background:rgba(255,255,255,.02);border-radius:0 8px 8px 0}
-.pass code{color:var(--hi)}
-.proofnote{margin:8px 0;padding:8px 10px;border-radius:10px;background:var(--well);box-shadow:0 0 0 1px var(--line);color:var(--tx);font-size:13px}.proofnote b{color:var(--hi)}
-.strip{display:flex;gap:3px;margin:12px 0 8px}.strip i{flex:1;height:16px;border-radius:3px;opacity:.85;cursor:pointer;transition:opacity .15s}
-.strip i:hover{opacity:1}.strip i.cur{opacity:1;outline:2px solid var(--hi);outline-offset:2px}
-input[type=range]{width:100%;accent-color:#e6e6e6}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.arm{background:var(--well);border-radius:12px;padding:12px 14px;box-shadow:0 0 0 1px var(--line)}
-.arm b{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:6px}
-.mut{color:var(--mut)}small{color:var(--mut)}code{font:12px var(--mono)}
-/* benchmark rows */
-.bh,.br{display:grid;grid-template-columns:170px 1fr 1fr;gap:6px 18px;align-items:center}
-.bh{font-size:11px;color:var(--dim);margin-bottom:6px}.br{margin:12px 0}
-.bar{display:flex;align-items:center;gap:10px}
-.track{flex:1;height:8px;border-radius:9999px;background:var(--well);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
-.track i{display:block;height:100%;border-radius:9999px}
-.bar span{font:500 12px var(--mono);width:44px;text-align:right;color:var(--hi)}
-.foot{margin-top:20px;text-align:center;font:400 11px var(--mono);color:var(--dim);letter-spacing:.02em}
-textarea{width:100%;min-height:150px;resize:vertical;background:rgba(255,255,255,.05);color:var(--tx);border:0;border-radius:10px;padding:12px;font:12px/1.55 var(--mono);box-shadow:0 0 0 1px var(--line)}
-textarea:focus{outline:none;box-shadow:0 0 0 1px var(--hi)}
-.btn2{background:var(--chip);color:var(--tx);border:0;border-radius:8px;padding:7px 12px;font-weight:500;font-size:13px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 1px var(--line)}
-.btn2:hover{color:var(--hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 1px var(--edge)}
-.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.note{font-size:12px;color:var(--mut)}.warn{color:var(--gap)}
-details{margin-top:12px}summary{cursor:pointer;color:var(--mut);font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase}
-table.ex{width:100%;border-collapse:collapse;margin-top:8px;font:11px var(--mono)}
-table.ex td,table.ex th{padding:4px 8px;text-align:left;border-bottom:1px solid var(--line);color:var(--mut);vertical-align:top}table.ex th{color:var(--dim);font-weight:500}
-table.ex td:first-child{color:var(--hi)}
-.step{margin:8px 0;padding:8px 10px;border-radius:10px;background:var(--well);box-shadow:0 0 0 1px var(--line)}
-.step .call{font:12px var(--mono);color:var(--hi)}.step .call i{font-style:normal;color:var(--mut)}
-.step.new{animation:fadein .35s}@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.cite{font-size:12px;margin:4px 0}.cite .ok{color:var(--ok)}.cite .no{color:var(--bad)}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
-</style></head><body><div class="wrap">
-<header>
-  <div class="brand"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><rect x="13.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><path d="M9.6 14.2L12.4 7.8" stroke="#ff6363" stroke-width="1.8" stroke-linecap="round"/></svg>Vestigium</div>
-  <span class="eyebrow">Synthetic data · not legal advice</span>
-  <span class="sp"></span>
-  <button id="intakebtn" class="btn2">Paste a dossier</button>
-  <div class="seg"><button id="pp" class="on">Property</button><button id="pv">Vehicle</button></div>
-  <select id="pick" aria-label="Case"></select>
+ --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+ --key:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -1px 0 rgba(0,0,0,.2),0 0 0 1px var(--line)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 var(--sans);font-feature-settings:'calt','kern','liga','ss03';-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}code{font:13px var(--mono)}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+section{padding:96px 0;position:relative}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+h1,h2,h3{margin:0;color:var(--hi);font-weight:400;letter-spacing:.004em}
+h2{font-size:clamp(30px,4.2vw,46px);line-height:1.12;text-align:center}
+.sub{font-size:18px;color:var(--mut);text-align:center;max-width:660px;margin:16px auto 0}
+.head{margin-bottom:56px}.head .eyebrow{display:block;text-align:center;margin-bottom:18px}
+
+/* ---------- nav (floating glass) ---------- */
+nav{position:sticky;top:14px;z-index:50;margin:14px auto 0;max-width:1100px;width:calc(100% - 32px);display:flex;align-items:center;gap:6px;padding:8px 10px 8px 16px;
+ border:1px solid var(--edge);border-radius:14px;background:rgba(7,8,10,.7);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)}
+.logo{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px;color:var(--hi);margin-right:auto}
+nav .l{font-size:13px;font-weight:500;color:var(--mut);padding:6px 10px;border-radius:8px;transition:color .15s}nav .l:hover{color:var(--hi)}
+@media(max-width:820px){nav .l{display:none}}
+.btn{display:inline-flex;align-items:center;gap:8px;background:#e6e6e6;color:#2a2b2c;border:0;border-radius:8px;padding:9px 16px;font:500 14px var(--sans);cursor:pointer;
+ box-shadow:rgba(0,0,0,.5) 0 0 0 2px,rgba(255,255,255,.19) 0 0 14px,rgba(0,0,0,.2) 0 -1px .4px inset,#fff 0 1px .4px inset;transition:transform .08s,background .15s,box-shadow .2s}
+.btn:hover{background:#fff;box-shadow:rgba(0,0,0,.5) 0 0 0 2px,rgba(255,255,255,.3) 0 0 24px,rgba(0,0,0,.2) 0 -1px .4px inset,#fff 0 1px .4px inset}.btn:active{transform:translateY(1px)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.ghost{display:inline-flex;align-items:center;gap:8px;color:var(--tx);border-radius:8px;padding:9px 16px;font:500 14px var(--sans);box-shadow:var(--key);background:var(--chip);transition:color .15s,box-shadow .15s}
+.ghost:hover{color:var(--hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1px var(--edge)}
+:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+/* ---------- hero ---------- */
+.hero{padding:84px 0 40px;text-align:center;position:relative;overflow:hidden}
+.atmo{position:absolute;inset:-10% -20% auto -20%;height:760px;z-index:-1;pointer-events:none}
+.atmo i{position:absolute;display:block;border-radius:50%;filter:blur(70px)}
+.atmo .b1{left:18%;top:-6%;width:620px;height:420px;background:radial-gradient(closest-side,rgba(4,63,150,.75),transparent);animation:drift 16s ease-in-out infinite alternate}
+.atmo .b2{right:14%;top:2%;width:560px;height:380px;background:radial-gradient(closest-side,rgba(20,60,163,.5),transparent);animation:drift 20s ease-in-out infinite alternate-reverse}
+.atmo .c1{left:42%;top:12%;width:520px;height:90px;border-radius:60px;background:#ff6363;opacity:.22;transform:rotate(-24deg);animation:slide 11s ease-in-out infinite alternate}
+.atmo .c2{left:50%;top:30%;width:380px;height:60px;border-radius:60px;background:#ff6363;opacity:.14;transform:rotate(-24deg);animation:slide 14s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(40px,28px) scale(1.08)}}@keyframes slide{to{transform:translate(70px,-26px) rotate(-24deg)}}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:9999px;background:rgba(255,255,255,.04);box-shadow:0 0 0 1px var(--line);font:500 12px var(--mono);color:var(--mut);margin-bottom:26px}
+.pill b{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+h1{font-size:clamp(36px,5.8vw,62px);line-height:1.1;letter-spacing:.004em;max-width:1040px;margin:0 auto}
+h1 em{font-style:normal;color:var(--bad);text-shadow:0 0 38px rgba(255,99,99,.45)}
+.lead{font-size:19px;color:var(--mut);max-width:640px;margin:22px auto 0}
+.cta{display:flex;gap:12px;justify-content:center;margin-top:34px;flex-wrap:wrap}
+.meta{margin-top:18px;font:400 12px var(--mono);color:var(--dim);letter-spacing:.02em}
+
+/* hero window: a live mock of the product */
+.win{max-width:1000px;margin:64px auto 0;text-align:left;border-radius:20px;background:rgba(7,8,10,.85);box-shadow:var(--key),0 40px 120px rgba(0,0,0,.6);backdrop-filter:blur(12px);overflow:hidden;position:relative}
+.win:before{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent 30%)}
+.wbar{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.wbar .eyebrow{flex:1}.wbar .dots{display:flex;gap:6px}.wbar .dots i{width:9px;height:9px;border-radius:50%;background:#2a2b2d}
+.chipv{display:inline-block;padding:3px 12px;border-radius:9999px;font:600 12px/1.7 var(--mono);letter-spacing:.07em;transition:all .35s}
+.v-run{color:var(--mut);background:rgba(255,255,255,.05);box-shadow:0 0 0 1px var(--line)}
+.v-run:after{content:"";display:inline-block;width:5px;height:5px;margin-left:8px;border-radius:50%;background:var(--mut);animation:pulse .8s infinite}
+.v-clean{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 35%,transparent)}
+.v-bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--bad) 40%,transparent)}
+.v-gap{color:var(--gap);background:color-mix(in srgb,var(--gap) 14%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--gap) 35%,transparent)}
+.wbody{padding:28px 24px 8px}
+.chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;row-gap:14px}
+.tb{position:relative;flex:1 1 150px;min-width:150px;background:var(--well);border-radius:12px;padding:12px 14px;box-shadow:0 0 0 1px var(--edge);transition:box-shadow .4s,filter .4s,transform .4s}
+.tb .id{font:600 13px var(--sans);color:var(--hi)}.tb .id span{font:400 11px var(--mono);color:var(--mut);margin-left:6px}
+.tb .r{font-size:13px;color:var(--tx);margin-top:6px;line-height:1.35}.tb .r s{text-decoration:none;color:var(--mut);display:inline-block;width:34px}
+.tb.ok{box-shadow:0 0 0 1.5px var(--ok);} .tb.ok:after{content:"✓";position:absolute;right:10px;top:8px;color:var(--ok);font-size:13px}
+.tb.bad{box-shadow:0 0 0 2px var(--bad);filter:drop-shadow(0 0 14px rgba(255,99,99,.45));transform:translateY(-2px)}
+.arr{flex:0 0 34px;display:flex;align-items:center;justify-content:center;color:var(--dim)}
+.arr svg{width:22px;height:10px}
+.auth{display:inline-flex;margin-top:16px;padding:4px 12px;border-radius:9999px;background:var(--chip);box-shadow:0 0 0 1px var(--edge);font:400 12px var(--mono);color:var(--mut);transition:all .4s}
+.auth.hot{color:var(--bad);box-shadow:0 0 0 1px var(--bad),0 0 18px rgba(255,99,99,.3)}
+.callout{margin:18px 0 20px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;padding:14px 16px;border-radius:12px;background:var(--well);box-shadow:0 0 0 1px var(--line);opacity:0;transform:translateY(8px);transition:all .5s;min-height:62px}
+.callout.show{opacity:1;transform:none;box-shadow:0 0 0 1px color-mix(in srgb,var(--bad) 45%,transparent)}
+.callout .rule{font:600 12px var(--mono);color:var(--bad)}.callout .d{font-size:14px;color:var(--tx)}
+.callout .p{grid-column:1/-1;font:400 12px var(--mono);color:var(--mut)}.callout .p b{color:var(--hi);font-weight:500}
+.wfoot{display:flex;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--line);font:400 11px var(--mono);color:var(--dim);flex-wrap:wrap;gap:6px}
+
+/* ---------- reveal ---------- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}.d5{transition-delay:.4s}
+
+/* ---------- cards ---------- */
+.card{background:var(--panel);border-radius:20px;padding:26px;box-shadow:var(--key);position:relative;overflow:hidden;transition:box-shadow .25s,transform .25s}
+.card:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(0,0,0,.2),0 0 0 1px var(--edge)}
+.card h3{font-size:19px;font-weight:500;margin:0 0 8px}.card p{margin:0;color:var(--mut);font-size:15px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:900px){.grid3,.grid2{grid-template-columns:1fr}}
+.viz{height:150px;margin-bottom:22px;border-radius:12px;background:var(--well);box-shadow:inset 0 0 0 1px var(--line);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+
+/* problem visuals */
+.tl{position:relative;width:86%;height:70px}
+.tl .bar{position:absolute;top:30px;height:10px;border-radius:6px;background:rgba(89,212,153,.35);box-shadow:inset 0 0 0 1px var(--ok);left:6%;width:48%}
+.tl .lab{position:absolute;top:10px;left:6%;font:400 10px var(--mono);color:var(--ok)}
+.tl .sale{position:absolute;top:22px;left:20%;width:2px;height:26px;background:var(--hi);transition:left 1.4s cubic-bezier(.5,0,.2,1),background .4s,box-shadow .4s}
+.tl .sale:after{content:"signed";position:absolute;top:30px;left:-14px;font:400 10px var(--mono);color:var(--mut);transition:color .4s}
+.tl.go .sale{left:78%;background:var(--bad);box-shadow:0 0 12px var(--bad)}.tl.go .sale:after{color:var(--bad)}
+.tl .ax{position:absolute;left:0;right:0;top:35px;height:1px;background:var(--line);z-index:-1}
+.docs{display:flex;gap:10px;align-items:center}
+.doc{width:76px;height:96px;border-radius:8px;background:var(--panel);box-shadow:0 0 0 1px var(--edge);padding:9px 8px;font:500 8px/1.4 var(--mono);color:var(--mut);position:relative}
+.doc i{display:block;height:3px;border-radius:2px;background:#2a2b2d;margin:5px 0}.doc b{color:var(--hi);font-weight:600}
+.doc.miss{box-shadow:0 0 0 1.5px var(--bad);background:transparent;color:var(--bad);display:flex;align-items:center;justify-content:center;text-align:center;border:0;animation:blink 2.4s infinite}
+.doc.miss{outline:1.5px dashed var(--bad);outline-offset:-2px;box-shadow:none}
+@keyframes blink{50%{opacity:.45}}
+.brand{display:flex;gap:6px;align-items:center;font:600 10px var(--mono)}
+.brand span{padding:6px 9px;border-radius:8px;box-shadow:0 0 0 1px var(--edge);color:var(--tx);background:var(--panel);transition:all .5s}
+.brand .x{color:var(--bad);box-shadow:0 0 0 1px var(--bad)}.brand .gone{opacity:.4;text-decoration:line-through;transition:all .5s}
+.brand i{color:var(--dim);font-style:normal}
+
+/* ---------- how it works ---------- */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;position:relative}
+.pipe:before{content:"";position:absolute;left:6%;right:6%;top:46px;height:1px;background:linear-gradient(90deg,var(--line),var(--edge),var(--line))}
+.pipe .prog{position:absolute;left:6%;top:45px;height:3px;width:0;border-radius:3px;background:linear-gradient(90deg,transparent,#fff);box-shadow:0 0 18px rgba(255,255,255,.6);transition:width 1.1s cubic-bezier(.5,0,.2,1);z-index:1}
+.step{background:var(--panel);border-radius:18px;padding:20px 18px 22px;box-shadow:var(--key);position:relative;z-index:2;transition:box-shadow .4s,transform .4s}
+.step.hot{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1px #fff,0 0 36px rgba(255,255,255,.1);transform:translateY(-4px)}
+.step .n{width:52px;height:52px;border-radius:50%;background:var(--well);box-shadow:inset 0 0 0 1px var(--edge);display:flex;align-items:center;justify-content:center;margin-bottom:16px;transition:all .4s}
+.step.hot .n{background:#e6e6e6;box-shadow:0 0 24px rgba(255,255,255,.35)}.step.hot .n svg{stroke:#2a2b2c}
+.n svg{width:24px;height:24px;stroke:#e6e6e6;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .3s}
+.step h3{font-size:16px;font-weight:600;margin:0 0 6px}.step p{margin:0;font-size:14px;color:var(--mut);line-height:1.5}
+.who{display:inline-block;margin-bottom:10px;font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+.who.ai{color:#b9a8ff;background:rgba(185,168,255,.1)}.who.rule{color:var(--ok);background:rgba(89,212,153,.1)}.who.you{color:var(--mut);background:rgba(255,255,255,.06)}
+@media(max-width:980px){.pipe{grid-template-columns:1fr}.pipe:before,.pipe .prog{display:none}}
+.principle{margin:44px auto 0;max-width:760px;text-align:center;padding:24px 28px;border-radius:20px;box-shadow:var(--key);background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
+.principle b{color:var(--hi);font-weight:500;font-size:22px;display:block;margin-bottom:8px}.principle span{color:var(--mut);font-size:15px}
+.principle u{text-decoration:none;color:#b9a8ff}.principle s{text-decoration:none;color:var(--ok)}
+
+/* two dates */
+.two{display:grid;grid-template-columns:1fr 1.25fr;gap:44px;align-items:center}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.two h2,.two .sub{text-align:left;margin-left:0}
+.tlz{padding:22px;border-radius:20px;background:var(--panel);box-shadow:var(--key)}
+.tlz .row{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}
+.tc{font:500 11px var(--mono);padding:7px 10px;border-radius:8px;background:var(--well);box-shadow:0 0 0 1px var(--edge);color:var(--tx);transition:all .35s}
+.tc.off{opacity:.22;box-shadow:0 0 0 1px var(--line)}.tc.bad{box-shadow:0 0 0 1.5px var(--bad);color:var(--bad);filter:drop-shadow(0 0 10px rgba(255,99,99,.35))}
+input[type=range]{width:100%;accent-color:#e6e6e6;margin:6px 0}
+.tlz .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.strip{display:flex;gap:3px;margin-top:8px}.strip i{flex:1;height:10px;border-radius:3px;background:var(--ok);opacity:.85;transition:background .3s}.strip i.b{background:var(--bad)}.strip i.cur{outline:2px solid #fff;outline-offset:2px}
+
+/* feature cards */
+.fcard .viz{height:170px}
+.recs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:88%}
+.rc{height:30px;border-radius:7px;background:var(--panel);box-shadow:0 0 0 1px var(--edge);font:500 9px/30px var(--mono);text-align:center;color:var(--mut);transition:all .9s}
+.recs.min .rc{opacity:.12}.recs.min .rc.need{opacity:1;color:var(--hi);box-shadow:0 0 0 1.5px var(--bad),0 0 16px rgba(255,99,99,.35);transform:scale(1.08)}
+.fixv{display:flex;flex-direction:column;align-items:center;gap:12px}
+.fixrow{display:flex;gap:10px;align-items:center}
+.fixrec{font:500 11px var(--mono);padding:7px 10px;border-radius:8px;background:var(--panel);box-shadow:0 0 0 1px var(--ok);color:var(--ok);opacity:0;transform:translateX(-14px);transition:all .6s}
+.fixv.go .fixrec{opacity:1;transform:none}
+.fbtn{font:500 12px var(--sans);padding:6px 12px;border-radius:8px;background:#e6e6e6;color:#2a2b2c;transition:transform .15s}.fixv.press .fbtn{transform:scale(.94)}
+.scanv{position:relative;width:78%;height:122px;border-radius:6px;background:#eceae3;transform:rotate(-2deg);padding:12px 14px;font:11px/1.5 Georgia,serif;color:#222;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.scanv .blur{filter:blur(3.4px);display:inline-block}
+.scanv .flag{position:absolute;right:-8px;bottom:-12px;font:600 10px var(--mono);color:#fff;background:#c9382f;padding:6px 10px;border-radius:8px;box-shadow:0 0 0 1.5px #ff6363,0 8px 20px rgba(0,0,0,.5);animation:wob 3s ease-in-out infinite}
+@keyframes wob{50%{transform:translateY(-4px)}}
+.scanv .stamp{position:absolute;right:16px;top:12px;border:2px solid rgba(190,30,40,.8);color:rgba(190,30,40,.85);font:700 9px/1.2 var(--mono);padding:4px 7px;transform:rotate(7deg)}
+.gapv{display:flex;align-items:center;gap:0}
+.gb{width:94px;height:62px;border-radius:10px;background:var(--panel);box-shadow:0 0 0 1px var(--edge);font:600 12px var(--sans);color:var(--hi);padding:10px}.gb span{display:block;font:400 10px var(--mono);color:var(--mut);margin-top:4px}
+.gl{width:70px;height:62px;border:1.5px dashed var(--gap);border-radius:10px;margin:0 8px;display:flex;align-items:center;justify-content:center;font:500 9px/1.3 var(--mono);color:var(--gap);text-align:center;animation:blink 2.6s infinite}
+.term{width:94%;height:128px;background:#050607;border-radius:10px;box-shadow:0 0 0 1px var(--line);padding:12px 14px;font:11.5px/1.65 var(--mono);color:var(--mut);text-align:left;overflow:hidden}
+.term .p{color:var(--ok)}.term .ok{color:var(--ok)}.term .rd{color:var(--bad)}.term .cur{display:inline-block;width:7px;height:13px;background:#e6e6e6;vertical-align:-2px;animation:pulse 1s infinite}
+.calls{width:92%;font:11.5px/1.45 var(--mono);text-align:left}
+.call{padding:3px 10px;border-radius:8px;background:var(--panel);box-shadow:0 0 0 1px var(--edge);margin:3px 0;font-size:11.5px;color:var(--hi);opacity:0;transform:translateX(-10px);transition:all .45s}
+.call.in{opacity:1;transform:none}.call i{color:var(--dim);font-style:normal}.call.fin{box-shadow:0 0 0 1px var(--bad);color:var(--bad)}
+.fcard p{font-size:14.5px}
+
+/* benchmark */
+.bench{max-width:900px;margin:0 auto;padding:30px;border-radius:22px;background:var(--panel);box-shadow:var(--key)}
+.bh,.br{display:grid;grid-template-columns:190px 1fr 1fr;gap:6px 22px;align-items:center}
+.bh{font-size:12px;color:var(--dim);margin-bottom:10px}.br{margin:18px 0}
+@media(max-width:760px){.bh,.br{grid-template-columns:1fr}.bh{display:none}}
+.br .nm b{color:var(--hi);font-weight:600}.br .nm small{display:block;color:var(--dim);font:400 11px var(--mono);margin-top:2px}
+.bar{display:flex;align-items:center;gap:12px}.track{flex:1;height:10px;border-radius:9999px;background:var(--well);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.track i{display:block;height:100%;width:0;border-radius:9999px;transition:width 1.6s cubic-bezier(.2,.7,.2,1)}
+.bar span{font:500 13px var(--mono);width:54px;text-align:right;color:var(--hi)}
+.note{font-size:13px;color:var(--mut);margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:36px}
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}}
+.stat{padding:22px 20px;border-radius:18px;background:var(--panel);box-shadow:var(--key)}
+.stat b{display:block;font:500 34px/1.1 var(--sans);color:var(--hi);letter-spacing:-.01em}.stat span{display:block;margin-top:8px;font-size:13px;color:var(--mut);line-height:1.45}
+
+/* intake */
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}@media(max-width:900px){.modes{grid-template-columns:1fr}}
+.mode .ico{width:44px;height:44px;border-radius:12px;background:var(--well);box-shadow:inset 0 0 0 1px var(--edge);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.mode .ico svg{width:22px;height:22px;stroke:#e6e6e6;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.rd2{margin-top:30px;max-width:760px;margin-left:auto;margin-right:auto;padding:26px 28px;border-radius:20px;background:var(--panel);box-shadow:var(--key)}
+.rd2 .br{grid-template-columns:150px 1fr;margin:14px 0}.rd2 h3{font-size:16px;font-weight:500;margin-bottom:4px}
+
+/* code */
+.code{max-width:860px;margin:0 auto;min-width:0;border-radius:18px;background:#050607;box-shadow:var(--key);overflow:hidden}
+.code .cb{display:flex;gap:10px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line)}.code .cb .eyebrow{flex:1}
+pre{margin:0;padding:22px 24px;font:13px/1.75 var(--mono);color:#c9c9ca;overflow:auto}
+.k{color:#b9a8ff}.s{color:var(--ok)}.c{color:var(--dim)}.f{color:#7cc4ff}
+.twocol{display:grid;grid-template-columns:1fr 1.15fr;gap:44px;align-items:center}.twocol>*,.two>*{min-width:0}@media(max-width:900px){.twocol{grid-template-columns:1fr}}
+.twocol h2,.twocol .sub{text-align:left;margin-left:0}.twocol .code{width:100%;margin:0}.code pre{font-size:12px}
+.bul{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:12px}.bul li{display:flex;gap:12px;color:var(--mut);font-size:15px}.bul li:before{content:"";flex:0 0 6px;height:6px;margin-top:9px;border-radius:50%;background:#e6e6e6}
+.bul b{color:var(--hi);font-weight:500}
+
+/* honest */
+.honest{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}@media(max-width:900px){.honest{grid-template-columns:1fr}}
+.honest .card h3{display:flex;gap:10px;align-items:center}.honest .card h3 i{font-style:normal;font:600 11px var(--mono);padding:2px 8px;border-radius:6px;background:rgba(232,176,74,.12);color:var(--gap)}
+
+/* final */
+.final{text-align:center;padding:130px 0 90px;position:relative;overflow:hidden}
+.final .atmo{top:auto;bottom:-300px;height:700px}
+.final h2{font-size:clamp(36px,6vw,62px)}
+footer{border-top:1px solid var(--line);padding:36px 0 56px;color:var(--dim);font-size:13px}
+.fl{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.fl a{color:var(--mut);margin-right:18px}.fl a:hover{color:var(--hi)}
+.mono{font:400 11.5px var(--mono);margin-top:18px;letter-spacing:.02em}
+
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}html{scroll-behavior:auto}}
+</style></head><body>
+
+<nav>
+  <a class="logo" href="#top"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><rect x="13.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><path d="M9.6 14.2L12.4 7.8" stroke="#ff6363" stroke-width="1.8" stroke-linecap="round"/></svg>Vestigium</a>
+  <a class="l" href="#problem">The problem</a><a class="l" href="#how">How it works</a><a class="l" href="#features">Features</a><a class="l" href="#proof">Benchmark</a><a class="l" href="#intake">Scans &amp; paste</a><a class="l" href="#relate">Relate</a>
+  <a class="btn sm" href="app.html">Open the demo</a>
+</nav>
+
+<header class="hero" id="top">
+  <div class="atmo"><i class="b1"></i><i class="b2"></i><i class="c1"></i><i class="c2"></i></div>
+  <div class="wrap">
+    <div class="pill reveal"><b></b>Built on Relate by Neo4j · synthetic data</div>
+    <h1 class="reveal d1">Every transfer, checked against the evidence it <em>needed</em>.</h1>
+    <p class="lead reveal d2">Vestigium rebuilds the history of a property or vehicle, runs deterministic checks on every sale, and shows the broken link with the exact record that proves it.</p>
+    <div class="cta reveal d3"><a class="btn" href="app.html">Open the demo</a><a class="ghost" href="#how">See how it works</a></div>
+    <div class="meta reveal d4">80 synthetic cases | 14 named rules | the AI reads, the rules decide</div>
+
+    <div class="win reveal d5" id="hero" aria-label="Animated preview of a chain being checked">
+      <div class="wbar"><span class="dots"><i></i><i></i><i></i></span><span class="eyebrow">prop-006 · property · valid as of 2017-08-16</span><span class="chipv v-run" id="hv">CHECKING</span></div>
+      <div class="wbody">
+        <div class="chain" id="hchain">
+          <div class="tb"><div class="id">T1<span>2015-09-24</span></div><div class="r"><s>from</s>Dune Wren<br><s>to</s>Moss Marsh</div></div><div class="arr"><svg viewBox="0 0 22 10"><path d="M0 5H20M16 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></div>
+          <div class="tb"><div class="id">T2<span>2016-02-05</span></div><div class="r"><s>from</s>Moss Marsh<br><s>to</s>Gale Stone</div></div><div class="arr"><svg viewBox="0 0 22 10"><path d="M0 5H20M16 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></div>
+          <div class="tb"><div class="id">T3<span>2016-08-20</span></div><div class="r"><s>from</s>Gale Stone<br><s>to</s>Pike Brook</div></div><div class="arr"><svg viewBox="0 0 22 10"><path d="M0 5H20M16 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></div>
+          <div class="tb"><div class="id">T4<span>2017-08-13</span></div><div class="r"><s>from</s>Pike Brook<br><s>to</s>Fern Stone</div></div>
+        </div>
+        <span class="auth" id="hauth">authority: Elm Agent (2016-07-09 → 2017-05-17)</span>
+        <div class="callout" id="hcall"><span class="rule">PROP-AUTH · T4</span><span class="d">Elm Agent signed on 2017-08-13 but authority ran 2016-07-09 to 2017-05-17</span><span class="p">minimal proof: <b>2 of 9 records</b> · deed P4 and power of attorney PAU</span></div>
+      </div>
+      <div class="wfoot"><span>rule engine · 14 checks · deterministic</span><span id="hstat">reading the chain…</span></div>
+    </div>
+  </div>
 </header>
-<section id="intake" class="card" hidden style="margin-bottom:16px">
-  <h2>Paste a dossier <small>deeds, titles, liens, powers of attorney, releases · the reader extracts facts, the rule engine decides</small></h2>
-  <textarea id="dtext" spellcheck="false" placeholder="[P1] DEED dated 2016-11-15, recorded 2016-11-18: Gale Marsh (Grantor) conveys the property at 20 Fictional Lane, Arden to Cedar Wren (Grantee)."></textarea>
-  <div class="tools">
-    <button id="dgo" class="btn">Check this dossier</button>
-    <button id="ds1" class="btn2">Load a messy sample</button><button id="ds2" class="btn2">Load a clean sample</button>
-    <select id="dreader" aria-label="Reader"><option value="auto">Reader: automatic</option><option value="rules">Reader: offline rules</option><option value="llm">Reader: Gemini</option></select>
-    <span id="dstat" class="note"></span>
+
+<section id="problem"><div class="wrap">
+  <div class="head reveal"><span class="eyebrow">The problem</span><h2>Defects hide between records.</h2><p class="sub">Every document looks fine on its own. The trouble is in how they connect, and a reader skimming the pile tends to call the chain clean.</p></div>
+  <div class="grid3">
+    <div class="card reveal" data-anim="poa"><div class="viz"><div class="tl" id="poa"><i class="ax"></i><span class="lab">power of attorney</span><i class="bar"></i><i class="sale"></i></div></div><h3>A signature after the authority ended</h3><p>An agent signs a deed under a power of attorney that expired four months earlier. The deed is real. The authority is not.</p></div>
+    <div class="card reveal d1"><div class="viz"><div class="docs"><div class="doc"><b>MORTGAGE</b><i></i><i></i><i></i>lien held</div><div class="doc"><b>DEED</b><i></i><i></i><i></i>sold</div><div class="doc miss">missing<br>release</div></div></div><h3>A lien nobody released</h3><p>The mortgage was recorded, the property was sold, and the release that would clear it was never filed.</p></div>
+    <div class="card reveal d2" data-anim="brand"><div class="viz"><div class="brand" id="brand"><span>TITLE 1<br>clean</span><i>→</i><span class="x" id="bx">SALVAGE<br>brand</span><i>→</i><span id="bt">TITLE 3<br>clean</span></div></div><h3>A brand that disappeared</h3><p>A vehicle is declared a total loss. A later title forgets to carry the salvage brand forward, and the history looks spotless.</p></div>
   </div>
-  <div class="tools"><span class="note">Or upload scans:</span><input type="file" id="dfile" multiple accept="application/pdf,image/jpeg,image/png,image/webp" style="font-size:12px;color:var(--mut)"><button id="dscan" class="btn2">Read &amp; check scans</button><button id="dss" class="btn2">Try a sample phone photo</button></div>
-  <div id="dex"></div>
-</section>
-<main>
-  <div>
-    <div class="card"><h2>Ownership chain <small id="asof"></small></h2><div id="graph"></div></div>
-    <div class="card"><h2>Replay: what we knew on…</h2>
-      <input type="range" id="slider" min="0" value="0"><div class="strip" id="strip"></div>
-      <div id="tlabel" class="mut"></div></div>
-    <div class="card" id="racecard"><h2>Race: document-only agent vs Vestigium <small>(recorded runs, held-out set)</small></h2><div class="row" id="race"></div><div class="tools"><button id="trbtn" class="btn2" hidden>Replay the investigation</button></div><div id="trace"></div></div>
-    <div class="card"><h2>Does the graph help? <small>held-out benchmark · 40 cases · same model, same evidence</small></h2><div id="bench"></div></div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="head reveal"><span class="eyebrow">How it works</span><h2>The AI reads. The rules decide.</h2><p class="sub">Five steps from a pile of documents to a verdict you can audit. The only place a language model touches the answer is the reading step, and everything it reads is shown back to you.</p></div>
+  <div class="pipe reveal" id="pipe">
+    <div class="prog" id="pprog"></div>
+    <div class="step"><div class="n"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"/></svg></div><span class="who you">You bring</span><h3>1 · Documents</h3><p>Paste text, upload a PDF, or photograph a deed. Stamps, handwriting and blur are fine.</p></div>
+    <div class="step"><div class="n"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.2-4.2M9 11h4M11 9v4"/></svg></div><span class="who ai">AI reads</span><h3>2 · Reader</h3><p>Copies facts into records: parties, dates, liens, authority. Never judges. Flags blurry text instead of guessing.</p></div>
+    <div class="step"><div class="n"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.2"/><circle cx="19" cy="6" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M7 11l10-4M7 13l10 4"/></svg></div><span class="who rule">Relate graph</span><h3>3 · Graph</h3><p>Assets, parties, transfers, claims, authorities and passages, linked. Every fact carries two dates.</p></div>
+    <div class="step"><div class="n"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5L16 9.5"/></svg></div><span class="who rule">Rules decide</span><h3>4 · Rule engine</h3><p>Fourteen named Cypher checks reach one of three verdicts: clean, defective, or inconclusive.</p></div>
+    <div class="step"><div class="n"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/><path d="M20.2 18.2L22 20"/></svg></div><span class="who rule">You audit</span><h3>5 · Proof</h3><p>The broken link, the rule id, the smallest set of records it rests on, and what would fix it.</p></div>
   </div>
-  <div>
-    <div class="card"><h2>Verdict</h2><div id="verdict"></div><div id="findings"></div>
-      <button id="fixbtn" class="btn" style="margin-top:10px;display:none">What would fix it?</button><div id="fix"></div></div>
-    <div class="card"><h2>Evidence</h2><div id="evidence" class="mut">Click a finding to see the exact document passage.</div></div>
+  <div class="principle reveal"><b>One rule keeps this honest.</b><span>The <u>reader</u> only copies what a record says. The <s>rule engine</s> is deterministic: the same graph always gives the same verdict. A citation the agent invents is rejected, because it must point at stored text.</span></div>
+</div></section>
+
+<section id="dates"><div class="wrap two">
+  <div class="reveal"><span class="eyebrow">Two dates</span><h2>What was true. What was known.</h2><p class="sub" style="margin-left:0">Every fact has two dates: when it took effect and when it was recorded. Slide back in time and the verdict changes with what had been filed. Clean until a late-recorded deed arrives, then defective.</p>
+    <ul class="bul"><li><span><b>Valid as of</b> asks: was this sale allowed on that day?</span></li><li><span><b>Known as of</b> asks: what could anyone have seen by then?</span></li></ul></div>
+  <div class="tlz reveal d2" id="tlz"><div class="top"><span class="eyebrow" id="tlab">known as of …</span><span class="chipv v-clean" id="tv">CLEAN</span></div><div class="row" id="trow"></div><input type="range" id="tr" min="0" value="0" aria-label="Known-as-of date"><div class="strip" id="tstrip"></div><div class="mono" id="tcap" style="margin-top:14px;color:var(--mut)"></div></div>
+</div></section>
+
+<section id="features"><div class="wrap">
+  <div class="head reveal"><span class="eyebrow">Features</span><h2>Proof, not vibes.</h2><p class="sub">Each verdict comes with the evidence trail, and the product is honest about what it cannot tell.</p></div>
+  <div class="grid3">
+    <div class="card fcard reveal" data-anim="min"><div class="viz"><div class="recs" id="recs"></div></div><h3>Minimal proof</h3><p>The engine deletes facts until none can go. A finding rests on 1.8 records out of a 10-record dossier on average, and everything else could be thrown away.</p></div>
+    <div class="card fcard reveal d1" data-anim="fix"><div class="viz"><div class="fixv" id="fixv"><div class="fixrow"><span class="chipv v-bad" id="fv">DEFECTIVE</span><span class="fbtn">What would fix it?</span></div><div class="fixrow"><span class="fixrec">+ ratifying resolution, valid on the signing date</span></div></div></div><h3>What would fix it</h3><p>Copy the graph, add a hypothetical record, rerun every check. If the chain turns clean, that record is what to ask for.</p></div>
+    <div class="card fcard reveal d2"><div class="viz"><div class="gapv"><div class="gb">T3<span>Gale Stone</span></div><div class="gl">missing record</div><div class="gb">T4<span>Pike Stone</span></div></div></div><h3>Honest “inconclusive”</h3><p>When a record is missing, Vestigium names it and accuses no one. A guess would count as wrong in the benchmark.</p></div>
+    <div class="card fcard reveal" data-anim="scan"><div class="viz"><div class="scanv"><div class="stamp">RECORDED<br>2016-0<span class="blur">2</span>-08</div>DEED dated 2016-02-05:<br>Moss Marsh (Grantor) conveys<br>the property at 22 Fictional<br>Lane to Gale Stone.<span class="flag">Low confidence: check page 2</span></div></div><h3>Scans, with confidence</h3><p>Photos and PDFs are read by a vision model that says how sure it is. If a verdict rests on a blurry record, you are told which page to check.</p></div>
+    <div class="card fcard reveal d1" data-anim="replay"><div class="viz"><div class="calls" id="calls"></div></div><h3>Watch the investigation</h3><p>Replay real agent transcripts, tool call by tool call. The agent calls the checks, reads the cited passages and explains. The engine decided.</p></div>
+    <div class="card fcard reveal d2" data-anim="mcp"><div class="viz"><div class="term" id="term"></div></div><h3>Use it from your own agent</h3><p>An MCP server lets Claude or any MCP client send records and get back a verdict, rule ids and the exact cited text.</p></div>
   </div>
-</main>
-<div class="foot">synthetic data | 80 cases, 40 held out | rules decide, the agent explains | Relate (relate-db 1.2.0) | gemini-3.5-flash-lite</div>
-</div>
-<script src="data.js"></script>
+</div></section>
+
+<section id="proof"><div class="wrap">
+  <div class="head reveal"><span class="eyebrow">Does the graph help?</span><h2>We measured it. Including the losses.</h2><p class="sub">Four arms, same model, same evidence, 40 held-out synthetic cases, three repeats each. A graph on its own did not help. A graph plus deterministic checks did.</p></div>
+  <div class="bench reveal" id="bench"></div>
+  <div class="stats">
+    <div class="stat reveal"><b data-n="1600">0</b><span>fresh cases the rules were never tuned on, 0 misses against the planted labels</span></div>
+    <div class="stat reveal d1"><b data-n="1440">0</b><span>invariance checks (shuffle, rename, shift dates, add noise), 0 failures</span></div>
+    <div class="stat reveal d2"><b data-n="33">0</b><span>incomplete citations our own proof audit caught, now fixed and tested</span></div>
+    <div class="stat reveal d3"><b data-n="17.5" data-d="1" data-s="%">0</b><span>of messy-wording records a regex reader gets right. Gemini gets 100%.</span></div>
+  </div>
+</div></section>
+
+<section id="intake"><div class="wrap">
+  <div class="head reveal"><span class="eyebrow">Paste it. Upload it. Photograph it.</span><h2>Real documents are messy.</h2><p class="sub">Nobody types out a 20-page deed. Bring it as text, a PDF or a phone photo. The reader extracts, and the rule engine decides.</p></div>
+  <div class="modes">
+    <div class="card mode reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 9h8M8 12h8M8 15h5"/></svg></div><h3>Paste text</h3><p>Any wording. An offline reader handles canonical text with no API key. Anything else goes to a language model.</p></div>
+    <div class="card mode reveal d1"><div class="ico"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v4h4"/><path d="M9 17l2-3 2 2 2-3"/></svg></div><h3>Upload a PDF</h3><p>Stamped pages, recording dates on a clerk’s stamp, handwritten notes. Transcribed page by page, record by record.</p></div>
+    <div class="card mode reveal d2"><div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M9 7l1-2h4l1 2"/></svg></div><h3>Snap a photo</h3><p>Rotated, shadowed, blurred. Unclear dates are flagged, never silently guessed, and a verdict that depends on one says so.</p></div>
+  </div>
+  <div class="rd2 reveal" id="rd2"><h3>Reading messy wording</h3><p style="color:var(--mut);font-size:14px;margin:0 0 6px">Verdict accuracy after extraction, held-out set, 3 repeats. The rule engine decides in both cases.</p></div>
+</div></section>
+
+<section id="relate"><div class="wrap twocol">
+  <div class="reveal"><span class="eyebrow">Built on Relate</span><h2>Ownership is a graph.</h2><p class="sub" style="margin-left:0">“Was the grantor the previous grantee?” and “was this lien released before the sale?” are patterns over relationships, so each rule is a short Cypher query on Relate by Neo4j.</p>
+    <ul class="bul"><li><span><b>Single-file store.</b> <code>vestigium.rl</code> is persistent, one file anyone can open, no server.</span></li><li><span><b>Isolated graphs.</b> Every benchmark case is its own in-memory graph.</span></li><li><span><b>Throwaway copies.</b> “What would fix it” rehearses a record on a copy and leaves the real graph untouched.</span></li></ul></div>
+  <div class="code reveal d2"><div class="cb"><span class="eyebrow">PROP-AUTH · authority not valid on the signing date</span></div>
+<pre><span class="k">MATCH</span> (t:<span class="f">Transfer</span>)-[:MOVES]-&gt;(:<span class="f">Asset</span> {id:$asset}),
+      (t)-[:ACTED_UNDER]-&gt;(au:<span class="f">Authority</span>)
+<span class="k">WHERE</span> <span class="c">/* effective by as_of, recorded by known */</span>
+  <span class="k">AND NOT EXISTS</span> { (t)-[:ACTED_UNDER]-&gt;(ok:<span class="f">Authority</span>)
+        <span class="k">WHERE</span> ok.valid_from &lt;= t.effective
+          <span class="k">AND</span> (ok.valid_to <span class="k">IS NULL OR</span> ok.valid_to &gt;= t.effective) }
+<span class="k">RETURN</span> t.id <span class="k">AS</span> transfer,
+       au.agent + <span class="s">' signed on '</span> + toString(t.effective) + <span class="s">' but authority ran '</span> + …
+       <span class="c">// plus the record ids that prove it</span> <span class="k">AS</span> evidence</pre></div>
+</div></section>
+
+<section id="honest"><div class="wrap">
+  <div class="head reveal"><span class="eyebrow">What this is, and is not</span><h2>Read this before you trust a number.</h2><p class="sub">A good benchmark reports what could make it look better than it is.</p></div>
+  <div class="honest">
+    <div class="card reveal"><h3><i>NOT REAL</i>Synthetic data, fictional rules</h3><p>Fictional parties, a fictional jurisdiction, generic rules. This is a prototype of the idea, not legal advice and not a title product.</p></div>
+    <div class="card reveal d1"><h3><i>CEILING</i>100% is the ceiling, not a claim</h3><p>The rules and the case generator were written together. That is why the rule engine alone is an arm in the benchmark, and why we test it with invariance checks and fresh seeds too.</p></div>
+    <div class="card reveal d2"><h3><i>SMALL</i>One small model, 40 cases</h3><p>Gemini 3.5 Flash-Lite on the free tier. A stronger model might narrow the gap for the first two arms. The graph-with-own-Cypher arm swung from 47.5% to 62.5% between repeats.</p></div>
+    <div class="card reveal d3"><h3><i>IN PROGRESS</i>Scans are tested on synthetic photos</h3><p>Rendered pages with stamps, handwriting-style notes, blur and rotation. Real scans, true handwriting and dedicated OCR services are not tested yet, and the full scan benchmark is still running.</p></div>
+  </div>
+</div></section>
+
+<section class="final"><div class="atmo"><i class="b1"></i><i class="c1"></i></div><div class="wrap">
+  <h2 class="reveal">Check the chain.</h2><p class="sub reveal d1">Open the demo, drag the dates, click the broken link, and read the record that proves it.</p>
+  <div class="cta reveal d2"><a class="btn" href="app.html?case=prop-014">Open the demo</a><a class="ghost" href="https://github.com/samuel025/vestigium">View on GitHub</a></div>
+  <div class="meta reveal d3">uv run python -m vestigium.serve | MIT licensed | all data synthetic</div>
+</div></section>
+
+<footer><div class="wrap"><div class="fl"><div><a href="app.html">Demo</a><a href="https://github.com/samuel025/vestigium">GitHub</a><a href="https://github.com/samuel025/vestigium#readme">README</a></div><div>Built on Relate (Neo4j), Python, Gemini and Claude Code</div></div>
+<div class="mono">Not legal advice. Every party, address and rule is fictional. Built for the Relate by Neo4j hackathon.</div></div></footer>
+
+<script src="bench.js"></script>
 <script>
-let D=window.VESTIGIUM;const $=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0;
-const V=l=>`<span class="verdict v-${l}">${l.toUpperCase()}</span>`;
-const col={clean:'var(--ok)',defective:'var(--bad)',inconclusive:'var(--gap)'};
-function fill(){const list=D.filter(c=>c.domain===pack);
-  $('pick').innerHTML=list.map(c=>`<option value="${c.id}">${c.id} — ${c.kind==='clean'?'clean':c.kind} (${c.split})</option>`).join('');
-  pick(list[0].id)}
-function pick(id){cur=D.find(c=>c.id===id);sel=null;tshow=false;tstep=0;clearInterval(tplay);$('trbtn').textContent='Replay the investigation';step=cur.timeline.length-1;
-  $('slider').max=cur.timeline.length-1;$('slider').value=step;$('pick').value=id;render()}
-const byId=(c,i)=>c.nodes.find(n=>n.id===i);
-function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1];
-  $('asof').textContent=`· valid as of ${c.as_of}`;
-  // timeline strip
-  $('strip').innerHTML=c.timeline.map((t,i)=>`<i title="${t[0]}: ${t[1]}" style="background:${col[t[1]]}" class="${i===step?'cur':''}" data-i="${i}"></i>`).join('');
-  $('tlabel').innerHTML=`Known as of <b>${known}</b> → ${V(ver)}`;
-  // verdict (full, at latest known date) vs replay
-  const full=step===c.timeline.length-1,res=c.result;
-  $('verdict').innerHTML=V(full?res.verdict:ver)+(full?'':' <small>(replay — slide right for the full result)</small>');
-  if(full&&c.warnings&&c.warnings.length)$('verdict').innerHTML+=c.warnings.map(w=>`<div class="proofnote" style="margin-top:10px"><span class="warn">⚠</span> ${esc(w)}</div>`).join('');
-  const items=full?[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))]:[];
-  $('findings').innerHTML=items.map((f,i)=>`<div class="finding ${sel===i?'sel':''}" data-i="${i}"><div class="rule" style="color:${f.t==='gap'?'var(--gap)':'var(--bad)'}">${f.rule} · ${f.transfer}</div>${f.detail}${f.missing?`<div class="mut">Missing: ${f.missing}</div>`:''}</div>`).join('')||(full?'<div class="mut" style="margin-top:6px">Every transfer links to the one before; no check finds a defect.</div>':'');
-  $('fixbtn').style.display=full&&c.fix?'':'none';$('fix').innerHTML='';
-  // evidence
-  if(sel!==null&&items[sel]){const f=items[sel],pr=(c.proof||[])[sel],np=pr&&pr.records_total?`<div class="proofnote">Minimal proof: this finding rests on <b>${pr.passages.length} of ${pr.records_total}</b> records. The other ${pr.records_total-pr.passages.length} could be deleted without changing it.</div>`:'';$('evidence').innerHTML=`<div><code>${f.rule}</code> at <code>${f.transfer}</code></div>`+np+[...new Set(f.evidence)].map(p=>{const n=byId(c,p);return n?`<div class="pass"><code>${p}</code> ${n.text}</div>`:''}).join('')}
-  else $('evidence').textContent='Click a finding to see the exact document passage.';
-  graph(items,known);race()}
-function graph(items,known){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer').sort((a,b)=>{const k=t=>/^T\d+$/.test(t.id)?+t.id.slice(1):1e3;return k(a)-k(b)||(a.id<b.id?-1:1)});
-  const bad=new Set(items.filter(i=>i.t==='defect').map(i=>i.transfer)),gap=new Set(items.filter(i=>i.t==='gap').map(i=>i.transfer));
-  const name=(t,r,dir)=>{const rel=c.rels.find(x=>dir==='from'?(x[1]==='FROM'&&x[2]===t):(x[0]===t&&x[1]==='TO'));const p=rel&&byId(c,dir==='from'?rel[0]:rel[2]);return p?p.name:'?'};
-  const W=150,G=46,H=84,x0=10,y0=26;const VW=x0*2+ts.length*(W+G);let s=`<svg viewBox="0 0 ${VW} 190" style="width:100%;min-width:${ts.length*172}px;height:auto;display:block">`;
-  ts.forEach((t,i)=>{const x=x0+i*(W+G),seen=t.recorded<=known,isB=bad.has(t.id),isG=gap.has(t.id);
-    const stroke=isB?'var(--bad)':isG?'var(--gap)':'var(--edge)',glow=isB?'filter:drop-shadow(0 0 10px rgba(255,99,99,.4))':isG?'filter:drop-shadow(0 0 8px rgba(232,176,74,.3))':'';
-    s+=`<g opacity="${seen?1:.25}" style="${glow}"><rect x="${x}" y="${y0}" width="${W}" height="${H}" rx="12" fill="var(--well)" stroke="${stroke}" stroke-width="${isB||isG?2:1}"/>
-      <text x="${x+10}" y="${y0+18}" style="font-weight:600;fill:var(--hi)">${t.id} <tspan class="m mono" style="font-weight:400">${t.effective}</tspan></text>
-      <text x="${x+10}" y="${y0+40}" class="m">from</text><text x="${x+42}" y="${y0+40}">${name(t.id,0,'from')}</text>
-      <text x="${x+10}" y="${y0+58}" class="m">to</text><text x="${x+42}" y="${y0+58}">${name(t.id,0,'to')}</text>
-      ${t.odometer!==undefined?`<text x="${x+10}" y="${y0+76}" class="m mono">odo ${t.odometer}</text>`:(c.domain==='vehicle'?`<text x="${x+10}" y="${y0+76}" class="m mono">odo —</text>`:'')}</g>`;
-    if(i>0){const f=c.rels.some(r=>r[0]===t.id&&r[1]==='FOLLOWS'),px=x-G;
-      s+=f?`<path d="M${px+6} ${y0+H/2}H${x-4}" stroke="var(--dim)" stroke-width="1.5" marker-end="url(#a)"/>`
-        :`<path d="M${px+6} ${y0+H/2}H${x-4}" stroke="var(--gap)" stroke-width="2" stroke-dasharray="4 4"/><text class="mono" x="${px-2}" y="${y0-8}" style="fill:var(--gap)">gap</text>`}});
-  // claims & authority chips
-  let cx=x0;const chips=c.nodes.filter(n=>['Claim','Authority'].includes(n.label));
-  chips.forEach(n=>{const txt=n.label==='Claim'?`${n.kind}: ${n.holder}`:`authority: ${n.agent} (${n.valid_from}→${n.valid_to||'open'})`;
-    const w=txt.length*6.6+20;s+=`<rect x="${cx}" y="${y0+H+26}" width="${w}" height="24" rx="12" fill="var(--chip)" stroke="var(--edge)"/><text class="mono" x="${cx+10}" y="${y0+H+42}" style="fill:var(--mut)">${txt}</text>`;cx+=w+8});
-  s+=`<defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="var(--dim)"/></marker></defs></svg>`;
-  $('graph').innerHTML=s;
-  // keep the flagged transfer in view on long chains
-  const fi=ts.findIndex(t=>bad.has(t.id)||gap.has(t.id)),el=$('graph'),sv=el.firstChild;
-  el.scrollLeft=fi<0?0:Math.max(0,(x0+fi*(W+G)+W/2)/VW*sv.getBoundingClientRect().width-el.clientWidth/2)}
-function race(){renderTrace();$('racecard').style.display=cur.split==='pasted'?'none':'';const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b>${t}</b><div class="mut">no recorded run</div></div>`;
-    const ok=r.verdict===c.label;return`<div class="arm"><b>${t}</b><div>${V(r.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+c.label}</small></div><div class="mut" style="margin-top:4px">${r.transfer?'Pointed at '+r.transfer:''}</div></div>`};
-  $('race').innerHTML=cell('A','Document-only agent')+cell('C','Vestigium (graph + rule engine)')}
-function bench(){const B=window.VESTIGIUM_BENCH||[];
-  const bar=(v,c)=>`<div class="bar"><div class="track"><i style="width:${Math.max(v,0.8)}%;background:${c}"></i></div><span>${v}%</span></div>`;
-  $('bench').innerHTML=`<div class="bh"><span></span><span>Accuracy (higher is better)</span><span>Defective chains called clean (lower is better)</span></div>`+
-  B.map(b=>`<div class="br"><div><b style="color:var(--hi)">${b.arm}</b> <span class="mut">${b.name}</span><br><small>${b.repeats} repeat${b.repeats>1?'s':''} · ${b.tokens.toLocaleString()} tokens/case</small></div>${bar(b.acc,b.acc>90?'var(--ok)':'#9c9c9d')}${bar(b.false_clean,'var(--bad)')}</div>`).join('')+
-  `<div class="mut" style="font-size:12px;margin-top:10px">All arms have 3 repeats; B swings from 47.5% to 62.5% between them. The rules and the cases were written together, so D is the ceiling of the rules, not a real-world claim.</div>`}
-$('pick').onchange=e=>pick(e.target.value);
-$('slider').oninput=e=>{step=+e.target.value;render()};
-$('strip').onclick=e=>{if(e.target.dataset.i){step=+e.target.dataset.i;$('slider').value=step;render()}};
-$('findings').onclick=e=>{const f=e.target.closest('.finding');if(f){sel=+f.dataset.i;render()}};
-$('fixbtn').onclick=()=>{$('fix').innerHTML=`<div class="pass" style="border-color:var(--ok);margin-top:12px">Adding <b>${cur.fix}</b> to a throwaway copy of the graph and rerunning every check → ${V(cur.fix_verdict)}</div>`};
-$('pp').onclick=()=>{pack='property';$('pp').classList.add('on');$('pv').classList.remove('on');fill()};
-$('pv').onclick=()=>{pack='vehicle';$('pv').classList.add('on');$('pp').classList.remove('on');fill()};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches,B=window.VBENCH||{arms:[],intake:[],sample:null};
 
-// ---- paste a dossier (needs `uv run python -m vestigium.serve`; falls back with a note on static hosting)
-let SERVER=false;fetch('/api/ping').then(r=>r.ok&&r.json()).then(j=>{SERVER=!!(j&&j.ok)}).catch(()=>{});
-const esc=t=>String(t??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-function noServer(){$('dstat').innerHTML='<span class="warn">Live paste needs the local server:</span> <code>uv run python -m vestigium.serve</code>'}
-function showPasted(c){
-    D=D.filter(x=>x.id!=='pasted');D.push(c);pack=c.domain;$('pp').classList.toggle('on',pack==='property');$('pv').classList.toggle('on',pack==='vehicle');
-    const list=D.filter(x=>x.domain===pack);$('pick').innerHTML=list.map(x=>`<option value="${x.id}">${x.id==='pasted'?'pasted dossier':x.id+' — '+x.kind+' ('+x.split+')'}</option>`).join('');
-    pick('pasted');
-    $('dstat').innerHTML=`Read with <b>${c.scan?'the scanner + '+(c.reader==='llm'?'Gemini':'offline rules'):c.reader==='llm'?'Gemini':'offline rules'}</b>${c.tokens?` · ${c.tokens.toLocaleString()} tokens`:''}. ${(c.warnings||[]).map(w=>`<span class="warn">${esc(w)}</span>`).join(' ')}`;
-    const keys=['date','recorded','from','to','follows','signed_by_agent','authority','odometer','agent','valid_from','valid_to','holder','releases','person','died'];
-    $('dex').innerHTML=`<details><summary>What the reader extracted · ${c.extracted.length} records · check it against your documents</summary><table class="ex"><tr><th>id</th><th>type</th><th>facts</th></tr>`+
-      c.extracted.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.type)}</td><td>${keys.filter(k=>e[k]!=null&&e[k]!==false).map(k=>`${k}: ${esc(e[k])}`).join(' · ')}</td></tr>`).join('')+'</table></details>';
-    $('graph').scrollIntoView({behavior:'smooth',block:'nearest'});
-    if(c.scan){const fl=c.scan.flags.filter(f=>f.confidence!=='high');
-      $('dex').innerHTML+=`<details open><summary>What the scanner read · ${c.scan.pages} page${c.scan.pages>1?'s':''} · ${fl.length?fl.length+' record'+(fl.length>1?'s':'')+' flagged for checking':'every record read with high confidence'}</summary>
-      ${fl.map(f=>`<div class="proofnote"><b>${f.confidence==='low'?'Low':'Medium'} confidence:</b> record <code>${esc(f.id)}</code> (page ${f.page}) ${(f.unsure||[]).map(u=>esc(u.what)+' – '+esc(u.why)).join('; ')||''}</div>`).join('')}
-      ${c.preview?`<img src="${c.preview}" alt="the sample photo that was read" style="max-width:340px;width:100%;border-radius:10px;margin:10px 0;box-shadow:0 0 0 1px var(--line)">`:''}
-      <pre style="white-space:pre-wrap;font:11px/1.5 var(--mono);color:var(--mut);margin:8px 0 0">${esc(c.scan.transcript)}</pre></details>`}
-  }
-$('intakebtn').onclick=()=>{$('intake').hidden=!$('intake').hidden;if(!$('intake').hidden&&!SERVER)noServer()};
-async function sample(style){try{const r=await fetch(`/api/sample?case=${cur&&cur.id!=='pasted'?cur.id:'prop-014'}&style=${style}`);const j=await r.json();$('dtext').value=j.text;$('dstat').textContent=`Sample ${j.case} · ${style} wording`}catch(e){noServer()}}
-$('dscan').onclick=async()=>{const fs=[...$('dfile').files];if(!fs.length){$('dstat').textContent='Choose a PDF or photos first.';return}
-  const b64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f)});
-  $('dstat').textContent='Reading the scans… (a few seconds per page)';$('dscan').disabled=true;
-  try{const files=[];for(const f of fs)files.push({name:f.name,mime:f.type,data:await b64(f)});
-    const r=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({files})});const c=await r.json();
-    if(c.error){$('dstat').innerHTML=`<span class="warn">${esc(c.error)}</span>`;return}
-    showPasted(c)}catch(e){noServer()}finally{$('dscan').disabled=false}};
-$('dss').onclick=async()=>{$('dstat').textContent='Rendering a sample photo and reading it… (about 15 s)';$('dss').disabled=true;
-  try{const r=await fetch(`/api/scan_sample?case=${cur&&cur.id!=='pasted'?cur.id:'prop-014'}&tier=phone`);const c=await r.json();
-    if(c.error){$('dstat').innerHTML=`<span class="warn">${esc(c.error)}</span>`;return}showPasted(c)}catch(e){noServer()}finally{$('dss').disabled=false}};
-$('ds1').onclick=()=>sample('messy');$('ds2').onclick=()=>sample('clean');
-$('dgo').onclick=async()=>{const text=$('dtext').value.trim();if(!text){$('dstat').textContent='Paste a dossier first.';return}
-  $('dstat').textContent='Reading the dossier…';$('dgo').disabled=true;
-  try{const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,reader:$('dreader').value})});const c=await r.json();
-    if(c.error){$('dstat').innerHTML=`<span class="warn">${esc(c.error)}</span>`;return}
-    showPasted(c);
-  }catch(e){noServer()}finally{$('dgo').disabled=false}};
+/* ---- reveal + start animations when visible ---- */
+const starters={};
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');const k=e.target.dataset.anim;if(k&&starters[k]&&!e.target._s){e.target._s=1;starters[k](e.target)}}}),{threshold:.25});
+$$('.reveal').forEach(el=>io.observe(el));
 
-// ---- replay a recorded investigation (real transcripts: results/traces.jsonl)
-const TR=window.VESTIGIUM_TRACES||{};let tshow=false,tstep=0,tplay=null;
-function stepResult(s){let o=null;try{o=JSON.parse(s.result)}catch(e){}
-  if(o&&o.verdict)return `${V(o.verdict)} <small>${[...(o.findings||[]),...(o.missing||[])].map(f=>`${f.rule} at ${f.transfer}`).join(', ')||'no findings'}</small>`;
-  const r=o&&o.result;if(r&&r[0]&&r[0].text)return `<div class="pass"><code>${esc(r[0].id)}</code> ${esc(r[0].text)}</div>`;
-  if(r&&r[0]&&r[0].rule)return `<small>${r.length} checks listed</small>`;
-  return `<small>${esc(String(s.result).slice(0,160))}</small>`}
-function answerBox(t,label){const a=t.answer||{};const ok=a.verdict===t.label;
-  const cs=t.citations||[];const cites=cs.length>4?`<div class="cite"><span class="${cs.every(c=>c.valid)?'ok':'no'}">✓ all exist in the store</span> but it cites <span style="color:var(--hi);font-weight:600">${cs.length}</span> records, so nothing says which one matters</div>`:cs.map(c=>`<div class="cite"><span class="${c.valid?'ok':'no'}">${c.valid?'✓ exists in the store':'✗ rejected, no such record'}</span> <code>${esc(c.id)}</code> ${c.text?esc(c.text.slice(0,90)):''}</div>`).join('');
-  return `<div style="margin-top:8px">${V(a.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+t.label}</small>${a.rule_id?`<div class="mut" style="margin-top:4px"><code>${esc(a.rule_id)}</code> at <code>${esc(a.transfer)}</code></div>`:''}${cites}</div>`}
-function renderTrace(){const t=TR[cur.id];$('trbtn').hidden=!t;
-  if(!t||!tshow){$('trace').innerHTML='';return}
-  const C=t.C,A=t.A,n=C?C.trace.length:0,done=tstep>=n;
-  const left=A?`<div class="arm"><b>Documents only · no tools</b><div class="step"><div class="call">reads the whole dossier at once <i>(${(cur.documents||'').split('\n\n').length} records)</i></div><small>No checks to run, so nothing to verify against.</small></div>${answerBox(A,'A')}</div>`:'<div class="arm"><b>Documents only</b><div class="mut">no recorded run</div></div>';
-  const steps=C?C.trace.slice(0,tstep).map((s,i)=>`<div class="step ${i===tstep-1?'new':''}"><div class="call"><i>${s.step}.</i> ${esc(s.tool)}<i>(${esc(Object.entries(s.args||{}).map(([k,v])=>k+'='+v).join(', '))})</i></div>${stepResult(s)}</div>`).join(''):'';
-  const right=`<div class="arm"><b>Vestigium agent · step ${Math.min(tstep,n)} of ${n}</b>${steps||'<div class="mut">Press Next to follow the agent.</div>'}${done&&C?answerBox(C,'C'):''}${done?'<div class="note" style="margin-top:8px">The rule engine decided. The agent only called checks, read the cited passages and explained.</div>':''}</div>`;
-  $('trace').innerHTML=`<div class="row" style="margin-top:12px">${left}${right}</div><div class="note" style="margin-top:10px">A recorded run, not live: every call and result below is what the agent actually did (<code>results/traces.jsonl</code>).</div><div class="tools"><button id="trnext" class="btn">${done?'Done':'Next step'}</button><button id="trplay" class="btn2">Play</button><button id="trreset" class="btn2">Reset</button></div>`;
-  $('trnext').onclick=()=>{if(tstep<n){tstep++;renderTrace()}};
-  $('trreset').onclick=()=>{clearInterval(tplay);tstep=0;renderTrace()};
-  $('trplay').onclick=()=>{clearInterval(tplay);tplay=setInterval(()=>{if(tstep<n){tstep++;renderTrace()}else clearInterval(tplay)},1300)}}
-$('trbtn').onclick=()=>{tshow=!tshow;tstep=0;clearInterval(tplay);$('trbtn').textContent=tshow?'Hide the replay':'Replay the investigation';renderTrace()};
-bench();
-const q=new URLSearchParams(location.search).get('case');
-const start=D.find(c=>c.id===q)||D.find(c=>c.domain==='property'&&c.label==='defective'&&c.kind==='PROP-AUTH'&&c.agents.A&&c.agents.C&&c.agents.A.verdict==='clean')||D.find(c=>c.agents.A&&c.label==='defective');
-if(start.domain==='vehicle')$('pv').click();else fill();pick(start.id);
-// deep link for recording/testing: ?intake=clean|messy opens the panel, loads a sample of the current case and checks it
-const iq=new URLSearchParams(location.search).get('intake');
-if(iq==='scan'){setTimeout(()=>{$('intake').hidden=false;$('dss').click()},600)}else if(iq){setTimeout(async()=>{$('intake').hidden=false;await sample(iq);$('dgo').click()},600)}
-const sq=new URLSearchParams(location.search).get('sel');if(sq!==null){sel=+sq;render()}
-const rq=new URLSearchParams(location.search).get('replay');if(rq!==null&&TR[cur.id]){tshow=true;tstep=+rq;$('trbtn').textContent='Hide the replay';renderTrace()}
-</script></body></html>
+/* ---- hero loop: the chain is checked link by link, T4 breaks ---- */
+const hv=$('#hv'),hs=$('#hstat'),boxes=$$('#hchain .tb'),hcall=$('#hcall'),hauth=$('#hauth');
+function setV(el,cls,txt){el.className='chipv '+cls;el.textContent=txt}
+function heroReset(){boxes.forEach(b=>b.className='tb');hcall.classList.remove('show');hauth.classList.remove('hot');setV(hv,'v-run','CHECKING');hs.textContent='reading the chain…'}
+async function hero(){
+  if(RM){boxes.forEach((b,i)=>b.classList.add(i<3?'ok':'bad'));hcall.classList.add('show');hauth.classList.add('hot');setV(hv,'v-bad','DEFECTIVE');hs.textContent='1 finding · 2 of 9 records';return}
+  for(;;){heroReset();await sleep(900);
+    for(let i=0;i<3;i++){boxes[i].classList.add('ok');hs.textContent=`T${i+1} · grantor was the previous grantee ✓`;await sleep(780)}
+    hs.textContent='T4 · checking authority on the signing date…';await sleep(900);
+    boxes[3].classList.add('bad');hauth.classList.add('hot');await sleep(450);hcall.classList.add('show');setV(hv,'v-bad','DEFECTIVE');hs.textContent='1 finding · 2 of 9 records';
+    await sleep(6200)}}
+hero();
+
+/* ---- problem visuals ---- */
+starters.poa=()=>{const t=$('#poa');const run=async()=>{for(;;){t.classList.remove('go');await sleep(900);t.classList.add('go');await sleep(3800)}};RM?t.classList.add('go'):run()};
+starters.brand=()=>{const b=$('#bt'),x=$('#bx');const run=async()=>{for(;;){x.classList.remove('gone');b.style.boxShadow='';b.innerHTML='TITLE 3<br>clean';await sleep(1400);x.classList.add('gone');b.style.boxShadow='0 0 0 1px var(--bad)';b.innerHTML='TITLE 3<br>brand?';await sleep(3000)}};RM?0:run()};
+
+/* ---- pipeline: a light travels the five steps ---- */
+(function(){const steps=$$('.step'),prog=$('#pprog'),pipe=$('#pipe');let started=0;
+  const set=i=>{steps.forEach((s,j)=>s.classList.toggle('hot',j===i));const w=pipe.clientWidth*.88;prog.style.width=(w*(i+.5)/steps.length)+'px'};
+  new IntersectionObserver(es=>{if(es[0].isIntersecting&&!started){started=1;if(RM){set(4);return}let i=0;set(0);setInterval(()=>{i=(i+1)%steps.length;if(i===0){prog.style.transition='none';set(0);void prog.offsetWidth;prog.style.transition=''}else set(i)},1700)}},{threshold:.4}).observe(pipe)})();
+
+/* ---- two dates: real timeline from prop-014 ---- */
+(function(){const S=B.sample;if(!S)return;const T=S.transfers,tl=S.timeline,rng=$('#tr');rng.max=tl.length-1;
+  $('#trow').innerHTML=T.map(t=>`<span class="tc" data-id="${t.id}" data-rec="${t.recorded}">${t.id}</span>`).join('');
+  $('#tstrip').innerHTML=tl.map((x,i)=>`<i data-i="${i}"></i>`).join('');
+  const draw=()=>{const i=+rng.value,[d,v]=tl[i];$('#tlab').textContent='known as of '+d;
+    $$('#trow .tc').forEach(c=>{const seen=c.dataset.rec<=d;c.classList.toggle('off',!seen);c.classList.toggle('bad',seen&&c.dataset.id===S.bad)});
+    setV($('#tv'),v==='clean'?'v-clean':v==='defective'?'v-bad':'v-gap',v.toUpperCase());
+    $$('#tstrip i').forEach((e,j)=>{e.className=(tl[j][1]==='defective'?'b ':'')+(j===i?'cur':'')});
+    $('#tcap').textContent=v==='defective'?`${S.rule} at ${S.bad}: ${S.detail}`:`Nothing recorded by ${d} contradicts the chain yet.`};
+  rng.oninput=()=>{clearInterval(rng._t);draw()};draw();
+  new IntersectionObserver((es,o)=>{if(es[0].isIntersecting){o.disconnect();if(RM){rng.value=rng.max;draw();return}let i=0;rng._t=setInterval(()=>{rng.value=++i;draw();if(i>=+rng.max)clearInterval(rng._t)},520)}},{threshold:.5}).observe($('#tlz'))})();
+
+/* ---- feature cards ---- */
+(function(){const r=$('#recs');const ids=['P1','P2','P3','P4','P5','PAU','X0','X1','X2','X3'];r.innerHTML=ids.map(i=>`<div class="rc ${i==='P5'||i==='PAU'?'need':''}">${i}</div>`).join('')})();
+starters.min=()=>{const r=$('#recs');const run=async()=>{for(;;){r.classList.remove('min');await sleep(1500);r.classList.add('min');await sleep(3600)}};RM?r.classList.add('min'):run()};
+starters.fix=()=>{const f=$('#fixv'),v=$('#fv');const run=async()=>{for(;;){f.className='fixv';setV(v,'v-bad','DEFECTIVE');await sleep(1500);f.classList.add('press');await sleep(250);f.classList.remove('press');f.classList.add('go');await sleep(700);setV(v,'v-clean','CLEAN');await sleep(3200)}};RM?(f.classList.add('go'),setV(v,'v-clean','CLEAN')):run()};
+starters.scan=()=>{};
+starters.replay=()=>{const c=$('#calls');const L=[['run_all_checks','()'],['list_checks','()'],['read_passage','(P5)'],['read_passage','(PAU)'],['answer','DEFECTIVE · PROP-AUTH · T5 · cites 2 records',1]];
+  const run=async()=>{for(;;){c.innerHTML=L.map(l=>`<div class="call ${l[2]?'fin':''}">${l[2]?'→ ':''}${l[0]}<i>${l[1]}</i></div>`).join('');const e=$$('#calls .call');
+    for(const x of e){await sleep(RM?0:720);x.classList.add('in')}await sleep(3600)}};run()};
+starters.mcp=()=>{const t=$('#term');const cmd='claude mcp add vestigium -- uv run python -m vestigium.mcp_server';
+  const run=async()=>{for(;;){t.innerHTML='<span class="p">$</span> <span id="ty"></span><span class="cur"></span>';const ty=$('#ty');
+    for(const ch of cmd){ty.textContent+=ch;await sleep(RM?0:22)}await sleep(500);
+    t.innerHTML+=`<br><span class="ok">✓</span> connected · 5 read-only tools<br><span class="p">›</span> check_records(<span style="color:#7cc4ff">prop-006</span>)<br><span class="rd">DEFECTIVE</span> PROP-AUTH · T4<br><span style="color:var(--dim)">cited: P4, PAU (exact text returned)</span>`;await sleep(5200)}};run()};
+
+/* ---- benchmark bars + counters ---- */
+function bar(v,c){return `<div class="bar"><div class="track"><i data-w="${Math.max(v,.8)}" style="background:${c}"></i></div><span data-v="${v}">0%</span></div>`}
+$('#bench').innerHTML=`<div class="bh"><span></span><span>Accuracy (higher is better)</span><span>Defective chains called clean (lower is better)</span></div>`+
+ B.arms.map(a=>`<div class="br"><div class="nm"><b>${a.arm}</b> ${a.name}<small>${a.repeats} repeats · ${a.tokens.toLocaleString()} tokens/case</small></div>${bar(a.acc,a.acc>90?'var(--ok)':'#9c9c9d')}${bar(a.false_clean,'var(--bad)')}</div>`).join('')+
+ `<div class="note">A is documents only. B is the same facts as a graph where the agent writes its own queries. C adds the rule engine’s checks as tools. D is the rule engine alone, with no agent. The rules and cases were written together, so D is the ceiling of the rules, not a real-world claim.</div>`;
+const count=(el,to,dec=0,suf='',ms=1500)=>{if(RM){el.textContent=to.toFixed(dec)+suf;return}const t0=performance.now();const f=t=>{const p=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-p,3);el.textContent=(to*e).toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g,dec?'':',')+suf;if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)};
+new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){o.unobserve(e.target);e.target.querySelectorAll('i[data-w]').forEach(i=>i.style.width=i.dataset.w+'%');e.target.querySelectorAll('span[data-v]').forEach(s=>count(s,+s.dataset.v,1,'%'))}}),{threshold:.3}).observe($('#bench'));
+new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){o.unobserve(e.target);const b=e.target.querySelector('b[data-n]');count(b,+b.dataset.n,+(b.dataset.d||0),b.dataset.s||'')}}),{threshold:.6}).observe($('.stats'));
+$$('.stat').forEach(s=>new IntersectionObserver((es,o)=>{if(es[0].isIntersecting){o.disconnect();const b=s.querySelector('b');count(b,+b.dataset.n,+(b.dataset.d||0),b.dataset.s||'')}},{threshold:.6}).observe(s));
+
+/* ---- intake reader bars ---- */
+(function(){const g=(r,s)=>(B.intake.find(x=>x.reader===r&&x.style===s)||{}).verdict||0;
+  $('#rd2').insertAdjacentHTML('beforeend',[['Offline rules','messy'],['Gemini','messy'],['Offline rules','clean'],['Gemini','clean']].map(([r,s])=>`<div class="br"><div class="nm"><b>${r}</b><small>${s} wording</small></div>${bar(g(r,s),g(r,s)>90?'var(--ok)':'var(--bad)')}</div>`).join(''));
+  new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){o.unobserve(e.target);e.target.querySelectorAll('i[data-w]').forEach(i=>i.style.width=i.dataset.w+'%');e.target.querySelectorAll('span[data-v]').forEach(s=>count(s,+s.dataset.v,1,'%'))}}),{threshold:.3}).observe($('#rd2'))})();
+</script>
+</body></html>
