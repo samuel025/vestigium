@@ -79,4 +79,4 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 
 ### Optional beat (10 s): real records
 
-*Click the **Real** tab (or open `app.html?case=real-8`).* Say: "Same engine on 90 real New York deeds. 34 lots clean, two flags, and both are worth a human look, like this buyer whose name changes year in the public register."
+*Click the **Real** tab (or open `app.html?case=phl-71`).* Say: "Same engine on 3,110 real deeds from New York and Philadelphia. Most chains check out; the flags are explained, like this foreclosure, and about one break in five has no record anywhere of how the seller got the property."

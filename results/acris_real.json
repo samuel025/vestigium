@@ -6,20 +6,14 @@
  "links": 54,
  "link_match": {
   "exact": 50,
-  "fuzzy": 2,
-  "no match": 2
+  "fuzzy": 3,
+  "no match": 1
  },
  "verdicts": {
-  "clean": 34,
-  "defective": 2
+  "clean": 35,
+  "defective": 1
  },
  "findings": [
-  {
-   "lot": 7,
-   "rule": "PROP-CHAIN",
-   "transfer": "T2",
-   "review": "false alarm: the same couple, their two-word surname written with a space when they bought and without one when they sold"
-  },
   {
    "lot": 8,
    "rule": "PROP-CHAIN",
@@ -74,13 +68,8 @@
   {
    "lot": 7,
    "deeds": 2,
-   "verdict": "defective",
-   "findings": [
-    {
-     "rule": "PROP-CHAIN",
-     "transfer": "T2"
-    }
-   ]
+   "verdict": "clean",
+   "findings": []
   },
   {
    "lot": 8,

@@ -10,7 +10,7 @@ def test_name_matching_is_stated_and_conservative():
     assert same("ELM ROW PROPERTIES LLC", "ELM ROW PROPERTIES, LLC")
     assert same("FENWICK, OTTO G", "OTTO GRAY FENWICK")
     assert not same("ARDEN, JUNE ROSE", "MAVIS ARDEN REVOCABLE TRUST")     # same family, different party
-    assert not same("DE LAMB, LUC", "DELAMB, LUC")                          # a real kind of variant we deliberately do not guess
+    assert same("DE LAMB, LUC", "DELAMB, LUC")                              # a space inside a surname (the NYC false alarm, now matched)
 
 
 def test_a_real_shaped_chain_is_checked_by_the_same_rules():
@@ -21,3 +21,20 @@ def test_a_real_shaped_chain_is_checked_by_the_same_rules():
         c = to_case(1, deeds)
         assert run_checks(build(c), "A1", c["as_of"])["verdict"] == want
     assert group_match(["NORTH REALTY LLC"], ["NORTH REALTY LLC & SOUTH FUTURE REALTY CORP."])
+
+
+def test_register_quirks_seen_in_philadelphia():
+    assert same("S E B M INC", "S E B M INC")                      # all one-letter tokens
+    assert same("ROSA'S 1997 LLC", "ROSAS 1997 LLC")               # apostrophe
+    assert same("SECRETARY OF HOUSING AND URBAN DEVELOPME", "SECRETARY OF HOUSING AND URBAN DEVELOPMENT")   # 40-char field cut
+    assert not same("NORTH HOLDINGS LLC", "NORTH HOLDING CORP")    # close is not the same; a person decides
+
+
+def test_philadelphia_categories_are_stated_rules():
+    from vestigium.philly import category
+    prev = dict(buyers=["KOWALSKI KRZYSZTOF"])
+    assert category(dict(type="DEED SHERIFF", sellers=["SHERIFF OF PHILA"]), prev).startswith("sheriff")
+    assert category(dict(type="DEED", sellers=["KOWALSKI ANNA EXR"]), prev).startswith("estate")
+    assert category(dict(type="DEED", sellers=["KOWALSKI KRZSYTOF"]), prev).startswith("probable spelling")
+    assert category(dict(type="DEED", sellers=["KOWALSKI ANNA"]), prev).startswith("related name")
+    assert category(dict(type="DEED", sellers=["NOVAK PETRA"]), prev) == "no apparent connection"

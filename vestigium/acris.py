@@ -29,13 +29,22 @@ SUFFIX = {"LLC", "INC", "CORP", "CO", "THE", "AND", "OF"}
 
 
 def tokens(name):
-    s = ROLE.sub(" ", str(name).upper())
+    s = ROLE.sub(" ", str(name).upper().replace("'", ""))
     return {t for t in re.split(r"[^A-Z0-9]+", s) if len(t) > 1 and not t.isdigit() and t not in SUFFIX}
+
+
+def _flat(name):
+    return re.sub(r"[^A-Z0-9]", "", str(name).upper())
 
 
 def same(a, b):
     """Two names are the same party if their tokens are equal, or one contains the other and they share at least two
-    tokens (first name + surname; tolerates middle initials, 'AS TRUSTEE', 'ESTATE OF', a person's own trust)."""
+    tokens (first name + surname; tolerates middle initials, 'AS TRUSTEE', 'ESTATE OF', a person's own trust).
+    Also: identical once punctuation and spaces are removed ("S E B M INC", "ROSHA'S" / "ROSHAS"), or one name is the
+    other cut off by a register's field limit (Philadelphia truncates names at 40 characters)."""
+    fa, fb = _flat(a), _flat(b)
+    if fa and fa == fb: return True
+    if min(len(str(a).strip()), len(str(b).strip())) >= 38 and min(len(fa), len(fb)) >= 30 and (fa.startswith(fb) or fb.startswith(fa)): return True
     A, B = tokens(a), tokens(b)
     if not A or not B: return False
     return A == B or (len(A & B) >= 2 and (A <= B or B <= A))
@@ -76,9 +85,9 @@ def chains(lots, master, who):
     return out
 
 
-def to_case(k, deeds):
+def to_case(k, deeds, place="Brooklyn lot"):
     """One lot -> a Vestigium case. The seller is the SAME party node as the previous buyer only if the names match."""
-    nodes = [("Asset", dict(id="A1", address=f"Brooklyn lot {k} (anonymised)"))]
+    nodes = [("Asset", dict(id="A1", address=f"{place} {k} (anonymised)"))]
     rels, owner = [], None
     for i, d in enumerate(deeds, 1):
         t = f"T{i}"
@@ -145,46 +154,68 @@ def report(rows, review, links):
     return out
 
 
-def export_app(path=ROOT / "demo" / "real.js"):
-    """Every real lot as an app case (anonymised: owners are numbered, no names, no addresses), with the same
-    verdict, timeline, proof and graph-lab data as the synthetic cases. Needs the raw downloads; the output is committed."""
+def app_case(k, deeds, cid, title, place, notes, group, headline, short):
+    """One real chain as an app case (anonymised: owners are numbered, no names, no addresses), with the same verdict,
+    timeline, proof and graph-lab data as the synthetic cases. Shared by the New York and Philadelphia importers."""
     from .proof import proofs
     from .graphlab import experiments, preset_rows
+    case = to_case(k, deeds, place)
+    owner, names = 1, {}
+    for l, p in case["nodes"]:                       # readable anonymous names: Owner 1 sold to Owner 2, ...
+        if l == "Party":
+            if p["id"].startswith("B"): owner += 1; names[p["id"]] = f"Owner {owner}"
+            else: names[p["id"]] = f"Owner {owner}" if p["id"] == "S1" else f"Unmatched seller at T{p['id'][1:]}"
+    for l, p in case["nodes"]:
+        if l == "Party": p["name"] = names[p["id"]]
+    by = {(tt, a if tt == "TO" else b): (b if tt == "TO" else a) for a, tt, b in case["rels"] if tt in ("FROM", "TO")}
+    for l, p in case["nodes"]:
+        if l == "Passage":
+            i = p["id"][1:]; d = deeds[int(i) - 1]
+            kind = "SHERIFF'S DEED" if "SHERIFF" in d.get("type", "") else "DEED"
+            p["text"] = (f"{kind} dated {d['effective']}, recorded {d['recorded']}: {names[by[('FROM', 'T' + i)]]} "
+                         f"({len(d['sellers'])} grantor name{'s' if len(d['sellers']) > 1 else ''} on the record) conveys to "
+                         f"{names[by[('TO', 'T' + i)]]} ({len(d['buyers'])} grantee name{'s' if len(d['buyers']) > 1 else ''}).")
+    r = run_checks(build(case), "A1", case["as_of"], pack="property")
+    dates = sorted({d["recorded"] for d in deeds} | {case["as_of"]})
+    tl = [(d, run_checks(build(case), "A1", case["as_of"], known=d, pack="property")["verdict"]) for d in dates]
+    return dict(id=cid, domain="property", label=None, split="real", as_of=case["as_of"], kind="real-flag" if r["findings"] else "real-clean",
+                title=title, group=group, headline=headline, short=short, asset="A1",
+                nodes=[dict(label=l, **p) for l, p in case["nodes"]], rels=case["rels"], result=r, timeline=tl,
+                proof=[dict(rule=x["rule"], transfer=x["transfer"], passages=x.get("passages", []), records_total=x.get("records_total", 0)) for x in proofs(case, r)],
+                fix=None, fix_verdict=None, documents="", agents={}, warnings=notes(r), rm=experiments(case), presets=preset_rows(case))
+
+
+def write_real(cases_by_city):
+    """demo/real.js holds every city's anonymised cases."""
+    out = [c for cs in cases_by_city for c in cs]
+    (ROOT / "demo" / "real.js").write_text("window.VESTIGIUM_REAL = " + json.dumps(out, default=str) + ";")
+    return out
+
+
+def export_app():
     lots, master, who = load()
     out = []
     for k, (lot, deeds) in enumerate(chains(lots, master, who), 1):
-        case = to_case(k, deeds)
-        owner, names = 1, {}
-        for l, p in case["nodes"]:                       # readable anonymous names: Owner 1 sold to Owner 2, ...
-            if l == "Party":
-                if p["id"].startswith("B"): owner += 1; names[p["id"]] = f"Owner {owner}"
-                else: names[p["id"]] = f"Owner {owner}" if p["id"] == "S1" else f"Unmatched seller at T{p['id'][1:]}"
-        for l, p in case["nodes"]:
-            if l == "Party": p["name"] = names[p["id"]]
-        by = {(tt, a if tt == "TO" else b): (b if tt == "TO" else a) for a, tt, b in case["rels"] if tt in ("FROM", "TO")}
-        for l, p in case["nodes"]:
-            if l == "Passage":
-                i = p["id"][1:]; d = deeds[int(i) - 1]
-                p["text"] = (f"DEED dated {d['effective']}, recorded {d['recorded']}: {names[by[('FROM', 'T' + i)]]} "
-                             f"({len(d['sellers'])} grantor name{'s' if len(d['sellers']) > 1 else ''} on the record) conveys to "
-                             f"{names[by[('TO', 'T' + i)]]} ({len(d['buyers'])} grantee name{'s' if len(d['buyers']) > 1 else ''}).")
-        r = run_checks(build(case), "A1", case["as_of"], pack="property")
-        dates = sorted({d["recorded"] for d in deeds} | {case["as_of"]})
-        tl = [(d, run_checks(build(case), "A1", case["as_of"], known=d, pack="property")["verdict"]) for d in dates]
-        notes = [f"Reviewed by hand: {REVIEWED[(k, f['transfer'])]}." for f in r["findings"] if (k, f["transfer"]) in REVIEWED]
-        notes.append("Real public record (NYC ACRIS), anonymised. The register does not say which earlier deed a seller bought through, "
-                     "so deeds are linked in recorded order and names are matched by the importer.")
-        out.append(dict(id=f"real-{k}", domain="property", label=None, split="real", as_of=case["as_of"],
-                        kind="real-flag" if r["findings"] else "real-clean", title=f"Real lot {k}", asset="A1",
-                        nodes=[dict(label=l, **p) for l, p in case["nodes"]], rels=case["rels"], result=r, timeline=tl,
-                        proof=[dict(rule=x["rule"], transfer=x["transfer"], passages=x.get("passages", []), records_total=x.get("records_total", 0)) for x in proofs(case, r)],
-                        fix=None, fix_verdict=None, documents="", agents={}, warnings=notes, rm=experiments(case), presets=preset_rows(case)))
-    path.write_text("window.VESTIGIUM_REAL = " + json.dumps(out, default=str) + ";")
+        def notes(r, k=k):
+            n = [f"Reviewed by hand: {REVIEWED[(k, f['transfer'])]}." for f in r["findings"] if (k, f["transfer"]) in REVIEWED]
+            return n + ["Real public record (NYC ACRIS), anonymised. The register does not say which earlier deed a seller bought through, "
+                        "so deeds are linked in recorded order and names are matched by the importer."]
+        c = app_case(k, deeds, f"real-{k}", f"New York lot {k}", "Brooklyn lot", notes, None, None, None)
+        flag = c["result"]["verdict"] != "clean"
+        c.update(group="New York · flagged, reviewed by hand" if flag else "New York · clean",
+                 headline="Real records: a seller the register does not match" if flag else "Real records: the chain checks out",
+                 short="flagged" if flag else "clean")
+        out.append(c)
     return out
 
 
 if __name__ == "__main__":
-    export_app()
+    ny = export_app()
+    try:
+        from .philly import export_app as philly_app
+        write_real([ny, philly_app()])
+    except FileNotFoundError:
+        write_real([ny])
     rows, review = run()
     lots, master, who = load()
     links = Counter()

@@ -1,0 +1,7266 @@
+{
+ "source": "OpenDataPhilly, Real Estate Transfer Tax records (rtt_summary), document types DEED and sheriff's deeds",
+ "sample": "deterministic pseudo-random sample of single-property parcels with 2+ deeds, all years on record",
+ "properties": 1000,
+ "deeds": 3020,
+ "links": 2020,
+ "link_match": {
+  "match": 1820,
+  "no match": 200
+ },
+ "verdicts": {
+  "clean": 828,
+  "defective": 172
+ },
+ "findings_by_rule": {
+  "PROP-CHAIN": 200,
+  "PROP-DATE": 11
+ },
+ "chain_breaks_by_category": {
+  "probable spelling variant in the register (85%+ similar)": 58,
+  "unexplained: no record of how the seller acquired it": 43,
+  "related name, different party (relative, co-owner or sister company)": 27,
+  "a deed to the seller exists in the full register but not in our extract": 25,
+  "estate, trust or agent sells": 21,
+  "sheriff sale (foreclosure)": 19,
+  "recorded out of signing order: signed before the previous deed was signed": 11,
+  "the register shows the seller only as a mortgagor, with no deed to them": 7
+ },
+ "defective_only_because_of_sheriff_sales": 10,
+ "days_signing_to_recording": {
+  "median": 14,
+  "over_90": 228,
+  "over_365": 37,
+  "of": 3019
+ },
+ "signed_before_previous_recorded": 69,
+ "per_property": [
+  {
+   "lot": 1,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 2,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 3,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 4,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 5,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 6,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 7,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 8,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 9,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 10,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 11,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 12,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 13,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 14,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 15,
+   "deeds": 8,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 16,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 17,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 18,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 19,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 20,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 21,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 22,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 23,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 24,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 25,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 26,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 27,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 28,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 29,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 30,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 31,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 32,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 33,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 34,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 35,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 36,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 37,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 38,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 39,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 40,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 41,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 42,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 43,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 44,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 45,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 46,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 47,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 48,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 49,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 50,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 51,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 52,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 53,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 54,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 55,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 56,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 57,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 58,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 59,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 60,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 61,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "the register shows the seller only as a mortgagor, with no deed to them"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 62,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 63,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 64,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 65,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 66,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 67,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 68,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 69,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 70,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 71,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "sheriff sale (foreclosure)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 72,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 73,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 74,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 75,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 76,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 77,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 78,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 79,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 80,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 81,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 82,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 83,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 84,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 85,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 86,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 87,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 88,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 89,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 90,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 91,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 92,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 93,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 94,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 95,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 96,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 97,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 98,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 99,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 100,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 101,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 102,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 103,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 104,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 105,
+   "deeds": 8,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T6",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 106,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 107,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 108,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 109,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 110,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 111,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 112,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 113,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 114,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 115,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 116,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 117,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 118,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 119,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 120,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 121,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 122,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 123,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 124,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 125,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 126,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 127,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 128,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 129,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 130,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 131,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 132,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 133,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 134,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 135,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 136,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 137,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 138,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 139,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 140,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 141,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 142,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 143,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 144,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 145,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 146,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 147,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 148,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 149,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 150,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 151,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 152,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 153,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 154,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 155,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 156,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 157,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 158,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 159,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 160,
+   "deeds": 7,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 161,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 162,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 163,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 164,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 165,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 166,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 167,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 168,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 169,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 170,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 171,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 172,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 173,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 174,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 175,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 176,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 177,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 178,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 179,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 180,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 181,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 182,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 183,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 184,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 185,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 186,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 187,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 188,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 189,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 190,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 191,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 192,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 193,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 194,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 195,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 196,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 197,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 198,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 199,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 200,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 201,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 202,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 203,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 204,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 205,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 206,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 207,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 208,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 209,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 210,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "the register shows the seller only as a mortgagor, with no deed to them"
+    }
+   ]
+  },
+  {
+   "lot": 211,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 212,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 213,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 214,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 215,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 216,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 217,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 218,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 219,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 220,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 221,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 222,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 223,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 224,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 225,
+   "deeds": 8,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 226,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 227,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 228,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 229,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 230,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 231,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 232,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 233,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 234,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 235,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 236,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "the register shows the seller only as a mortgagor, with no deed to them"
+    }
+   ]
+  },
+  {
+   "lot": 237,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 238,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 239,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 240,
+   "deeds": 8,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T5",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    }
+   ]
+  },
+  {
+   "lot": 241,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 242,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 243,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 244,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 245,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 246,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 247,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 248,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 249,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 250,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 251,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 252,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 253,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 254,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 255,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 256,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 257,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 258,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 259,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 260,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 261,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 262,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 263,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 264,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 265,
+   "deeds": 7,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 266,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 267,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 268,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 269,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 270,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 271,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 272,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 273,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 274,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 275,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 276,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 277,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 278,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 279,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 280,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 281,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 282,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 283,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 284,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 285,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 286,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 287,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 288,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 289,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 290,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 291,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 292,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 293,
+   "deeds": 7,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 294,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 295,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 296,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 297,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 298,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 299,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 300,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 301,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 302,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 303,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 304,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 305,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 306,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 307,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 308,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 309,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 310,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 311,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 312,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 313,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 314,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 315,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 316,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 317,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 318,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 319,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 320,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 321,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "the register shows the seller only as a mortgagor, with no deed to them"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 322,
+   "deeds": 7,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 323,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 324,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 325,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 326,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 327,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 328,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 329,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 330,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 331,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 332,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 333,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 334,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 335,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 336,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 337,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 338,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 339,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 340,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 341,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T2",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    }
+   ]
+  },
+  {
+   "lot": 342,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 343,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 344,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T4",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    }
+   ]
+  },
+  {
+   "lot": 345,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 346,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 347,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 348,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 349,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 350,
+   "deeds": 7,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 351,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 352,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 353,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 354,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 355,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 356,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 357,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 358,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 359,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 360,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 361,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 362,
+   "deeds": 7,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "sheriff sale (foreclosure)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 363,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 364,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 365,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 366,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 367,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 368,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 369,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 370,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 371,
+   "deeds": 8,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 372,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 373,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 374,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 375,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 376,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 377,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 378,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 379,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 380,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 381,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 382,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 383,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 384,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 385,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 386,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 387,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 388,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 389,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 390,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 391,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 392,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 393,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 394,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 395,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 396,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 397,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 398,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 399,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 400,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 401,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 402,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 403,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 404,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 405,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 406,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 407,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 408,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 409,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 410,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 411,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 412,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 413,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 414,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 415,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 416,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 417,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 418,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 419,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 420,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 421,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 422,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 423,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 424,
+   "deeds": 8,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T2",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "sheriff sale (foreclosure)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T7",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 425,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 426,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 427,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 428,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 429,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 430,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 431,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 432,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 433,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 434,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 435,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 436,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 437,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 438,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 439,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 440,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 441,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 442,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 443,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 444,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 445,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 446,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 447,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 448,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 449,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 450,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 451,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 452,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 453,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 454,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 455,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 456,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 457,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 458,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 459,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 460,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 461,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 462,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 463,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 464,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 465,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 466,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 467,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 468,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 469,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 470,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 471,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 472,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 473,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 474,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 475,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 476,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 477,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 478,
+   "deeds": 8,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 479,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 480,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 481,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 482,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 483,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 484,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 485,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 486,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 487,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 488,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 489,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 490,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 491,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 492,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 493,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 494,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 495,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 496,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 497,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 498,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 499,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 500,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 501,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 502,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 503,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 504,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 505,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 506,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 507,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 508,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 509,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 510,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 511,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 512,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 513,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 514,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 515,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 516,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 517,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 518,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 519,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 520,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 521,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 522,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 523,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 524,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 525,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 526,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 527,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "sheriff sale (foreclosure)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 528,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 529,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 530,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 531,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 532,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 533,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 534,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 535,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 536,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 537,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 538,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 539,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 540,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 541,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 542,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 543,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 544,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 545,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 546,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 547,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 548,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 549,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 550,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 551,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 552,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 553,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 554,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 555,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 556,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 557,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 558,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 559,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 560,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 561,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 562,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 563,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 564,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 565,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 566,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 567,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 568,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 569,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 570,
+   "deeds": 7,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 571,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 572,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 573,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 574,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 575,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 576,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 577,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 578,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 579,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 580,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 581,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 582,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 583,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 584,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 585,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 586,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 587,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 588,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 589,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 590,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 591,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 592,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 593,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 594,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 595,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 596,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 597,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 598,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 599,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 600,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 601,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 602,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 603,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 604,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 605,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 606,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 607,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 608,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 609,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 610,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 611,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 612,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 613,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T3",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 614,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 615,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 616,
+   "deeds": 8,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 617,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 618,
+   "deeds": 7,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T6",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 619,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 620,
+   "deeds": 8,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 621,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 622,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 623,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 624,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 625,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 626,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 627,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 628,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 629,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 630,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 631,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 632,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 633,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 634,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 635,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 636,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 637,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 638,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 639,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 640,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 641,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 642,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 643,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 644,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 645,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 646,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 647,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 648,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 649,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 650,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 651,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 652,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 653,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 654,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 655,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 656,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 657,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 658,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 659,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 660,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 661,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 662,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 663,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 664,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 665,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 666,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 667,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 668,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 669,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 670,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 671,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 672,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 673,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 674,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 675,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 676,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 677,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 678,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 679,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 680,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 681,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 682,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 683,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 684,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 685,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 686,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 687,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 688,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 689,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 690,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 691,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 692,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 693,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T4",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 694,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 695,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 696,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 697,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 698,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 699,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 700,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 701,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 702,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "sheriff sale (foreclosure)"
+    },
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T4",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    }
+   ]
+  },
+  {
+   "lot": 703,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 704,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 705,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 706,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 707,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 708,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 709,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 710,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 711,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 712,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 713,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 714,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 715,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 716,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 717,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 718,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 719,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 720,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 721,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 722,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 723,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 724,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 725,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 726,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 727,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 728,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 729,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 730,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 731,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 732,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 733,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 734,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 735,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 736,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 737,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 738,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 739,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 740,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 741,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 742,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 743,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 744,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 745,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 746,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 747,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 748,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 749,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 750,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 751,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 752,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 753,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 754,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 755,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 756,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 757,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 758,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 759,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 760,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 761,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 762,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 763,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 764,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 765,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 766,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 767,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 768,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 769,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 770,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 771,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 772,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 773,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 774,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 775,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 776,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 777,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 778,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 779,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 780,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 781,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 782,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 783,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 784,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 785,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 786,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 787,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 788,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 789,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 790,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 791,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 792,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "the register shows the seller only as a mortgagor, with no deed to them"
+    }
+   ]
+  },
+  {
+   "lot": 793,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 794,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 795,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 796,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 797,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 798,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 799,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 800,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 801,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 802,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 803,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 804,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 805,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 806,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 807,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 808,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 809,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 810,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 811,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 812,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 813,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 814,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 815,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 816,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 817,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 818,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 819,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 820,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 821,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 822,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 823,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 824,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 825,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 826,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 827,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 828,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 829,
+   "deeds": 8,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 830,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "sheriff sale (foreclosure)"
+    },
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T5",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    }
+   ]
+  },
+  {
+   "lot": 831,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 832,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 833,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 834,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 835,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 836,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 837,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 838,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 839,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 840,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 841,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 842,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 843,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 844,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 845,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 846,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 847,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 848,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 849,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 850,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 851,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "sheriff sale (foreclosure)"
+    }
+   ]
+  },
+  {
+   "lot": 852,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 853,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 854,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 855,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 856,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 857,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 858,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 859,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 860,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 861,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 862,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 863,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 864,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T2",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T6",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 865,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 866,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 867,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 868,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 869,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 870,
+   "deeds": 5,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T3",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 871,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 872,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 873,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 874,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 875,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 876,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 877,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 878,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 879,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 880,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 881,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 882,
+   "deeds": 8,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 883,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 884,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 885,
+   "deeds": 6,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 886,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 887,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 888,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 889,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 890,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 891,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 892,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 893,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 894,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 895,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 896,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "the register shows the seller only as a mortgagor, with no deed to them"
+    }
+   ]
+  },
+  {
+   "lot": 897,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 898,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 899,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 900,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 901,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 902,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 903,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 904,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 905,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 906,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 907,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 908,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T5",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 909,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 910,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 911,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 912,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 913,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 914,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 915,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 916,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 917,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 918,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 919,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 920,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 921,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "the register shows the seller only as a mortgagor, with no deed to them"
+    }
+   ]
+  },
+  {
+   "lot": 922,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 923,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 924,
+   "deeds": 7,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T6",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 925,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 926,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 927,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 928,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 929,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 930,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 931,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 932,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 933,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 934,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 935,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 936,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 937,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 938,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 939,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 940,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 941,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 942,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 943,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 944,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 945,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 946,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 947,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 948,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 949,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 950,
+   "deeds": 6,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "probable spelling variant in the register (85%+ similar)"
+    }
+   ]
+  },
+  {
+   "lot": 951,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 952,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 953,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 954,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 955,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 956,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 957,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 958,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 959,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 960,
+   "deeds": 4,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 961,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 962,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 963,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 964,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 965,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 966,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 967,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 968,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 969,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 970,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 971,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 972,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 973,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 974,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 975,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 976,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 977,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 978,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 979,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2",
+     "category": "related name, different party (relative, co-owner or sister company)"
+    }
+   ]
+  },
+  {
+   "lot": 980,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 981,
+   "deeds": 9,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    },
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T7",
+     "category": "a deed to the seller exists in the full register but not in our extract"
+    }
+   ]
+  },
+  {
+   "lot": 982,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 983,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 984,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 985,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 986,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T3",
+     "category": "estate, trust or agent sells"
+    }
+   ]
+  },
+  {
+   "lot": 987,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 988,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 989,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 990,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 991,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 992,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 993,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 994,
+   "deeds": 7,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T4",
+     "category": "unexplained: no record of how the seller acquired it"
+    }
+   ]
+  },
+  {
+   "lot": 995,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 996,
+   "deeds": 3,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-DATE",
+     "transfer": "T3",
+     "category": "recorded out of signing order: signed before the previous deed was signed"
+    }
+   ]
+  },
+  {
+   "lot": 997,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 998,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 999,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 1000,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  }
+ ]
+}

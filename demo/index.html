@@ -300,19 +300,20 @@ footer{border-top:1px solid var(--line);padding:36px 0 56px;color:var(--dim);fon
 </div></section>
 
 <section id="real"><div class="wrap">
-  <div class="head reveal"><span class="eyebrow">On real records</span><h2>90 real deeds. Two flags. Both worth a look.</h2><p class="sub">The same engine, unchanged, on New York City’s public property register: 36 Brooklyn lots, deeds recorded from 2003 to 2026, each with its real signing date, recording date, sellers and buyers.</p></div>
+  <div class="head reveal"><span class="eyebrow">On real records</span><h2>3,110 real deeds. Every flag explained.</h2><p class="sub">The same engine, unchanged, on public property records from New York (36 Brooklyn lots) and Philadelphia (1,000 properties), each deed with its real signing date, recording date, sellers and buyers.</p></div>
   <div class="stats">
-    <div class="stat reveal"><b data-n="90">0</b><span>real deeds checked, from 36 lots in 5 adjacent Brooklyn blocks</span></div>
-    <div class="stat reveal d1"><b data-n="34">0</b><span>lots clean: every seller matches the previous buyer</span></div>
-    <div class="stat reveal d2"><b data-n="2">0</b><span>flags raised, and both were checked by hand</span></div>
-    <div class="stat reveal d3"><b data-n="12">0</b><span>of 90 deeds took over three months to be recorded. That gap is why every fact has two dates.</span></div>
+    <div class="stat reveal"><b data-n="3110">0</b><span>real deeds checked, from 1,036 properties in two cities</span></div>
+    <div class="stat reveal d1"><b data-n="90" data-s="%">0</b><span>of 2,074 links: the seller is the previous buyer, as the rule expects</span></div>
+    <div class="stat reveal d2"><b data-n="43">0</b><span>Philadelphia sales with no record anywhere in the public register of how the seller got the property</span></div>
+    <div class="stat reveal d3"><b data-n="240">0</b><span>deeds recorded over three months after signing. That gap is why every fact has two dates.</span></div>
   </div>
   <div class="honest" style="margin-top:16px">
-    <div class="card reveal"><h3><i>FALSE ALARM</i>A surname written two ways</h3><p>The same couple bought with a space in their two-word surname and sold without one. The name matcher does not guess at spelling, so it asks a person instead.</p></div>
-    <div class="card reveal d1"><h3><i>WORTH CHECKING</i>A year that changed in the register</h3><p>A buyer was recorded as an exchange titleholder ending “2006-175” and sold as one ending “2007-175”. Probably the same company, but the public record does not say so.</p></div>
+    <div class="card reveal"><h3><i>MOST FLAGS</i>Spelling, families, foreclosures</h3><p>Of 211 Philadelphia findings: 58 names spelled differently in the register, 27 relatives or sister companies, 21 estates or agents, 19 sheriff sales, 25 deeds outside our extract. Each is labelled, and a person confirms; code never guesses a near-miss name.</p></div>
+    <div class="card reveal d1"><h3><i>WORTH CHECKING</i>Gaps the register cannot explain</h3><p>43 sellers with no recorded acquisition, 11 deeds signed before the previous one, and in New York a titleholder whose name changes year between purchase and sale. These are what a title examiner would chase.</p></div>
+    <div class="card reveal d2"><h3><i>FOUND BY REAL DATA</i>Three bugs in our own name matcher</h3><p>Single-letter names, apostrophes and the register's 40-character name limit stopped names matching themselves. Fixed and tested; the fix also cleared New York's one false alarm.</p></div>
+    <div class="card reveal d3"><h3><i>LIMITS</i>What it does not show</h3><p>Deeds only, linked in recorded order. Liens are not checked. A flag means "worth a look", not a proven defect: we did not search beyond the public register. Names and addresses stay out of the repository.</p></div>
   </div>
-  <p class="reveal" style="color:var(--dim);font-size:13px;margin-top:18px;max-width:780px">Deeds only. The register does not say which earlier deed a seller bought through, so deeds are linked in recorded order. Liens are not checked. No fraud was expected in 36 ordinary lots, so this shows the engine stays accurate and quiet on real data, not that it catches real fraud. Names stay out of the repository.</p>
-  <div class="reveal" style="margin-top:18px"><a class="btn" href="app.html?case=real-8">Open the real lots in the app</a></div>
+  <div class="reveal" style="margin-top:18px"><a class="btn" href="app.html?case=phl-71">Open the real records in the app</a></div>
 </div></section>
 
 <section id="intake"><div class="wrap">
@@ -343,7 +344,7 @@ footer{border-top:1px solid var(--line);padding:36px 0 56px;color:var(--dim);fon
 <section id="honest"><div class="wrap">
   <div class="head reveal"><span class="eyebrow">What this is, and is not</span><h2>Read this before you trust a number.</h2><p class="sub">A good benchmark reports what could make it look better than it is.</p></div>
   <div class="honest">
-    <div class="card reveal"><h3><i>MOSTLY SYNTHETIC</i>Synthetic benchmark, fictional rules</h3><p>The benchmark uses fictional parties, a fictional jurisdiction and generic rules; only the 90 New York deeds above are real. This is a prototype of the idea, not legal advice and not a title product.</p></div>
+    <div class="card reveal"><h3><i>MOSTLY SYNTHETIC</i>Synthetic benchmark, fictional rules</h3><p>The benchmark uses fictional parties, a fictional jurisdiction and generic rules; only the 3,110 deeds in the real-records section are real. This is a prototype of the idea, not legal advice and not a title product.</p></div>
     <div class="card reveal d1"><h3><i>CEILING</i>100% is the ceiling, not a claim</h3><p>The rules and the case generator were written together. That is why the rule engine alone is an arm in the benchmark, and why we test it with invariance checks and fresh seeds too.</p></div>
     <div class="card reveal d2"><h3><i>SMALL</i>One small model, 40 cases</h3><p>Gemini 3.5 Flash-Lite on the free tier. A stronger model might narrow the gap for the first two arms. The graph-with-own-Cypher arm swung from 47.5% to 62.5% between repeats.</p></div>
     <div class="card reveal d3"><h3><i>MEASURED</i>Bad photos can still fool the reader</h3><p>The model flagged none of its own misreads, so every scan is now read twice and disagreements are flagged: 3 of 5 poor-photo misreads caught, about 1 in 40 false alarms. A mistake both reads share still slips through. Real scans and true handwriting are untested.</p></div>

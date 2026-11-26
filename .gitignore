@@ -4,3 +4,4 @@ __pycache__/
 results_v1_pre-vehicle/
 *.rl.auth-token
 data/acris_raw/
+data/philly_raw/

@@ -45,7 +45,7 @@ nav select{flex:0 1 380px;min-width:0}@media(max-width:700px){nav select{flex:1 
 :focus-visible{outline:2px solid #fff;outline-offset:2px}
 
 /* ---- case header ---- */
-.case{display:flex;gap:28px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin:6px 0 22px}
+.case{display:flex;gap:28px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin:6px 0 22px}
 .case h1{margin:8px 0 6px;font-size:clamp(28px,3.6vw,40px);line-height:1.12;font-weight:400;color:var(--hi);letter-spacing:.004em}
 .case .sub{color:var(--mut);max-width:640px;font-size:16px}.case .sub b{color:var(--tx);font-weight:500}
 .vbox{text-align:right;display:flex;flex-direction:column;align-items:flex-end;margin-left:auto}
@@ -55,7 +55,7 @@ nav select{flex:0 1 380px;min-width:0}@media(max-width:700px){nav select{flex:1 
 .v-clean{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 35%,transparent)}
 .v-defective{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);box-shadow:0 0 0 1px color-mix(in srgb,var(--bad) 40%,transparent),0 0 40px rgba(255,99,99,.15)}
 .v-inconclusive{background:color-mix(in srgb,var(--gap) 14%,transparent);color:var(--gap);box-shadow:0 0 0 1px color-mix(in srgb,var(--gap) 35%,transparent)}
-#warns .proofnote{max-width:520px;margin-left:auto;text-align:left}
+#warns .proofnote{max-width:470px;margin-left:auto;text-align:left;font-size:13px}
 
 /* ---- guide ---- */
 .guide{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
@@ -308,9 +308,10 @@ const nTransfers=c=>c.nodes.filter(n=>n.label==='Transfer').length;
 const assetOf=c=>{const a=c.nodes.find(n=>n.label==='Asset');return a?(a.address||a.vin||''):''};
 
 /* ---- case picker: friendly names, showcase first ---- */
-function fill(){if(pack==='real'){const list=D.filter(c=>c.split==='real'),fl=list.filter(c=>c.result.verdict!=='clean'),cl=list.filter(c=>c.result.verdict==='clean');
-    const o=c=>`<option value="${c.id}">${c.title} · ${kshort(c)} · ${nTransfers(c)} deeds</option>`;
-    $('pick').innerHTML=`<optgroup label="Flagged (reviewed by hand)">${fl.map(o).join('')}</optgroup><optgroup label="Clean">${cl.map(o).join('')}</optgroup>`;pick((fl[0]||list[0]).id);return}
+function fill(){if(pack==='real'){const list=D.filter(c=>c.split==='real'),groups=[];list.forEach(c=>{let g=groups.find(x=>x[0]===c.group);if(!g)groups.push(g=[c.group,[]]);g[1].push(c)});
+    const rank=g=>/flagged/.test(g)?0:/clean/.test(g)?(g.startsWith('New York')?1:9):2;groups.sort((a,b)=>rank(a[0])-rank(b[0]));
+    const o=c=>`<option value="${c.id}">${c.title} · ${c.short} · ${nTransfers(c)} deeds</option>`;
+    $('pick').innerHTML=groups.map(([g,cs])=>`<optgroup label="${esc(g)}">${cs.map(o).join('')}</optgroup>`).join('');pick(groups[0][1][0].id);return}
   const list=D.filter(c=>c.domain===pack&&c.split!=='real'),show=list.filter(c=>TR[c.id]),rest=list.filter(c=>!TR[c.id]&&c.id!=='pasted'),pasted=list.filter(c=>c.id==='pasted');
   const opt=c=>`<option value="${c.id}">${kshort(c)} · ${nTransfers(c)} transfers · ${c.id}</option>`;
   $('pick').innerHTML=(pasted.length?`<optgroup label="Yours">${pasted.map(opt).join('')}</optgroup>`:'')+(show.length?`<optgroup label="Showcase (agent replay available)">${show.map(opt).join('')}</optgroup>`:'')+`<optgroup label="More ${pack} cases">${rest.map(opt).join('')}</optgroup>`;
@@ -324,8 +325,8 @@ function setSeg(){$('pp').classList.toggle('on',pack==='property');$('pv').class
 function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1],full=step===c.timeline.length-1,res=c.result;
   const items=full?[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))]:[];
   // header
-  $('ceyebrow').textContent=c.split==='real'?'Real record · NYC public register · anonymised · '+c.title:(c.domain==='vehicle'?'Vehicle':'Property')+' · '+(c.id==='pasted'?'your dossier':c.id);
-  $('ctitle').textContent=kname(c);
+  $('ceyebrow').textContent=c.split==='real'?'Real record · '+(c.id.startsWith('phl')?'Philadelphia transfer records':'NYC public register')+' · anonymised · '+c.title:(c.domain==='vehicle'?'Vehicle':'Property')+' · '+(c.id==='pasted'?'your dossier':c.id);
+  $('ctitle').textContent=c.headline||kname(c);
   const first=res.findings[0]||res.missing[0];
   $('csub').innerHTML=!full?`<b>${esc(assetOf(c))}</b> · as known on <b>${known}</b>: `+(ver==='clean'?'every transfer recorded so far checks out. Slide right to see what was filed later.':ver==='defective'?'a check already fails.':'a record is missing.'):`<b>${esc(assetOf(c))}</b> · ${nTransfers(c)} transfers · checked as of ${c.as_of}. `+(res.verdict==='clean'?'Every transfer links to the one before it, and no check finds a defect.':res.verdict==='defective'?`The first check to fail is <b>${esc(first.rule)}</b>: ${esc((first.text||'').toLowerCase())}.`:`A record is missing, so a check cannot decide: <b>${esc(first.missing||first.detail)}</b>.`);
   $('asof').textContent=`valid as of ${c.as_of}`;
