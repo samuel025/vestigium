@@ -19,6 +19,11 @@ DATE = r"(\d{4}-\d{2}-\d{2})"
 REC = re.compile(r"^\[(?P<id>[^\]]+)\]\s*(?P<body>.*)$", re.S)
 
 
+# The first deed says it twice ("This is the first recorded transfer; the chain of title begins here."). Accept either sentence,
+# so one word lost to a blurred scan (seen: "the chain of begins here") does not erase the fact and invent a gap.
+ROOT = re.compile(r"first recorded (?:transfer|title)|chain of (?:title )?begins here|chain of title begins", re.I)
+
+
 def split_records(text):
     """'[ID] body' blocks separated by blank lines. Un-numbered paragraphs get ids R1, R2..."""
     out, n = [], 0
@@ -54,7 +59,7 @@ def read_rules(text):
                          odometer=None if g[5] == "not stated" else int(g[5]), title_branded=g[6] == "BRANDED SALVAGE")
             f = re.search(r"(?:through|follows) the record at \[([^\]]+)\]", tail)
             a = re.search(r"as agent under the authority at \[([^\]]+)\]", tail)
-            r.update(root="chain of title begins here" in tail, follows=f and f[1],
+            r.update(root=bool(ROOT.search(tail)), follows=f and f[1],
                      signed_by_agent=bool(a) or "Signed by an authorised agent" in tail, authority=a and a[1])
         elif (m := re.match(rf"POWER OF ATTORNEY granted to (.+?), valid from {DATE} (?:until {DATE}|with no end date)\.", s)):
             r.update(type="authority", agent=m[1], valid_from=m[2], valid_to=m[3])

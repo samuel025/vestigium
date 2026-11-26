@@ -35,3 +35,14 @@ def test_a_record_the_reader_cannot_parse_is_never_silently_dropped():
          "[P2] DEED dated 2017-O5-05, recorded 2017-05-08: Cedar Wren (Grantor) conveys the property at 20 Fictional Lane to Thorn Vale (Grantee).")
     r = analyze(t, reader="rules")
     assert r["result"]["verdict"] == "inconclusive" and any("P2" in w for w in r["warnings"])
+
+
+def test_root_survives_a_word_lost_in_scanning():
+    from vestigium.extract import read_rules
+    t = ("[P1] DEED dated 2015-10-17, recorded 2015-10-20: Knoll Finch (Grantor) conveys the property at 14 Fictional Lane, Arden to "
+         "Dune Finch (Grantee). This is the first recorded transfer; the chain of begins here.")
+    assert read_rules(t)["records"][0]["root"] is True
+    t2 = t.replace("This is the first recorded transfer; ", "")
+    assert read_rules(t2)["records"][0]["root"] is True
+    t3 = t.replace(" This is the first recorded transfer; the chain of begins here.", "")
+    assert read_rules(t3)["records"][0]["root"] is False
