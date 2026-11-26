@@ -2,6 +2,8 @@
 
 **Tagline:** Check every transfer in an ownership chain against the evidence it needed at the time, and show exactly where it breaks.
 
+**Live demo:** https://vestigium-demo.vercel.app/ · **Code:** https://github.com/samuel025/vestigium
+
 ## The use case
 
 Before money changes hands on a property or a vehicle, someone has to be sure the seller could actually sell. Defects hide in the connections between records:
@@ -58,6 +60,6 @@ parameters from the model and unfairly hurt Arm B, which is the kind of error a 
 
 ## What's next
 
-Read scanned and PDF documents (the extraction stage is scored on synthetic text only), run the held-out set with more repeats and a stronger model, and run the whole demo in the browser with Relate's WebAssembly build.
+Test scans on real paperwork and true handwriting (so far only synthetic pages), catch the misreads both scan reads share, check liens on real records by linking each satisfaction to its mortgage (ACRIS publishes these references), widen the real-records test beyond 36 lots, run the benchmark with a stronger model and more repeats, and run the whole demo in the browser with Relate's WebAssembly build.
 
 **Built with:** Relate (Neo4j), Python, Cypher, Google Gemini, Claude Code

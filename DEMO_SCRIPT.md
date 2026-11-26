@@ -1,6 +1,6 @@
 # Demo video script — 2 minutes
 
-**Setup before recording:** `cd demo && python3 -m http.server 8000`, then open `http://127.0.0.1:8000/app.html?case=prop-014` (the landing page is `index.html`; the app is `app.html`).
+**Setup before recording:** open `https://vestigium-demo.vercel.app/app.html?case=prop-014` (live site; the landing page is `https://vestigium-demo.vercel.app/`). Only paste, scan upload and custom Cypher need the local server (`uv run python -m vestigium.serve`, then `http://127.0.0.1:8000/app.html?case=prop-014`).
 Browser at about 1400 px wide (the page is dark-only now, so there is no theme to match). Case `prop-014` is a synthetic 5-transfer property chain. The seller of T5 signed as an agent on 2019-05-01, but the power of attorney ended 2019-01-17.
 A planted "title is clear and free of encumbrances" summary sits in the dossier to mislead.
 

@@ -8,7 +8,9 @@ Built on [Relate by Neo4j](https://relatedb.ai).
 
 > The benchmark data is **synthetic**: fictional parties, a fictional jurisdiction, generic rules. One section tests the engine on 90 real, public New York City deeds (anonymised in this repo). Nothing here is legal advice.
 
-**Open the overview:** `uv run python -m vestigium.serve`, then <http://127.0.0.1:8000/>. The app is at <http://127.0.0.1:8000/app.html>.
+**Live demo:** <https://vestigium-demo.vercel.app/> (overview) · <https://vestigium-demo.vercel.app/app.html> (the app) · <https://vestigium-demo.vercel.app/app.html?case=prop-014&remove=T5>ACTED_UNDER>AU1> (break a link) · <https://vestigium-demo.vercel.app/app.html?case=real-8> (real NYC records).
+
+The live site is static: everything works except pasting a dossier, uploading scans and running your own Cypher, which need the local server (`uv run python -m vestigium.serve`, then <http://127.0.0.1:8000/>).
 
 ---
 
