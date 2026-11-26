@@ -223,6 +223,8 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
 
 ![The overview page's Real records section: 90 deeds, 34 lots clean, 2 flags, both reviewed](docs/img/real-records.png)
 
+**See it in the app:** the **Real** tab (or `app.html?case=real-8`) opens all 36 lots, anonymised (owners are numbered, no names or addresses), with the same chain view, proof, time travel and graph lab as the synthetic cases; the two flagged lots carry the hand-review note.
+
 Everything above is synthetic. To see what happens on real records, `vestigium/acris.py` imports deeds from **NYC ACRIS**, the city's public register of property documents (NYC Open Data: Real Property Legals, Master and Parties). The sample is 5 adjacent blocks in one Brooklyn neighbourhood: **36 lots with two or more deeds, 90 deeds recorded 2003–2026, 54 seller-to-previous-buyer links**. Each deed brings its two real dates (signed, recorded) and its grantor and grantee names; the importer builds the same graph and the **unchanged** rule engine checks it.
 
 | | |
@@ -267,7 +269,7 @@ vestigium/graphlab.py     read-only Cypher, remove-a-relationship experiments
 vestigium/acris.py        real NYC deeds (ACRIS) -> graph -> rules
 vestigium/llm.py          Gemini wrapper: key rotation, pacing, tool loop, vision
 demo/index.html           overview / landing page      demo/app.html             the app
-demo/data.js, bench.js    exported data                vestigium.rl              persistent Relate store
+demo/data.js, bench.js    exported data (real.js: the anonymised real lots)                vestigium.rl              persistent Relate store
 results/heldout.jsonl     raw answers, call counts     results/traces.jsonl      full transcripts, 12 showcase cases
 results/intake.jsonl      extraction runs              results/scan_x2/           scan benchmark (double read)
 answer_key.json           planted errors, all 80 cases docs/img/                  screenshots used above

@@ -75,3 +75,8 @@ Speaking pace is about 140 words a minute; the narration below is about 270 word
 ### Optional beat (15–20 s): show Relate working
 
 *Use `app.html?case=prop-014&graph=1`.* Say: "This is the graph itself, in Relate. The rule is plain Cypher." Click the **PROP-AUTH** tab (query and one row appear, T5 lights up with its authority node). Click **Walk the chain** (each link is checked back to the root). Then click **Break a link in the graph**: the authority relationship is removed, `PROP-AUTH` disappears, `PROP-AUTH-MISSING` appears and the verdict turns INCONCLUSIVE. "Take away a relationship and the engine tells you what is missing, instead of guessing." Deep link: `app.html?case=prop-014&remove=T5>ACTED_UNDER>AU1`.
+
+
+### Optional beat (10 s): real records
+
+*Click the **Real** tab (or open `app.html?case=real-8`).* Say: "Same engine on 90 real New York deeds. 34 lots clean, two flags, and both are worth a human look, like this buyer whose name changes year in the public register."

@@ -78,7 +78,7 @@ def chains(lots, master, who):
 
 def to_case(k, deeds):
     """One lot -> a Vestigium case. The seller is the SAME party node as the previous buyer only if the names match."""
-    nodes = [("Asset", dict(id="A1", address=f"real lot {k}"))]
+    nodes = [("Asset", dict(id="A1", address=f"Brooklyn lot {k} (anonymised)"))]
     rels, owner = [], None
     for i, d in enumerate(deeds, 1):
         t = f"T{i}"
@@ -145,7 +145,46 @@ def report(rows, review, links):
     return out
 
 
+def export_app(path=ROOT / "demo" / "real.js"):
+    """Every real lot as an app case (anonymised: owners are numbered, no names, no addresses), with the same
+    verdict, timeline, proof and graph-lab data as the synthetic cases. Needs the raw downloads; the output is committed."""
+    from .proof import proofs
+    from .graphlab import experiments, preset_rows
+    lots, master, who = load()
+    out = []
+    for k, (lot, deeds) in enumerate(chains(lots, master, who), 1):
+        case = to_case(k, deeds)
+        owner, names = 1, {}
+        for l, p in case["nodes"]:                       # readable anonymous names: Owner 1 sold to Owner 2, ...
+            if l == "Party":
+                if p["id"].startswith("B"): owner += 1; names[p["id"]] = f"Owner {owner}"
+                else: names[p["id"]] = f"Owner {owner}" if p["id"] == "S1" else f"Unmatched seller at T{p['id'][1:]}"
+        for l, p in case["nodes"]:
+            if l == "Party": p["name"] = names[p["id"]]
+        by = {(tt, a if tt == "TO" else b): (b if tt == "TO" else a) for a, tt, b in case["rels"] if tt in ("FROM", "TO")}
+        for l, p in case["nodes"]:
+            if l == "Passage":
+                i = p["id"][1:]; d = deeds[int(i) - 1]
+                p["text"] = (f"DEED dated {d['effective']}, recorded {d['recorded']}: {names[by[('FROM', 'T' + i)]]} "
+                             f"({len(d['sellers'])} grantor name{'s' if len(d['sellers']) > 1 else ''} on the record) conveys to "
+                             f"{names[by[('TO', 'T' + i)]]} ({len(d['buyers'])} grantee name{'s' if len(d['buyers']) > 1 else ''}).")
+        r = run_checks(build(case), "A1", case["as_of"], pack="property")
+        dates = sorted({d["recorded"] for d in deeds} | {case["as_of"]})
+        tl = [(d, run_checks(build(case), "A1", case["as_of"], known=d, pack="property")["verdict"]) for d in dates]
+        notes = [f"Reviewed by hand: {REVIEWED[(k, f['transfer'])]}." for f in r["findings"] if (k, f["transfer"]) in REVIEWED]
+        notes.append("Real public record (NYC ACRIS), anonymised. The register does not say which earlier deed a seller bought through, "
+                     "so deeds are linked in recorded order and names are matched by the importer.")
+        out.append(dict(id=f"real-{k}", domain="property", label=None, split="real", as_of=case["as_of"],
+                        kind="real-flag" if r["findings"] else "real-clean", title=f"Real lot {k}", asset="A1",
+                        nodes=[dict(label=l, **p) for l, p in case["nodes"]], rels=case["rels"], result=r, timeline=tl,
+                        proof=[dict(rule=x["rule"], transfer=x["transfer"], passages=x.get("passages", []), records_total=x.get("records_total", 0)) for x in proofs(case, r)],
+                        fix=None, fix_verdict=None, documents="", agents={}, warnings=notes, rm=experiments(case), presets=preset_rows(case)))
+    path.write_text("window.VESTIGIUM_REAL = " + json.dumps(out, default=str) + ";")
+    return out
+
+
 if __name__ == "__main__":
+    export_app()
     rows, review = run()
     lots, master, who = load()
     links = Counter()

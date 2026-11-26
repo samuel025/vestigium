@@ -48,7 +48,7 @@ nav select{flex:0 1 380px;min-width:0}@media(max-width:700px){nav select{flex:1 
 .case{display:flex;gap:28px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin:6px 0 22px}
 .case h1{margin:8px 0 6px;font-size:clamp(28px,3.6vw,40px);line-height:1.12;font-weight:400;color:var(--hi);letter-spacing:.004em}
 .case .sub{color:var(--mut);max-width:640px;font-size:16px}.case .sub b{color:var(--tx);font-weight:500}
-.vbox{text-align:right}
+.vbox{text-align:right;display:flex;flex-direction:column;align-items:flex-end;margin-left:auto}
 .verdict{display:inline-block;padding:2px 12px;border-radius:9999px;font:600 12px/1.7 var(--mono);letter-spacing:.07em;transition:all .35s}
 #verdict .verdict{font-size:24px;padding:8px 24px;letter-spacing:.09em;animation:pop .5s cubic-bezier(.2,.9,.3,1.3)}
 @keyframes pop{from{transform:scale(.88);opacity:0}to{transform:none;opacity:1}}
@@ -213,7 +213,7 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
   <a class="navl" href="index.html">Overview</a>
   <a class="navl" href="#graphcard">Graph</a>
   <span class="sp"></span>
-  <div class="seg"><button id="pp" class="on">Property</button><button id="pv">Vehicle</button></div>
+  <div class="seg"><button id="pp" class="on">Property</button><button id="pv">Vehicle</button><button id="pr" title="Real public NYC deeds, anonymised">Real</button></div>
   <select id="pick" aria-label="Choose a case"></select>
   <button id="intakebtn" class="btn2">Paste or upload</button>
 </nav>
@@ -292,22 +292,26 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
 <div class="foot">synthetic data | 80 cases, 40 held out | rules decide, the agent explains | Relate (relate-db 1.2.0) | gemini-3.5-flash-lite</div>
 </div>
 <script src="data.js"></script>
+<script src="real.js"></script>
 <script>
-let D=window.VESTIGIUM;const $=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0,lastDrawn=null,slideT=null;
+let D=window.VESTIGIUM.concat(window.VESTIGIUM_REAL||[]);const $=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0,lastDrawn=null,slideT=null;
 const esc=t=>String(t??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const V=l=>`<span class="verdict v-${l}">${l.toUpperCase()}</span>`;
 const col={clean:'var(--ok)',defective:'var(--bad)',inconclusive:'var(--gap)'};
 const TR=window.VESTIGIUM_TRACES||{};
 const KIND={'PROP-AUTH':'Expired authority','PROP-LIEN':'Unreleased lien','PROP-CHAIN':'Seller was not the owner','PROP-DUP':'Sold twice','PROP-DATE':'Deed dated before ownership','PROP-DEATH':'Signed after death','PROP-GAP':'Gap in the chain','PROP-AUTH-MISSING':'Agent with no authority on file','clean':'Clean chain','adversarial':'Misleading "title is clear" summary',
- 'VEH-OWN':'Seller not the titled owner','VEH-LIEN':'Unreleased lien','VEH-BRAND':'Salvage brand dropped','VEH-ODO':'Odometer rolled back','VEH-GAP':'Gap in the title chain','VEH-ODO-MISSING':'Odometer not stated','pasted dossier':'Your dossier'};
-const SHORT={'adversarial':'Misleading summary','PROP-AUTH-MISSING':'Missing authority','PROP-CHAIN':'Seller not the owner','PROP-DATE':'Deed before ownership','VEH-OWN':'Seller not the owner','VEH-ODO-MISSING':'Odometer not stated'};
+ 'VEH-OWN':'Seller not the titled owner','VEH-LIEN':'Unreleased lien','VEH-BRAND':'Salvage brand dropped','VEH-ODO':'Odometer rolled back','VEH-GAP':'Gap in the title chain','VEH-ODO-MISSING':'Odometer not stated','pasted dossier':'Your dossier','real-clean':'Real records: the chain checks out','real-flag':'Real records: a seller the register does not match'};
+const SHORT={'real-clean':'Clean','real-flag':'Flagged, reviewed by hand','adversarial':'Misleading summary','PROP-AUTH-MISSING':'Missing authority','PROP-CHAIN':'Seller not the owner','PROP-DATE':'Deed before ownership','VEH-OWN':'Seller not the owner','VEH-ODO-MISSING':'Odometer not stated'};
 const kname=c=>KIND[c.kind]||c.kind,kshort=c=>SHORT[c.kind]||kname(c);
 const byId=(c,i)=>c.nodes.find(n=>n.id===i);
 const nTransfers=c=>c.nodes.filter(n=>n.label==='Transfer').length;
 const assetOf=c=>{const a=c.nodes.find(n=>n.label==='Asset');return a?(a.address||a.vin||''):''};
 
 /* ---- case picker: friendly names, showcase first ---- */
-function fill(){const list=D.filter(c=>c.domain===pack),show=list.filter(c=>TR[c.id]),rest=list.filter(c=>!TR[c.id]&&c.id!=='pasted'),pasted=list.filter(c=>c.id==='pasted');
+function fill(){if(pack==='real'){const list=D.filter(c=>c.split==='real'),fl=list.filter(c=>c.result.verdict!=='clean'),cl=list.filter(c=>c.result.verdict==='clean');
+    const o=c=>`<option value="${c.id}">${c.title} · ${kshort(c)} · ${nTransfers(c)} deeds</option>`;
+    $('pick').innerHTML=`<optgroup label="Flagged (reviewed by hand)">${fl.map(o).join('')}</optgroup><optgroup label="Clean">${cl.map(o).join('')}</optgroup>`;pick((fl[0]||list[0]).id);return}
+  const list=D.filter(c=>c.domain===pack&&c.split!=='real'),show=list.filter(c=>TR[c.id]),rest=list.filter(c=>!TR[c.id]&&c.id!=='pasted'),pasted=list.filter(c=>c.id==='pasted');
   const opt=c=>`<option value="${c.id}">${kshort(c)} · ${nTransfers(c)} transfers · ${c.id}</option>`;
   $('pick').innerHTML=(pasted.length?`<optgroup label="Yours">${pasted.map(opt).join('')}</optgroup>`:'')+(show.length?`<optgroup label="Showcase (agent replay available)">${show.map(opt).join('')}</optgroup>`:'')+`<optgroup label="More ${pack} cases">${rest.map(opt).join('')}</optgroup>`;
   pick((show[0]||list[0]).id)}
@@ -315,11 +319,12 @@ function pick(id){cur=D.find(c=>c.id===id);const r=cur.result;sel=(r.findings.le
   tshow=false;tstep=0;clearInterval(tplay);clearInterval(slideT);$('trbtn').textContent='Replay the investigation';
   step=cur.timeline.length-1;$('slider').max=cur.timeline.length-1;$('slider').value=step;$('pick').value=id;render();labInit()}
 
+function setSeg(){$('pp').classList.toggle('on',pack==='property');$('pv').classList.toggle('on',pack==='vehicle');$('pr').classList.toggle('on',pack==='real')}
 /* ---- main render ---- */
 function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1],full=step===c.timeline.length-1,res=c.result;
   const items=full?[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))]:[];
   // header
-  $('ceyebrow').textContent=(c.domain==='vehicle'?'Vehicle':'Property')+' · '+(c.id==='pasted'?'your dossier':c.id);
+  $('ceyebrow').textContent=c.split==='real'?'Real record · NYC public register · anonymised · '+c.title:(c.domain==='vehicle'?'Vehicle':'Property')+' · '+(c.id==='pasted'?'your dossier':c.id);
   $('ctitle').textContent=kname(c);
   const first=res.findings[0]||res.missing[0];
   $('csub').innerHTML=!full?`<b>${esc(assetOf(c))}</b> · as known on <b>${known}</b>: `+(ver==='clean'?'every transfer recorded so far checks out. Slide right to see what was filed later.':ver==='defective'?'a check already fails.':'a record is missing.'):`<b>${esc(assetOf(c))}</b> · ${nTransfers(c)} transfers · checked as of ${c.as_of}. `+(res.verdict==='clean'?'Every transfer links to the one before it, and no check finds a defect.':res.verdict==='defective'?`The first check to fail is <b>${esc(first.rule)}</b>: ${esc((first.text||'').toLowerCase())}.`:`A record is missing, so a check cannot decide: <b>${esc(first.missing||first.detail)}</b>.`);
@@ -374,7 +379,7 @@ function chips(known,items){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer
   $('tchips').innerHTML=ts.map(t=>{const seen=t.recorded<=known;return `<span class="tc ${seen?'':'off'} ${seen&&bad.has(t.id)?'bad':''} ${seen&&gp.has(t.id)?'gap':''}" title="recorded ${t.recorded}">${esc(t.id)}</span>`}).join('')}
 
 /* ---- agents ---- */
-function race(){renderTrace();$('racecard').style.display=cur.split==='pasted'?'none':'';const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b class="t">${t}</b><div class="mut">no recorded run for this case</div></div>`;
+function race(){renderTrace();$('racecard').style.display=(cur.split==='pasted'||cur.split==='real')?'none':'';const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b class="t">${t}</b><div class="mut">no recorded run for this case</div></div>`;
     const ok=r.verdict===c.label;return`<div class="arm"><b class="t">${t}</b><div>${V(r.verdict||'inconclusive')} <small>${ok?'✓ matches the answer key':'✗ answer key: '+c.label}</small></div><div class="mut" style="margin-top:6px">${r.transfer?'Pointed at '+esc(r.transfer):''}</div></div>`};
   $('race').innerHTML=cell('A','Documents only')+cell('C','With the rule engine')}
 function bench(){const B=window.VESTIGIUM_BENCH||[];
@@ -389,8 +394,9 @@ $('slider').oninput=e=>{clearInterval(slideT);step=+e.target.value;render()};
 $('strip').onclick=e=>{if(e.target.dataset.i){clearInterval(slideT);step=+e.target.dataset.i;$('slider').value=step;render()}};
 $('findings').onclick=e=>{const f=e.target.closest('.finding');if(f){sel=+f.dataset.i;render()}};
 $('fixbtn').onclick=()=>{$('fix').innerHTML=`<div class="pass fixed" style="margin-top:14px">Adding <b style="color:var(--hi)">${esc(cur.fix)}</b> to a throwaway copy of the graph and rerunning every check → ${V(cur.fix_verdict)}</div>`};
-$('pp').onclick=()=>{pack='property';$('pp').classList.add('on');$('pv').classList.remove('on');fill()};
-$('pv').onclick=()=>{pack='vehicle';$('pv').classList.add('on');$('pp').classList.remove('on');fill()};
+$('pp').onclick=()=>{pack='property';setSeg();fill()};
+$('pv').onclick=()=>{pack='vehicle';setSeg();fill()};
+$('pr').onclick=()=>{pack='real';setSeg();fill()};
 $('g1').onclick=()=>{$('chaincard').scrollIntoView({block:'center'});const b=document.querySelector('.tb.bad,.tb.gap');if(b){b.animate([{transform:'translateY(-3px) scale(1)'},{transform:'translateY(-3px) scale(1.07)'},{transform:'translateY(-3px) scale(1)'}],{duration:700,iterations:2})}};
 $('g2').onclick=()=>{if(step!==cur.timeline.length-1){step=cur.timeline.length-1;$('slider').value=step}sel=sel??0;render();$('proofcard').scrollIntoView({block:'nearest',behavior:'smooth'})};
 $('g3').onclick=()=>{clearInterval(slideT);const n=cur.timeline.length-1;if(n<1)return;$('chaincard').scrollIntoView({block:'start'});step=0;$('slider').value=0;render();slideT=setInterval(()=>{if(step>=n){clearInterval(slideT);return}step++;$('slider').value=step;render()},520)};
@@ -400,7 +406,7 @@ $('g4').onclick=()=>{if(step!==cur.timeline.length-1){step=cur.timeline.length-1
 let SERVER=false;fetch('/api/ping').then(r=>r.ok&&r.json()).then(j=>{SERVER=!!(j&&j.ok)}).catch(()=>{});
 function noServer(){$('dstat').innerHTML='<span class="warn">Live paste needs the local server:</span> <code>uv run python -m vestigium.serve</code>'}
 function showPasted(c){
-    D=D.filter(x=>x.id!=='pasted');D.push(c);pack=c.domain;$('pp').classList.toggle('on',pack==='property');$('pv').classList.toggle('on',pack==='vehicle');
+    D=D.filter(x=>x.id!=='pasted');D.push(c);pack=c.domain;setSeg();
     const list=D.filter(x=>x.domain===pack),show=list.filter(x=>TR[x.id]),rest=list.filter(x=>!TR[x.id]&&x.id!=='pasted'),opt=x=>`<option value="${x.id}">${kshort(x)} · ${nTransfers(x)} transfers · ${x.id}</option>`;
     $('pick').innerHTML=`<optgroup label="Yours">${opt(c)}</optgroup><optgroup label="Showcase (agent replay available)">${show.map(opt).join('')}</optgroup><optgroup label="More ${pack} cases">${rest.map(opt).join('')}</optgroup>`;
     pick('pasted');
@@ -511,7 +517,7 @@ function labDraw(){const c=cur,{pos,W,H,YT,YP,YE}=labLayout(c),{n:hn,e:he}=lit()
   E.items.forEach(f=>{if(f.t==='defect'||!stat.has(f.transfer))stat.set(f.transfer,f.t==='defect'?'bad':'gap')});
   const flagged=new Set([...stat.keys()]);
   const order={EVIDENCED_BY:0,MOVES:1,AGAINST:2};
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The ownership graph for this case: nodes and relationships"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L8 4L0 8z" fill="context-stroke"/></marker></defs>
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="max-width:${W}px;margin:0 auto" role="img" aria-label="The ownership graph for this case: nodes and relationships"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L8 4L0 8z" fill="context-stroke"/></marker></defs>
    <text class="lane" x="10" y="${YT-34}">transfers</text><text class="lane" x="10" y="${YP-22}">parties</text><text class="lane" x="10" y="${YE-14}">evidence</text>`;
   [...c.rels].sort((a,b)=>(order[a[1]]??3)-(order[b[1]]??3)).forEach(r=>{const d=epath(r,pos);if(!d)return;const k=ekey(r),rem=REM.includes(r[1]),cut=k===L.removed,on=he.has(k)&&!cut;
     const tint=on&&(flagged.has(r[0])||flagged.has(r[2]))?(stat.get(flagged.has(r[0])?r[0]:r[2])||''):'';
@@ -632,7 +638,7 @@ $('g5').onclick=()=>{$('graphcard').scrollIntoView({block:'start',behavior:'smoo
 bench();
 const P=new URLSearchParams(location.search),q=P.get('case');
 const start=D.find(c=>c.id===q)||D.find(c=>c.id==='prop-014')||D.find(c=>c.agents.A&&c.label==='defective');
-pack=start.domain;$('pp').classList.toggle('on',pack==='property');$('pv').classList.toggle('on',pack==='vehicle');
+pack=start.split==='real'?'real':start.domain;setSeg();
 fill();pick(start.id);
 // deep links for recording/testing
 const iq=P.get('intake');
