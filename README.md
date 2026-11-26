@@ -46,7 +46,7 @@ flowchart LR
 ```
 
 1. **Documents.** Paste text, upload a PDF, or photograph a deed (stamps, handwritten notes and blur included).
-2. **Reader.** An offline regex reader handles canonical wording; a language model handles anything else; a vision model reads scans and reports how sure it is.
+2. **Reader.** An offline regex reader handles canonical wording; a language model handles anything else; a vision model reads scans, and every scan is read a second time so that any date or name the two reads disagree on is flagged for a person to check.
 3. **Graph.** Facts land in one Relate graph: `Asset`, `Party`, `Transfer`, `Claim`, `Authority`, `Document`, `Passage`, linked by `FROM`, `TO`, `MOVES`, `FOLLOWS`, `AGAINST`, `CLEARED_BY`, `ACTED_UNDER`, `EVIDENCED_BY`, and more. **Every fact carries two dates**: when it took effect and when it was recorded.
 4. **Rule engine.** Fourteen named Cypher checks (eight for property, six for vehicles). Gap rules produce *inconclusive*; the rest produce *defective*.
 5. **Proof.** The verdict comes with its trail: verdict → rule id → graph path → evidence → exact document passage, the *smallest set of records* it rests on, and *what record would fix it*.
@@ -76,7 +76,7 @@ import relate; db = relate.connect("vestigium.rl")
 db.execute("MATCH (t:Transfer)-[:ACTED_UNDER]->(a:Authority) RETURN t.id, a.agent, a.valid_to").data()
 ```
 
-Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini reader, scan reading). `uv run python -m vestigium.serve` serves the UI, the paste and upload endpoints, and the graph lab's custom-query endpoint; `cd demo && python3 -m http.server 8000` serves the static pages only.
+Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini reader, scan reading) and the one-off download of the real NYC records. `uv run python -m vestigium.serve` serves the UI, the paste and upload endpoints, and the graph lab's custom-query endpoint; `cd demo && python3 -m http.server 8000` serves the static pages only.
 
 ## What you can do with it
 
@@ -91,7 +91,8 @@ Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini 
 | **What would fix it** | copy the graph, add a hypothetical record (a release, a ratifying authority, a missing link), rerun every check |
 | **Honest "inconclusive"** | a missing record is named, never guessed |
 | **Paste a dossier** | any wording; a reader extracts, the rules decide; every extracted fact is listed to check |
-| **Scanned documents** | PDFs and photos, with per-record confidence carried into the verdict |
+| **Scanned documents** | PDFs and photos, read twice; a record the two reads disagree on is flagged, and the verdict names the page to check |
+| **Real records** | the unchanged engine on 90 real New York City deeds: 34 lots clean, 2 flags, both reviewed by hand |
 | **Replay the investigation** | real agent transcripts, tool call by tool call, with every citation checked against the store |
 | **MCP server** | any MCP client can send records and get a verdict, rule ids and exact cited text |
 
@@ -220,6 +221,8 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
 
 ### Real records: 90 deeds from New York City
 
+![The overview page's Real records section: 90 deeds, 34 lots clean, 2 flags, both reviewed](docs/img/real-records.png)
+
 Everything above is synthetic. To see what happens on real records, `vestigium/acris.py` imports deeds from **NYC ACRIS**, the city's public register of property documents (NYC Open Data: Real Property Legals, Master and Parties). The sample is 5 adjacent blocks in one Brooklyn neighbourhood: **36 lots with two or more deeds, 90 deeds recorded 2003–2026, 54 seller-to-previous-buyer links**. Each deed brings its two real dates (signed, recorded) and its grantor and grantee names; the importer builds the same graph and the **unchanged** rule engine checks it.
 
 | | |
@@ -230,7 +233,7 @@ Everything above is synthetic. To see what happens on real records, `vestigium/a
 | Days from signing to recording | median 22, max 336; 12 of 90 deeds took over 90 days |
 | Deeds signed before the previous deed was on the register | 4 of 54 |
 
-**What it shows:** on real records the chain rule is quiet (no flood of false alarms) and the flags it raises are worth a look; the two-date model is not academic, since one deed in eight took over three months to reach the register. **What it does not show:** that Vestigium finds real fraud (none was expected in 36 ordinary lots), or that it works beyond deeds. Limits, stated plainly: ACRIS does not say which earlier deed a seller acquired through, so deeds are linked in recorded order and the earliest deed in the window is treated as the start; whether a seller "is" the previous buyer is decided by a deliberately simple, tested name match in the importer (`same()`), which misses spelling variants like the one above rather than guessing; liens are not checked, because a satisfaction is not linked to its mortgage in the fields we fetched and New York mortgages are routinely satisfied weeks after the sale. Raw downloads contain real names and stay in `data/acris_raw/` (gitignored); the committed report (`results/acris_real.json`) is anonymised. To reproduce, export the three datasets filtered to the lots you want into `data/acris_raw/` and run `uv run python -m vestigium.acris`.
+**What it shows:** on real records the chain rule is quiet (no flood of false alarms) and the flags it raises are worth a look; the two-date model is not academic, since one deed in eight took over three months to reach the register. **What it does not show:** that Vestigium finds real fraud (none was expected in 36 ordinary lots), or that it works beyond deeds. Limits, stated plainly: ACRIS does not say which earlier deed a seller acquired through, so deeds are linked in recorded order and the earliest deed in the window is treated as the start; whether a seller "is" the previous buyer is decided by a deliberately simple, tested name match in the importer (`same()`), which misses spelling variants like the one above rather than guessing; liens are not checked, because a satisfaction is not linked to its mortgage in the fields we fetched and New York mortgages are routinely satisfied weeks after the sale. Raw downloads contain real names and stay in `data/acris_raw/` (gitignored); the committed report (`results/acris_real.json`) is anonymised. To reproduce: fetch the lots from Real Property Legals (e.g. `https://data.cityofnewyork.us/resource/8h5j-fqxa.json?$where=borough=3 AND block between 5200 and 5204&$limit=5000`), then those documents' rows from Master (`bnx9-e6tj`) and the deeds' parties from Parties (`636b-3b5g`) with `$where=document_id in(...)`; save them as `legals.json`, `master.json` (keyed by `document_id`) and `parties.json` in `data/acris_raw/`, and run `uv run python -m vestigium.acris`. (The NYC API refused our network, so we fetched these pages through Firecrawl's scraper; the data is the same public API response.)
 
 ### Limitations — please read
 
@@ -272,8 +275,9 @@ answer_key.json           planted errors, all 80 cases docs/img/                
 
 ## Product capabilities, third-party and AI tools
 
-- **Product:** deterministic ownership-chain checks, evidence-cited verdicts, minimal proofs, a live graph view with a read-only Cypher console and remove-a-relationship experiments, replay by two dates, what-would-fix-it, paste and scan intake with confidence, an MCP server, a benchmark harness, and a web app with an overview page.
-- **Third-party:** Relate (`relate-db`, embedded Cypher graph database), `google-genai`, `mcp`, `pillow`, `numpy`, `pytest`, `uv`.
+- **Product:** deterministic ownership-chain checks, evidence-cited verdicts, minimal proofs, a live graph view with a read-only Cypher console and remove-a-relationship experiments, replay by two dates, what-would-fix-it, paste and scan intake with a double read, a test on 90 real NYC deeds, an MCP server, a benchmark harness, and a web app with an overview page.
+- **Third-party:** Relate (`relate-db`, embedded Cypher graph database), NYC Open Data (ACRIS public records, under the NYC Open Data terms of use), `google-genai`, `mcp`, `pillow`, `numpy`, `pytest`, `uv`.
+- **Data fetching:** Firecrawl (web scraping) was used once to download the public NYC ACRIS records.
 - **AI tools:** Google Gemini powers benchmark Arms A to C and the readers (`gemini-3.5-flash-lite`) and scan reading (`gemini-3.5-flash-lite` in the benchmark). The project was built with Claude Code (Anthropic) as the coding assistant.
 
 ## License
