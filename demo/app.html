@@ -205,6 +205,19 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
 .cyres tr{cursor:pointer}.cyres tbody tr:hover td{color:var(--hi)}.cyres tr.sel td{color:var(--hi);background:rgba(255,255,255,.05)}
 .cyres .empty{padding:18px;color:var(--mut);font:13.5px var(--sans)}
 .cyerr{padding:14px;color:var(--bad);font:13px var(--sans)}
+
+/* ---- help: a short guide to the page ---- */
+.helpbtn{width:34px;height:34px;padding:0;border-radius:50%;font:600 14px var(--sans)}
+.newbie{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 16px;padding:10px 14px;border-radius:12px;background:var(--panel);box-shadow:var(--key);font-size:13.5px;color:var(--mut)}
+.newbie b{color:var(--hi)}.newbie .sp{flex:1}
+#help{position:fixed;inset:0;z-index:80;display:none;background:rgba(0,0,0,.6);backdrop-filter:blur(6px)}
+#help.on{display:block}
+#help .sheet{position:absolute;right:16px;top:16px;bottom:16px;width:min(560px,calc(100% - 32px));overflow:auto;background:var(--panel);border-radius:20px;box-shadow:var(--key),0 30px 80px rgba(0,0,0,.6);padding:24px 26px;animation:rise .35s}
+#help h3{margin:22px 0 8px;font:500 11px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+#help h2{margin:0;color:var(--hi);font-weight:500;font-size:22px}
+#help p,#help li{font-size:14px;color:var(--tx);line-height:1.55}#help ol,#help ul{padding-left:20px;margin:6px 0}
+#help .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+#help .x{position:sticky;top:0;float:right}
 </style></head><body>
 <div class="atmo"><i class="b1"></i><i class="b2"></i><i class="c1"></i></div>
 <div class="wrap">
@@ -216,6 +229,7 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
   <div class="seg"><button id="pp" class="on">Property</button><button id="pv">Vehicle</button><button id="pr" title="Real public NYC deeds, anonymised">Real</button></div>
   <select id="pick" aria-label="Choose a case"></select>
   <button id="intakebtn" class="btn2">Paste or upload</button>
+  <button id="helpbtn" class="btn2 helpbtn" aria-label="How to use this page" title="How to use this page">?</button>
 </nav>
 
 <section id="intake" class="card" hidden style="margin-bottom:20px">
@@ -231,6 +245,30 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
   <div id="dex"></div>
 </section>
 
+<div class="newbie" id="newbie" hidden><span>New here? <b>Vestigium checks every sale in a property's history</b> and shows where the chain breaks. The guide explains each panel in 30 seconds.</span><span class="sp"></span><button class="btn" id="newbie-go">Show me how</button><button class="btn2" id="newbie-x">Dismiss</button></div>
+<div id="help" role="dialog" aria-modal="true" aria-label="How to use this page"><div class="sheet">
+  <button class="btn2 x" id="help-x" aria-label="Close">Close</button>
+  <h2>How to use this page</h2>
+  <p style="color:var(--mut)">Each case is the sales history of one property or vehicle. Vestigium checks every sale with named rules and tells you whether the chain holds.</p>
+  <h3>Pick a case</h3>
+  <ul><li><b>Property / Vehicle</b>: made-up cases with planted problems (and some clean ones), so you can see each rule work.</li>
+  <li><b>Real</b>: real public deeds from New York and Philadelphia, anonymised. Owners are numbered; no names or addresses.</li>
+  <li><b>Paste or upload</b>: check your own documents (needs the local server).</li></ul>
+  <h3>Read the answer</h3>
+  <ul><li><span class="sw" style="background:var(--ok)"></span><b>Clean</b>: every sale follows from the one before it.</li>
+  <li><span class="sw" style="background:var(--bad)"></span><b>Defective</b>: a rule found a problem. The red box is the sale where it breaks.</li>
+  <li><span class="sw" style="background:var(--gap)"></span><b>Inconclusive</b>: a record is missing. The amber box shows where, and nobody is accused.</li></ul>
+  <h3>The panels, top to bottom</h3>
+  <ol><li><b>Ownership chain</b>: one box per sale, oldest on the left, with who sold, who bought, when it was signed and when it was recorded.</li>
+  <li><b>Findings &amp; proof</b>: the rule that fired and the exact sentences of the records behind it. <i>Minimal proof</i> says how few records the finding needs.</li>
+  <li><b>The graph itself</b>: the same case as the database holds it. Run any rule's query, <i>Walk the chain</i> link by link, or remove a relationship to see the verdict change.</li>
+  <li><b>Time travel</b>: slide back to see what the public register showed on an earlier date. Deeds are often recorded weeks after signing, so the answer can change.</li>
+  <li><b>AI agents</b> (synthetic cases): an agent reading the documents alone, next to one that uses the rules. Replay it step by step.</li></ol>
+  <h3>Words</h3>
+  <ul><li><b>Grantor / grantee</b>: seller / buyer.</li><li><b>Lien</b>: a claim on the property, usually a loan, that should be released before a sale.</li>
+  <li><b>Power of attorney</b>: permission for someone to sign for the owner, valid only between set dates.</li><li><b>Recorded</b>: the date a deed reached the public register.</li></ul>
+  <p style="color:var(--mut);margin-top:18px">The AI never decides: the rules do, and the same records always give the same answer. Nothing here is legal advice.</p>
+</div></div>
 <div class="case">
   <div><span class="eyebrow" id="ceyebrow">Case</span><h1 id="ctitle"></h1><div class="sub" id="csub"></div></div>
   <div class="vbox"><div id="verdict"></div><div id="warns"></div></div>
@@ -635,6 +673,15 @@ $('cyres').onclick=e=>{const tr=e.target.closest('tr[data-r]');if(!tr)return;con
 $('cyin').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();cyRun()}});
 $('g5').onclick=()=>{$('graphcard').scrollIntoView({block:'start',behavior:'smooth'});const k=labBreakKey();if(k&&L.removed!==k){L.edge=k;L.node=null;$('rmsel').value=k;labInspect();labDraw();setTimeout(()=>labRemove(k),450)}};
 
+
+/* ---- help ---- */
+const helpOpen=o=>{$('help').classList.toggle('on',o);if(o)$('help-x').focus()};
+$('helpbtn').onclick=()=>helpOpen(true);$('help-x').onclick=()=>helpOpen(false);
+$('help').onclick=e=>{if(e.target.id==='help')helpOpen(false)};
+addEventListener('keydown',e=>{if(e.key==='Escape')helpOpen(false);if(e.key==='?'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))helpOpen(true)});
+try{if(!localStorage.getItem('vg-seen')&&!location.search.includes('case='))$('newbie').hidden=false}catch(e){}
+const seen=()=>{$('newbie').hidden=true;try{localStorage.setItem('vg-seen','1')}catch(e){}};
+$('newbie-go').onclick=()=>{seen();helpOpen(true)};$('newbie-x').onclick=seen;
 /* ---- start ---- */
 bench();
 const P=new URLSearchParams(location.search),q=P.get('case');
@@ -646,6 +693,7 @@ const iq=P.get('intake');
 if(iq==='scan'){setTimeout(()=>{$('intake').hidden=false;$('dss').click()},600)}else if(iq){setTimeout(async()=>{$('intake').hidden=false;await sample(iq);$('dgo').click()},600)}
 if(P.get('sel')!==null){sel=+P.get('sel');render()}
 const rq=P.get('replay');if(rq!==null&&TR[cur.id]){tshow=true;tstep=+rq;$('trbtn').textContent='Hide the replay';renderTrace()}
+if(P.get('help'))helpOpen(true);
 if(P.get('tab'))labTab(P.get('tab'));
 if(P.get('remove'))labRemove(P.get('remove'));
 if(P.get('walk'))walkStart();

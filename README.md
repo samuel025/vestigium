@@ -1,37 +1,85 @@
 # Vestigium
 
-**Every transfer in an ownership chain, checked against the evidence it needed at the time.**
-Vestigium rebuilds the history of a property or a vehicle, runs deterministic checks on every sale, and shows the broken link together with the exact record that proves it.
-Built on [Relate by Neo4j](https://relatedb.ai).
+**Before you buy a house or a car, check that every past sale was valid, and see exactly which record proves it.**
+
+Vestigium takes the paperwork behind a property or a vehicle (deeds, titles, liens, powers of attorney), rebuilds its ownership history as a graph, and checks every sale with clear, named rules. It answers *clean*, *defective* or *inconclusive*, and points at the exact record behind the answer. Built on [Relate by Neo4j](https://relatedb.ai).
 
 ![Vestigium checking a chain: three links pass, the fourth breaks](docs/img/landing.png)
 
-> The benchmark data is **synthetic**: fictional parties, a fictional jurisdiction, generic rules. One section tests the engine on 3,110 real, public deeds from New York and Philadelphia (anonymised in this repo). Nothing here is legal advice.
+**Try it now, no install:** <https://vestigium-demo.vercel.app/> · the app: <https://vestigium-demo.vercel.app/app.html>
 
-**Live demo:** <https://vestigium-demo.vercel.app/> (overview) · <https://vestigium-demo.vercel.app/app.html> (the app) · <https://vestigium-demo.vercel.app/app.html?case=prop-014&remove=T5>ACTED_UNDER>AU1> (break a link) · <https://vestigium-demo.vercel.app/app.html?case=real-8> (real records).
-
-The live site is static: everything works except pasting a dossier, uploading scans and running your own Cypher, which need the local server (`uv run python -m vestigium.serve`, then <http://127.0.0.1:8000/>).
+> The benchmark uses **synthetic** (made-up) records. The engine is also tested on **30,803 real, public deeds** from New York and Philadelphia, anonymised here. Nothing here is legal advice.
 
 ---
 
-## What it is, in plain words
+## In 30 seconds
 
-Before money changes hands on a property or a vehicle, someone has to be sure the seller could actually sell. Defects hide in the *connections* between records, not in any single one:
+- **The problem.** A chain of sales can look fine document by document and still be broken: a seller who never owned the property, a deed signed under an expired power of attorney, a loan on the property that was never paid off, a car's salvage history quietly dropped.
+- **What Vestigium does.** It checks every sale against the one before it, and against the authority and claims around it, using 14 plain rules written as graph queries.
+- **What you get.** A verdict, the rule that decided it, the sale where it breaks, and the smallest set of records that proves it. If a record is missing it says *inconclusive* and names the missing record, instead of guessing.
+- **Where AI fits.** An AI may *read* documents into facts (and shows you everything it read). It never decides. The rules decide, and the same records always give the same answer.
 
-- a deed signed by an agent whose **power of attorney had already expired**,
-- a **lien that was never released** before the sale,
-- a **salvage brand that vanished** from a later vehicle title,
-- a seller who was **never the previous buyer**, or a deed dated before the seller owned the property.
-
-A person (or an AI) skimming the pile of documents tends to call such a chain "clean". Vestigium reads the documents into a graph, checks every transfer with named rules, and returns one of three verdicts:
-
-| Verdict | Meaning |
+| Verdict | What it means |
 |---|---|
-| **clean** | every transfer links to the one before it, and no check finds a defect |
-| **defective** | a check fails; the answer names the rule, the transfer and the records that prove it |
-| **inconclusive** | a record is missing; the answer names it and accuses no one |
+| **clean** | every sale follows from the one before it, and no rule finds a problem |
+| **defective** | a rule found a problem; you see which rule, which sale, and the records that prove it |
+| **inconclusive** | a record that should exist is missing; you see which one, and no one is accused |
 
-**The principle that keeps it honest: the AI reads, the rules decide.** A language model may *read* documents into structured facts, and every fact it read is shown back to you. It never judges legality. Every verdict comes from a deterministic rule engine: the same graph always gives the same answer, and a citation that points at text that does not exist is rejected.
+## How to use it
+
+### 1. In your browser (no install, 2 minutes)
+
+Open **<https://vestigium-demo.vercel.app/app.html>**. It starts on a property where the seller signed through an agent whose power of attorney had already expired.
+
+1. **Read the verdict** at the top right, and the one-line reason under the title.
+2. **Find the broken sale** in the ownership chain: each box is one sale; the red one is where a rule failed.
+3. **Open the proof** (right panel): the rule, the sentence of the deed it rests on, and how few records that took.
+4. **Travel through time** with the slider: see what was known on any date. Sales recorded late change the answer.
+5. **Break a link in the graph** (step 5 in *Try this*): remove one relationship and watch the verdict change.
+6. **Switch to the *Real* tab** to browse real, anonymised deeds from New York and Philadelphia.
+
+Use the **Property / Vehicle / Real** switch and the case picker to explore other cases. Press **?** in the app for a short guide to every panel.
+
+![The in-app guide: press ? for a plain explanation of every panel](docs/img/app-help.png)
+
+### 2. On your own documents (local)
+
+```bash
+git clone https://github.com/samuel025/vestigium && cd vestigium
+uv sync                                   # installs everything (Python 3.12+, uses uv)
+cp .env.example .env                      # optional: add a free GEMINI_API_KEY to read messy text, PDFs and photos
+uv run python -m vestigium.serve          # then open http://127.0.0.1:8000/app.html
+```
+
+Click **Paste or upload**, then paste the text of your deeds (one record per paragraph) or upload PDFs or photos, and press **Check this dossier**. You get the same view as the demo cases, plus a list of every fact the reader extracted so you can check it against your documents. Without an API key, the offline reader handles text written in the demo's wording ("Load a clean sample" shows it).
+
+### 3. From your own AI assistant (MCP)
+
+```bash
+claude mcp add vestigium -- uv run --directory /path/to/vestigium python -m vestigium.mcp_server
+```
+
+Then ask *"Use vestigium to check the dossier for prop-014 and explain the verdict."* Your assistant reads the documents; Vestigium's rules decide. Details in *Use it from your own agent (MCP)* below.
+
+### 4. Check our claims
+
+```bash
+uv run pytest -q                          # 46 tests, no network needed
+uv run python -m vestigium.cli prop-014   # one case in the terminal: verdict, rule, evidence, fix, timeline
+uv run python -m vestigium.metamorphic    # 1,600 fresh cases + invariance checks
+uv run python -m vestigium.philly fetch --n 10000 && uv run python -m vestigium.philly   # the real Philadelphia test (~8 min)
+```
+
+### Words you will see
+
+| Word | Meaning |
+|---|---|
+| **Chain** | the list of sales of one property or vehicle, oldest first |
+| **Grantor / grantee** | the seller / the buyer on a deed |
+| **Lien** | a claim on the property, usually a loan; it should be released before a sale |
+| **Power of attorney** | written permission for someone to sign for the owner, valid only for set dates |
+| **Recorded** | the date the deed reached the public register, often weeks after it was signed. Every fact here has both dates |
+| **Rule** | one named check, e.g. `PROP-CHAIN` (the seller must be the previous buyer). All 14 are listed below |
 
 ## How it works
 
@@ -59,19 +107,9 @@ flowchart LR
 
 Ownership is a chain of *relationships*: who gave up the asset, who received it, what authority the signer had, which claim was open. "Was the grantor the previous grantee?" and "was a lien released before this sale?" are graph patterns, so each rule is a short Cypher query on Relate, and the app lets you see exactly that: the graph itself, each rule's query, and what happens when you delete a relationship (see *The graph, live*). We store the demo graph in single-file mode, `vestigium.rl`: persistent, one file a judge can open and inspect, no server. Each benchmark case is built in its own in-memory graph, so every case is isolated, and "what would fix it" copies a graph into a throwaway instance to rehearse a hypothetical record.
 
-## Quick start
+## Running it locally: details
 
-```bash
-git clone https://github.com/samuel025/vestigium && cd vestigium
-uv sync                                   # installs relate-db (Relate's Python package), google-genai, mcp, pillow
-cp .env.example .env                      # only for the LLM parts; add GEMINI_API_KEY (several keys can be rotated)
-uv run pytest -q                          # 43 tests, no network needed
-uv run python -m vestigium.build_store    # writes vestigium.rl and answer_key.json
-uv run python -m vestigium.serve          # overview at http://127.0.0.1:8000/ , app at /app.html
-uv run python -m vestigium.cli prop-014   # one case in the terminal: verdict, rule, evidence, fix, timeline
-```
-
-Inspect the persistent store with any Relate client:
+See *How to use it* above for the commands. Inspect the persistent store with any Relate client:
 
 ```python
 import relate; db = relate.connect("vestigium.rl")
@@ -94,7 +132,7 @@ Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini 
 | **Honest "inconclusive"** | a missing record is named, never guessed |
 | **Paste a dossier** | any wording; a reader extracts, the rules decide; every extracted fact is listed to check |
 | **Scanned documents** | PDFs and photos, read twice; a record the two reads disagree on is flagged, and the verdict names the page to check |
-| **Real records** | the unchanged engine on 3,110 real deeds from New York and Philadelphia, every kind of flag explained, browsable in the app |
+| **Real records** | the unchanged engine on 30,803 real deeds from New York and Philadelphia (about 10,000 properties), every kind of flag explained, browsable in the app |
 | **Replay the investigation** | real agent transcripts, tool call by tool call, with every citation checked against the store |
 | **MCP server** | any MCP client can send records and get a verdict, rule ids and exact cited text |
 
@@ -221,46 +259,48 @@ These tests found two real problems, now fixed, which is why they are worth runn
 
 What this does *not* show: that the rules are right for any real jurisdiction. It shows the engine is deterministic, order- and name-independent, and does what its rules say.
 
-### Real records: 3,110 deeds from two cities
+### Real records: 30,803 deeds from two cities
 
-Everything above is synthetic. To see what happens on real records, two importers feed real public deeds into the same graph and the **unchanged** rule engine:
+**In short:** we ran the unchanged rules on about 10,000 real properties. 9 in 10 sales link up cleanly. Most of the rest are explained by ordinary things (a name spelled differently, an estate selling, a foreclosure), and each is labelled. About 1 break in 5 has **no record anywhere in the public register** of how the seller got the property; those are exactly what a person should look into.
+
+Two importers feed real public deeds into the same graph and the **unchanged** rule engine:
 
 - **New York** (`vestigium/acris.py`): NYC ACRIS, the city's register (NYC Open Data). 5 adjacent Brooklyn blocks: 36 lots, 90 deeds, 2003–2026.
-- **Philadelphia** (`vestigium/philly.py`): the city's Real Estate Transfer Tax records (OpenDataPhilly, `rtt_summary`). A deterministic pseudo-random sample of **1,000 properties, 3,020 deeds**, all years on record, including sheriff's deeds.
+- **Philadelphia** (`vestigium/philly.py`): the city's Real Estate Transfer Tax records (OpenDataPhilly, `rtt_summary`). A repeatable pseudo-random sample of **9,999 properties, 30,713 deeds**, all years on record, including sheriff's (foreclosure) deeds.
 
-Each deed brings its two real dates (signed, recorded) and its grantor and grantee names.
+Each deed brings its two real dates (signed, recorded) and its seller and buyer names.
 
 ![The overview page's Real records section](docs/img/real-records.png)
 
-**See it in the app:** the **Real** tab opens all 36 New York lots and 38 Philadelphia properties chosen to show every kind of finding (e.g. `app.html?case=real-8`, `app.html?case=phl-71`), anonymised: owners are numbered, no names or addresses. Each has the same chain view, proof, time travel and graph lab as the synthetic cases, plus a note saying why it was flagged.
+**See it in the app:** the **Real** tab opens all 36 New York lots and 38 Philadelphia properties chosen to show every kind of finding (e.g. `app.html?case=real-8`, `app.html?case=phl-d81620`), anonymised: owners are numbered, no names, addresses or parcel numbers. Each has the same chain view, proof, time travel and graph lab as the synthetic cases, plus a note saying why it was flagged.
 
 | | New York | Philadelphia |
 |---|---|---|
-| Properties / deeds / seller-to-previous-buyer links | 36 / 90 / 54 | 1,000 / 3,020 / 2,020 |
-| Seller matched the previous buyer | 53 of 54 | 1,820 of 2,020 (90%) |
-| Verdicts | 35 clean, 1 defective | 828 clean, 172 defective |
-| Deeds recorded more than 90 days after signing | 12 of 90 | 228 of 3,019 (37 over a year) |
+| Properties / deeds / seller-to-previous-buyer links | 36 / 90 / 54 | 9,999 / 30,713 / 20,714 |
+| Seller matched the previous buyer | 53 of 54 | 18,630 of 20,714 (90%) |
+| Verdicts | 35 clean, 1 defective | 8,210 clean, 1,789 defective |
+| Deeds recorded more than 90 days after signing | 12 of 90 | 2,560 of 30,666 (443 over a year) |
 
-**What the flags were.** Every New York flag was read by hand: the one left is a real register inconsistency (a buyer recorded as an exchange titleholder "...2006-175" sells as "...2007-175"). In Philadelphia the importer sorts each of the 211 findings by a stated rule, and for unexplained breaks it searches the **full** register (every document type, multi-property deeds) for a record of how the seller acquired the property:
+**What the flags were.** The one New York flag was read by hand: a real register inconsistency (a buyer recorded as an exchange titleholder "...2006-175" sells as "...2007-175"). In Philadelphia the importer sorts each of the 2,202 findings by a stated rule, and for unexplained breaks it searches the **full** register (every document type, multi-property deeds) for a record of how the seller acquired the property:
 
-| Philadelphia finding | Count | What it means |
+| Philadelphia finding | Count | In plain words |
 |---|---|---|
-| Probable spelling variant in the register (85%+ similar) | 58 | "KRZSYTOF" / "KRZYSZTOF", "SPRINGDFIELD" / "SPRINGFIELD": the same party spelled differently. A person confirms; code does not guess |
-| No record of how the seller acquired it | 43 | Nothing in the public register conveys the property to the seller. This is what a title examiner chases |
-| Related name, different party | 27 | A spouse, relative, co-owner or sister company sells. Usually explainable, but it needs a document |
-| A deed to the seller exists outside our extract | 25 | Our importer only read single-property deeds; the engine correctly said the chain *it was given* was broken |
-| Estate, trust or agent sells | 21 | An executor, trustee or attorney-in-fact signs. Lawful with the right authority, which the register does not hold |
-| Sheriff sale (foreclosure) | 19 | A lawful break the synthetic rules do not model; 10 properties are "defective" only because of one |
-| Signed before the previous deed was signed | 11 | Recorded out of order (`PROP-DATE`): either the order of events is not what the register suggests, or a seller conveyed before acquiring |
-| The register shows the seller only as a mortgagor | 7 | They borrowed against the property, but no deed to them is on record |
+| Probable spelling variant (85%+ similar) | 617 | The same person or company spelled differently ("KRZSYTOF" / "KRZYSZTOF"). A person confirms; code does not guess |
+| No record of how the seller acquired it | 445 | Nothing in the public register gives the property to the seller. This is what a title examiner chases |
+| A deed to the seller exists outside our extract | 262 | Our importer only read single-property deeds; the engine correctly said the chain *it was given* was broken |
+| Sheriff sale (foreclosure) | 244 | A lawful break the synthetic rules do not model; 144 properties are "defective" only because of one |
+| Estate, trust or agent sells | 231 | An executor, trustee or attorney-in-fact signs. Lawful with the right authority, which the register does not hold |
+| Related name, different party | 210 | A spouse, relative, co-owner or sister company sells. Usually explainable, but it needs a document |
+| Signed before the previous deed was signed | 119 | Recorded out of order (`PROP-DATE`): the order of events is not what the register suggests, or a seller conveyed before acquiring |
+| The seller appears only as a borrower | 74 | They took a loan against the property, but no deed to them is on record |
 
-We read random samples by hand: 20 of the name group (about 15 spelling variants, 5 related parties) and 15 of the unexplained group (1 alias, "Fannie Mae" vs "Federal National Mortgage Association"; 2 a builder or the city; 12 with no acquisition record we could find).
+We read random samples by hand (drawn from the first 1,000 properties, which are part of this sample): 20 of the name group (about 15 spelling variants, 5 related parties) and 15 of the unexplained group (1 alias, "Fannie Mae" vs "Federal National Mortgage Association"; 2 a builder or the city; 12 with no acquisition record we could find). The category shares at 1,000 and at 10,000 properties are nearly identical.
 
-**Philadelphia also found bugs in our name matcher**, which is why we test on real data: names made of single letters ("S E B M INC"), apostrophes ("ROSHA'S" / "ROSHAS") and names cut at the register's 40-character limit did not match themselves. The fixes also resolved New York's one false alarm (a surname written "LA PIERRE" when the couple bought and "LAPIERRE" when they sold), so New York went from 2 flags to 1. Near-miss spellings are still never accepted automatically.
+**Real data found bugs in our code**, which is why we test on it: names made of single letters ("S E B M INC"), apostrophes ("ROSHA'S" / "ROSHAS") and names cut at the register's 40-character limit did not match themselves, and one deed carries the impossible date "206-05-07". All fixed and tested; the name fixes also cleared New York's one false alarm (a surname written "LA PIERRE" when the couple bought and "LAPIERRE" when they sold). Near-miss spellings are still never accepted automatically.
 
-**What it shows:** the rule engine runs unchanged on 3,110 real deeds; its flags fall into a small number of explainable kinds, and about one break in five has no acquisition record anywhere in the public register, which is exactly the kind of thing worth a human look. Recording delays are common (1 deed in 13 took over three months), so the two-date model matters. **What it does not show:** that any flagged property has an actual title defect (we did not search beyond the public register), or anything about liens: a satisfaction is not linked to its mortgage in the fields we read, and mortgages are routinely satisfied weeks after a sale. Deeds are linked in recorded order because neither register says which earlier deed a seller acquired through.
+**What it shows:** the rule engine runs unchanged on 30,803 real deeds in about a minute and a half; its flags fall into a few explainable kinds; and recording delays are common (1 deed in 12 took over three months), so the two-date model matters. **What it does not show:** that any flagged property has an actual title defect (we did not search beyond the public register), or anything about liens: a satisfaction is not linked to its mortgage in the fields we read, and mortgages are routinely satisfied weeks after a sale. Deeds are linked in recorded order because neither register says which earlier deed a seller acquired through.
 
-**Privacy and reproduction.** Raw downloads hold real names and stay in `data/acris_raw/` and `data/philly_raw/` (gitignored); the committed reports (`results/acris_real.json`, `results/philly_real.json`) and the app data (`demo/real.js`) carry no names, addresses or parcel numbers. Philadelphia: `uv run python -m vestigium.philly fetch --n 1000` then `uv run python -m vestigium.philly` (free public API, about 20 seconds). New York: fetch the lots from Real Property Legals (e.g. `https://data.cityofnewyork.us/resource/8h5j-fqxa.json?$where=borough=3 AND block between 5200 and 5204&$limit=5000`), then those documents' rows from Master (`bnx9-e6tj`) and the deeds' parties from Parties (`636b-3b5g`) with `$where=document_id in(...)`; save them as `legals.json`, `master.json` (keyed by `document_id`) and `parties.json` in `data/acris_raw/`, and run `uv run python -m vestigium.acris`, which also rebuilds `demo/real.js`. (The NYC API refused our network, so we fetched those pages through Firecrawl's scraper; the data is the same public API response.)
+**Privacy and reproduction.** Raw downloads hold real names and stay in `data/acris_raw/` and `data/philly_raw/` (gitignored); the committed reports (`results/acris_real.json`, `results/philly_real.json`) and the app data (`demo/real.js`) carry no names, addresses or parcel numbers (app ids are one-way hashes). Philadelphia: `uv run python -m vestigium.philly fetch --n 10000` (about 3 minutes, free public API) then `uv run python -m vestigium.philly` (about 5 minutes including the register lookups). New York: fetch the lots from Real Property Legals (e.g. `https://data.cityofnewyork.us/resource/8h5j-fqxa.json?$where=borough=3 AND block between 5200 and 5204&$limit=5000`), then those documents' rows from Master (`bnx9-e6tj`) and the deeds' parties from Parties (`636b-3b5g`) with `$where=document_id in(...)`; save them as `legals.json`, `master.json` (keyed by `document_id`) and `parties.json` in `data/acris_raw/`, and run `uv run python -m vestigium.acris`, which also rebuilds `demo/real.js`. (The NYC API refused our network, so we fetched those pages through Firecrawl's scraper; the data is the same public API response.)
 
 ### Limitations — please read
 
@@ -269,7 +309,7 @@ We read random samples by hand: 20 of the name group (about 15 spelling variants
   and reran it (correct in all 3 repeats). Across the 120 C runs the repair retry fired once (prop-050, repeat 3) and the repaired answer was correct.
 - **Small sample.** 40 cases (3 inconclusive and 4 clean per pack-side are few), one model, so the percentages for A and B are rough.
 - **The rules and the generator were written together by the same people.** 100% for C and D is expected and is not evidence the rules are right for the real world. Arm D exists to show this: it is the ceiling of the rules themselves, and it is the agent-free baseline.
-- **The real-record test is deeds-only** (3,110 deeds, two cities, see *Real records*); it shows how the rules behave on real data, not whether any flagged property has a real defect. Everything else is synthetic.
+- **The real-record test is deeds-only** (30,803 deeds, two cities, see *Real records*); it shows how the rules behave on real data, not whether any flagged property has a real defect. Everything else is synthetic.
 - **The held-out split is a flag, not a time gap.** Every third case is marked held-out and not used to tune; cases were not written after a rule freeze.
 - **One small model.** A stronger model might narrow the gap for A and B.
 - **Arms A-D assume a correct graph.** Extraction is scored separately (section above), not chained into the four-arm table. Not scored: per-case fix-by-copy accuracy for agent-proposed records
@@ -303,7 +343,7 @@ answer_key.json           planted errors, all 80 cases docs/img/                
 
 ## Product capabilities, third-party and AI tools
 
-- **Product:** deterministic ownership-chain checks, evidence-cited verdicts, minimal proofs, a live graph view with a read-only Cypher console and remove-a-relationship experiments, replay by two dates, what-would-fix-it, paste and scan intake with a double read, a test on 3,110 real deeds from two cities, an MCP server, a benchmark harness, and a web app with an overview page.
+- **Product:** deterministic ownership-chain checks, evidence-cited verdicts, minimal proofs, a live graph view with a read-only Cypher console and remove-a-relationship experiments, replay by two dates, what-would-fix-it, paste and scan intake with a double read, a test on 30,803 real deeds from two cities, an MCP server, a benchmark harness, and a web app with an overview page.
 - **Third-party:** Relate (`relate-db`, embedded Cypher graph database), NYC Open Data (ACRIS public records, under the NYC Open Data terms of use), OpenDataPhilly (Real Estate Transfer Tax records), `google-genai`, `mcp`, `pillow`, `numpy`, `pytest`, `uv`.
 - **Data fetching:** Firecrawl (web scraping) was used once to download the public NYC ACRIS records.
 - **AI tools:** Google Gemini powers benchmark Arms A to C and the readers (`gemini-3.5-flash-lite`) and scan reading (`gemini-3.5-flash-lite` in the benchmark). The project was built with Claude Code (Anthropic) as the coding assistant.

@@ -38,3 +38,8 @@ def test_philadelphia_categories_are_stated_rules():
     assert category(dict(type="DEED", sellers=["KOWALSKI KRZSYTOF"]), prev).startswith("probable spelling")
     assert category(dict(type="DEED", sellers=["KOWALSKI ANNA"]), prev).startswith("related name")
     assert category(dict(type="DEED", sellers=["NOVAK PETRA"]), prev) == "no apparent connection"
+
+
+def test_impossible_register_dates_are_caught():
+    from vestigium.philly import _ok
+    assert _ok("2016-05-07T00:00:00Z") and not _ok("206-05-07T") and not _ok(None) and not _ok("0209-09-14")

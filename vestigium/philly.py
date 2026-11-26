@@ -22,10 +22,17 @@ DEEDS = ("DEED", "DEED SHERIFF", "SHERIFF'S DEED")
 TYPES = ",".join("'" + t.replace("'", "''") + "'" for t in DEEDS)
 
 
-def sql(q, timeout=180):
-    req = urllib.request.Request(API + "?" + urllib.parse.urlencode({"q": q}), headers={"User-Agent": "vestigium-research"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read())["rows"]
+def sql(q, timeout=180, tries=6):
+    """One query to the public API, retried with backoff (the server occasionally resets connections)."""
+    import time
+    req = urllib.request.Request(API, data=urllib.parse.urlencode({"q": q}).encode(), headers={"User-Agent": "vestigium-research"})
+    for i in range(tries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read())["rows"]
+        except Exception:
+            if i == tries - 1: raise
+            time.sleep(2 * 2 ** i)
 
 
 def fetch(n=1000, salt="vestigium"):
@@ -47,11 +54,24 @@ def split(names):
     return [n.strip() for n in (names or "").split(";") if n.strip()]
 
 
+BAD_DATES = Counter()
+
+
+def _ok(d):
+    """A usable ISO date (the register holds a few typos such as '206-05-07')."""
+    try: return 1700 <= date.fromisoformat((d or "")[:10]).year <= 2100
+    except Exception: return False
+
+
 def chains():
     rows = json.loads((RAW / "deeds.json").read_text())
     by = {}
+    BAD_DATES.clear()
     for r in rows:
-        if not r.get("recording_date") or not split(r["grantors"]) or not split(r["grantees"]): continue
+        if not split(r["grantors"]) or not split(r["grantees"]): continue
+        if not _ok(r.get("recording_date")): BAD_DATES["deeds dropped: no usable recording date"] += 1; continue
+        if r.get("document_date") and not _ok(r["document_date"]):
+            BAD_DATES["signing date unusable, recording date used instead"] += 1; r["document_date"] = None
         by.setdefault(r["opa_account_num"], []).append(r)
     out = []
     for opa, ds in sorted(by.items()):
@@ -79,24 +99,31 @@ def category(deed, prev):
     return "no apparent connection"
 
 
-def explain(review):
+def explain(review, workers=6):
     """For each unexplained break, look in the FULL register (every document type, multi-property deeds too) between the
-    two deeds for a document that names the seller as grantee. Cached in data/philly_raw/explain.json."""
+    two deeds for a document that names the seller as grantee. Cached in data/philly_raw/explain.json, saved as it goes."""
+    from concurrent.futures import ThreadPoolExecutor
     f = RAW / "explain.json"
     cache = json.loads(f.read_text()) if f.exists() else {}
-    for r in review:
-        if r["category"] != "no apparent connection": continue
-        key = f"{r['opa']}|{r['deed']['id']}"
-        if key not in cache:
-            p, d = r["previous"], r["deed"]
-            rows = sql(f"""SELECT document_type, property_count, grantors, grantees FROM rtt_summary WHERE opa_account_num='{r['opa']}'
-                          AND recording_date > '{p['recorded']}' AND recording_date <= '{d['recorded']}T23:59:59'""")
-            cache[key] = [x["document_type"] for x in rows if group_match(split(x["grantees"]), d["sellers"])]
-        types = cache[key]
+    todo = {f"{r['opa']}|{r['deed']['id']}": r for r in review if r["category"] == "no apparent connection"}
+    need = [(k, r) for k, r in todo.items() if k not in cache]
+
+    def look(item):
+        k, r = item; p, d = r["previous"], r["deed"]
+        rows = sql(f"""SELECT document_type, grantees FROM rtt_summary WHERE opa_account_num='{r['opa']}'
+                      AND recording_date > '{p['recorded']}' AND recording_date <= '{d['recorded']}T23:59:59'""")
+        return k, [x["document_type"] for x in rows if group_match(split(x["grantees"]), d["sellers"])]
+
+    with ThreadPoolExecutor(workers) as ex:
+        for n, (k, types) in enumerate(ex.map(look, need), 1):
+            cache[k] = types
+            if n % 25 == 0: f.write_text(json.dumps(cache)); print(f"  register lookups: {n}/{len(need)}", flush=True)
+    f.write_text(json.dumps(cache))
+    for k, r in todo.items():
+        types = cache[k]
         r["category"] = ("a deed to the seller exists in the full register but not in our extract" if any("DEED" in t for t in types)
                          else "the register shows the seller only as a mortgagor, with no deed to them" if types
                          else "unexplained: no record of how the seller acquired it")
-    f.write_text(json.dumps(cache))
     return review
 
 
@@ -145,6 +172,7 @@ def report(rows, review):
                 chain_breaks_by_category=dict(cats.most_common()), defective_only_because_of_sheriff_sales=sheriff_only,
                 days_signing_to_recording=dict(median=median(gaps), over_90=sum(g > 90 for g in gaps), over_365=sum(g > 365 for g in gaps), of=len(gaps)),
                 signed_before_previous_recorded=sum(r["signed_before_prev_recorded"] for r in rows),
+                data_quality=dict(BAD_DATES),
                 per_property=[dict(lot=r["lot"], deeds=r["deeds"], verdict=r["verdict"], findings=r["findings"]) for r in rows])
 
 
@@ -159,7 +187,7 @@ if __name__ == "__main__":
         rep = report(rows, review)
         (ROOT / "results" / "philly_real.json").write_text(json.dumps(rep, indent=1))
         (RAW / "review.json").write_text(json.dumps(review, indent=1))
-        print(json.dumps({k: v for k, v in rep.items() if k != "per_property"}, indent=1))
+        print(json.dumps({k: v for k, v in rep.items() if k != "per_property"}, indent=1), flush=True)
 
 
 def export_app(per_category=4, clean=6):
@@ -176,14 +204,16 @@ def export_app(per_category=4, clean=6):
         cs = cat.get(k)
         key = cs[0] if cs else "clean"
         if seen[key] < (clean if key == "clean" else per_category):
-            seen[key] += 1; picked.append((k, deeds, cs or []))
+            seen[key] += 1; picked.append((k, opa, deeds, cs or []))
     out = []
-    for k, deeds, cs in picked:
+    import hashlib
+    for k, opa, deeds, cs in picked:
+        sid = hashlib.sha1(('vestigium:' + opa).encode()).hexdigest()[:6]   # stable across sample sizes; not reversible to a parcel
         def notes(r, cs=cs):
             n = [f"Why it was flagged (importer's category, from the full public register): {c}." for c in dict.fromkeys(cs)]
             return n + ["Real public record (Philadelphia Real Estate Transfer Tax records), anonymised. Deeds are linked in recorded order "
                         "and names are matched by the importer; sheriff's deeds are lawful breaks the synthetic rules do not model."]
-        c = app_case(k, deeds, f"phl-{k}", f"Philadelphia {k}", "Philadelphia property", notes, None, None, None)
+        c = app_case(sid, deeds, f"phl-{sid}", f"Philadelphia {sid}", "Philadelphia property", notes, None, None, None)
         key = cs[0] if cs else "clean"
         c.update(group=f"Philadelphia · {key}", short=key.split(":")[0].split(" (")[0],
                  headline="Real records: " + ({"clean": "the chain checks out"}.get(key) or key.split(":")[0].split(" (")[0]))

@@ -214,11 +214,17 @@ footer{border-top:1px solid var(--line);padding:36px 0 56px;color:var(--dim);fon
 .mono{font:400 11.5px var(--mono);margin-top:18px;letter-spacing:.02em}
 
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}html{scroll-behavior:auto}}
+.usegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}@media(max-width:1000px){.usegrid{grid-template-columns:1fr 1fr}}@media(max-width:620px){.usegrid{grid-template-columns:1fr}}
+.card.use{display:flex;flex-direction:column;gap:8px;transition:transform .2s,box-shadow .2s}.card.use:hover{transform:translateY(-3px);box-shadow:var(--key),0 0 0 1px var(--edge)}
+.card.use i{font:600 13px var(--mono);font-style:normal;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--chip);color:var(--hi);box-shadow:inset 0 0 0 1px var(--edge)}
+.card.use h3{margin:6px 0 0}.card.use p{margin:0;flex:1}.card.use span{font-size:13px;font-weight:500;color:var(--hi)}
+.usemore{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;font-size:14px;color:var(--mut);line-height:1.6}@media(max-width:800px){.usemore{grid-template-columns:1fr}}
+.usemore>div{padding:16px 18px;border-radius:16px;background:var(--panel);box-shadow:var(--key)}.usemore b{color:var(--hi)}.usemore a{color:var(--hi);text-decoration:underline}
 </style></head><body>
 
 <nav>
   <a class="logo" href="#top"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><rect x="13.5" y="6.5" width="7" height="9" rx="2" fill="none" stroke="#e6e6e6" stroke-width="1.5"/><path d="M9.6 14.2L12.4 7.8" stroke="#ff6363" stroke-width="1.8" stroke-linecap="round"/></svg>Vestigium</a>
-  <a class="l" href="#problem">The problem</a><a class="l" href="#how">How it works</a><a class="l" href="#features">Features</a><a class="l" href="#proof">Benchmark</a><a class="l" href="#real">Real records</a><a class="l" href="#intake">Scans &amp; paste</a><a class="l" href="#relate">Relate</a>
+  <a class="l" href="#problem">The problem</a><a class="l" href="#how">How it works</a><a class="l" href="#use">How to use</a><a class="l" href="#features">Features</a><a class="l" href="#proof">Benchmark</a><a class="l" href="#real">Real records</a><a class="l" href="#intake">Scans &amp; paste</a><a class="l" href="#relate">Relate</a>
   <a class="btn sm" href="app.html">Open the demo</a>
 </nav>
 
@@ -270,6 +276,18 @@ footer{border-top:1px solid var(--line);padding:36px 0 56px;color:var(--dim);fon
   <div class="principle reveal"><b>One rule keeps this honest.</b><span>The <u>reader</u> only copies what a record says. The <s>rule engine</s> is deterministic: the same graph always gives the same verdict. A citation the agent invents is rejected, because it must point at stored text.</span></div>
 </div></section>
 
+<section id="use"><div class="wrap">
+  <div class="head reveal"><span class="eyebrow">How to use it</span><h2>Two minutes, no install.</h2><p class="sub">Open the app and follow these four steps. Every case is the sales history of one property or vehicle. Press <b>?</b> in the app at any time for a guide to each panel.</p></div>
+  <div class="usegrid">
+    <a class="card use reveal" href="app.html?case=prop-014"><i>1</i><h3>Read the verdict</h3><p><b style="color:var(--ok)">Clean</b>, <b style="color:var(--bad)">defective</b> or <b style="color:var(--gap)">inconclusive</b>, with a one-line reason. This case was signed through an agent whose permission had already expired.</p><span>Open the case →</span></a>
+    <a class="card use reveal d1" href="app.html?case=prop-014&amp;sel=0"><i>2</i><h3>See the proof</h3><p>The red box is the sale that breaks. The proof panel shows the rule that fired and the exact sentences of the records behind it.</p><span>Show the proof →</span></a>
+    <a class="card use reveal d2" href="app.html?case=prop-014&amp;remove=T5%3EACTED_UNDER%3EAU1"><i>3</i><h3>Break a link</h3><p>The same case as a graph database holds it. Remove one relationship and watch the answer change from defective to inconclusive.</p><span>Try it →</span></a>
+    <a class="card use reveal d3" href="app.html?case=phl-d81620"><i>4</i><h3>Look at real deeds</h3><p>The <b>Real</b> tab holds real, anonymised public records from New York and Philadelphia, each flag explained in plain words.</p><span>Browse real records →</span></a>
+  </div>
+  <div class="usemore reveal"><div><b>Check your own documents.</b> Run it on your computer (<code>uv run python -m vestigium.serve</code>), click <i>Paste or upload</i>, and paste deed text or upload PDFs and photos. <a href="https://github.com/samuel025/vestigium#how-to-use-it">Setup in the README →</a></div>
+  <div><b>Words you will see.</b> <i>Grantor</i> = seller, <i>grantee</i> = buyer. A <i>lien</i> is a claim such as a loan. <i>Recorded</i> is when a deed reached the public register, often weeks after signing.</div></div>
+</div></section>
+
 <section id="dates"><div class="wrap two">
   <div class="reveal"><span class="eyebrow">Two dates</span><h2>What was true. What was known.</h2><p class="sub" style="margin-left:0">Every fact has two dates: when it took effect and when it was recorded. Slide back in time and the verdict changes with what had been filed. Clean until a late-recorded deed arrives, then defective.</p>
     <ul class="bul"><li><span><b>Valid as of</b> asks: was this sale allowed on that day?</span></li><li><span><b>Known as of</b> asks: what could anyone have seen by then?</span></li></ul></div>
@@ -300,20 +318,20 @@ footer{border-top:1px solid var(--line);padding:36px 0 56px;color:var(--dim);fon
 </div></section>
 
 <section id="real"><div class="wrap">
-  <div class="head reveal"><span class="eyebrow">On real records</span><h2>3,110 real deeds. Every flag explained.</h2><p class="sub">The same engine, unchanged, on public property records from New York (36 Brooklyn lots) and Philadelphia (1,000 properties), each deed with its real signing date, recording date, sellers and buyers.</p></div>
+  <div class="head reveal"><span class="eyebrow">On real records</span><h2>30,803 real deeds. Every flag explained.</h2><p class="sub">The same engine, unchanged, on public property records from New York (36 Brooklyn lots) and Philadelphia (about 10,000 properties), each deed with its real signing date, recording date, sellers and buyers.</p></div>
   <div class="stats">
-    <div class="stat reveal"><b data-n="3110">0</b><span>real deeds checked, from 1,036 properties in two cities</span></div>
-    <div class="stat reveal d1"><b data-n="90" data-s="%">0</b><span>of 2,074 links: the seller is the previous buyer, as the rule expects</span></div>
-    <div class="stat reveal d2"><b data-n="43">0</b><span>Philadelphia sales with no record anywhere in the public register of how the seller got the property</span></div>
-    <div class="stat reveal d3"><b data-n="240">0</b><span>deeds recorded over three months after signing. That gap is why every fact has two dates.</span></div>
+    <div class="stat reveal"><b data-n="30803">0</b><span>real deeds checked, from 10,035 properties in two cities</span></div>
+    <div class="stat reveal d1"><b data-n="90" data-s="%">0</b><span>of 20,768 sales: the seller is the previous buyer, as the rule expects</span></div>
+    <div class="stat reveal d2"><b data-n="445">0</b><span>sales with no record anywhere in the public register of how the seller got the property</span></div>
+    <div class="stat reveal d3"><b data-n="2572">0</b><span>deeds recorded over three months after signing. That gap is why every fact has two dates.</span></div>
   </div>
   <div class="honest" style="margin-top:16px">
-    <div class="card reveal"><h3><i>MOST FLAGS</i>Spelling, families, foreclosures</h3><p>Of 211 Philadelphia findings: 58 names spelled differently in the register, 27 relatives or sister companies, 21 estates or agents, 19 sheriff sales, 25 deeds outside our extract. Each is labelled, and a person confirms; code never guesses a near-miss name.</p></div>
-    <div class="card reveal d1"><h3><i>WORTH CHECKING</i>Gaps the register cannot explain</h3><p>43 sellers with no recorded acquisition, 11 deeds signed before the previous one, and in New York a titleholder whose name changes year between purchase and sale. These are what a title examiner would chase.</p></div>
-    <div class="card reveal d2"><h3><i>FOUND BY REAL DATA</i>Three bugs in our own name matcher</h3><p>Single-letter names, apostrophes and the register's 40-character name limit stopped names matching themselves. Fixed and tested; the fix also cleared New York's one false alarm.</p></div>
+    <div class="card reveal"><h3><i>MOST FLAGS</i>Spelling, families, foreclosures</h3><p>Of 2,202 Philadelphia findings: 617 names spelled differently in the register, 244 foreclosures, 231 estates or agents, 210 relatives or sister companies, 262 deeds outside our extract. Each is labelled, and a person confirms; code never guesses a near-miss name.</p></div>
+    <div class="card reveal d1"><h3><i>WORTH CHECKING</i>Gaps the register cannot explain</h3><p>445 sellers with no recorded acquisition, 119 deeds signed before the previous one, and in New York a titleholder whose name changes year between purchase and sale. These are what a title examiner would chase.</p></div>
+    <div class="card reveal d2"><h3><i>FOUND BY REAL DATA</i>Bugs in our own code</h3><p>Single-letter names, apostrophes and the register's 40-character name limit stopped names matching themselves, and one deed is dated the year 206. Fixed and tested; the name fix also cleared New York's one false alarm.</p></div>
     <div class="card reveal d3"><h3><i>LIMITS</i>What it does not show</h3><p>Deeds only, linked in recorded order. Liens are not checked. A flag means "worth a look", not a proven defect: we did not search beyond the public register. Names and addresses stay out of the repository.</p></div>
   </div>
-  <div class="reveal" style="margin-top:18px"><a class="btn" href="app.html?case=phl-71">Open the real records in the app</a></div>
+  <div class="reveal" style="margin-top:18px"><a class="btn" href="app.html?case=phl-d81620">Open the real records in the app</a></div>
 </div></section>
 
 <section id="intake"><div class="wrap">
@@ -344,7 +362,7 @@ footer{border-top:1px solid var(--line);padding:36px 0 56px;color:var(--dim);fon
 <section id="honest"><div class="wrap">
   <div class="head reveal"><span class="eyebrow">What this is, and is not</span><h2>Read this before you trust a number.</h2><p class="sub">A good benchmark reports what could make it look better than it is.</p></div>
   <div class="honest">
-    <div class="card reveal"><h3><i>MOSTLY SYNTHETIC</i>Synthetic benchmark, fictional rules</h3><p>The benchmark uses fictional parties, a fictional jurisdiction and generic rules; only the 3,110 deeds in the real-records section are real. This is a prototype of the idea, not legal advice and not a title product.</p></div>
+    <div class="card reveal"><h3><i>MOSTLY SYNTHETIC</i>Synthetic benchmark, fictional rules</h3><p>The benchmark uses fictional parties, a fictional jurisdiction and generic rules; only the 30,803 deeds in the real-records section are real. This is a prototype of the idea, not legal advice and not a title product.</p></div>
     <div class="card reveal d1"><h3><i>CEILING</i>100% is the ceiling, not a claim</h3><p>The rules and the case generator were written together. That is why the rule engine alone is an arm in the benchmark, and why we test it with invariance checks and fresh seeds too.</p></div>
     <div class="card reveal d2"><h3><i>SMALL</i>One small model, 40 cases</h3><p>Gemini 3.5 Flash-Lite on the free tier. A stronger model might narrow the gap for the first two arms. The graph-with-own-Cypher arm swung from 47.5% to 62.5% between repeats.</p></div>
     <div class="card reveal d3"><h3><i>MEASURED</i>Bad photos can still fool the reader</h3><p>The model flagged none of its own misreads, so every scan is now read twice and disagreements are flagged: 3 of 5 poor-photo misreads caught, about 1 in 40 false alarms. A mistake both reads share still slips through. Real scans and true handwriting are untested.</p></div>
