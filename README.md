@@ -165,7 +165,15 @@ Nobody types out a 20-page deed. The upload box (and `POST /api/scan`) accepts P
 
 How we test it: `render_scan()` makes synthetic scans from our dossiers, in three tiers (a clean PDF, a phone photo with rotation, uneven lighting, blur and JPEG damage, and a poor photo), with the recording date appearing *only* as a red stamp or a handwriting-style note, as on a real recorded deed. "Try a sample phone photo" in the app renders one and reads it.
 
-**Status, stated plainly:** the scan benchmark (`uv run python -m vestigium.scan_bench`, 40 held-out cases per tier) was cut off by the free-tier daily quota. So far only the clean-PDF tier has run (25 of 40 cases): 100% correct verdicts and every date read exactly. The phone and poor-photo tiers, and whether the low-confidence flags catch real misreadings, are **not measured yet**; `results/scan.jsonl` is resumable and the numbers will be added here. Scans use `gemini-3.5-flash` (`VESTIGIUM_VISION_MODEL`), because the lite model returned overload errors on multi-page images. Tested only on synthetic pages: true handwriting, real scanner noise, and dedicated OCR services (Google Document AI, AWS Textract) are untested.
+**Results** (`uv run python -m vestigium.scan_bench`, held-out 40 cases per tier, one run, `gemini-3.5-flash-lite` for vision; raw rows in `results/scan_lite/scan.jsonl`):
+
+| Tier | Verdict accuracy | Defective called clean | Right finding at the right record | Records with every date read exactly | Misreads the model flagged | Wrong verdicts with no warning |
+|---|---|---|---|---|---|---|
+| Clean PDF | 100% | 0% | 100% | 99.8% | 0 of 1 | 0 |
+| Phone photo | 100% | 0% | 100% | 99.8% | 0 of 1 | 0 |
+| Poor photo | 90.0% | 4.0% (1 case) | 82.5% | 99.0% | 0 of 4 | 4 |
+
+**What this says, plainly.** Clean PDFs and ordinary phone photos read reliably. Poor photos do not: 4 of 40 verdicts were wrong, including one defective chain called clean, and **the model's self-reported confidence caught none of the 6 misread records**. So the confidence flag is a mechanism that works when the model is unsure, but on this test the model was confidently wrong; do not treat "no flag" as "read correctly" on a bad photo. (Three of the four wrong verdicts failed safe: they came back *inconclusive*, with the engine reporting a gap rather than calling the chain clean. The fourth is the false clean.) An earlier partial run with `gemini-3.5-flash` (33 clean-PDF cases, all correct) is in `results/scan.jsonl`; we switched because that model's free tier allows only 20 requests a day per key. Tested only on synthetic pages: true handwriting, real scanner noise, and dedicated OCR services (Google Document AI, AWS Textract) are untested.
 
 ### Use it from your own agent (MCP)
 
@@ -217,7 +225,7 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
   (we score the *type* of record the agent names against the answer key; each answer-key fix is separately verified to turn its case clean).
 - **The graph lab's edge removal is limited** to `FOLLOWS`, `ACTED_UNDER` and `CLEARED_BY` (the relationships the rules can notice); outcomes are precomputed for the 80 built-in cases, and editing or running your own Cypher, or removing from a pasted dossier, needs the local server. The query console is read-only by keyword filtering on a throwaway copy, a guard for a local demo, not a hardened sandbox.
 - **Single-file Relate store only for the demo;** benchmark graphs are in-memory per case.
-- **Scans are tested on synthetic photos only** (see *Scanned documents*), and that benchmark is not finished.
+- **Scans are tested on synthetic photos only, and confidence flags are not reliable on poor photos** (see *Scanned documents*: 0 of 6 misreads flagged, 4 of 40 poor-photo verdicts wrong).
 - Not built: running Relate in the browser (WASM), Relate's own `relate serve` MCP endpoint for the `.rl` store (our MCP server exposes the rule engine instead), Google Document AI or AWS Textract (we use a vision model).
 
 ## Layout
@@ -236,7 +244,7 @@ vestigium/llm.py          Gemini wrapper: key rotation, pacing, tool loop, visio
 demo/index.html           overview / landing page      demo/app.html             the app
 demo/data.js, bench.js    exported data                vestigium.rl              persistent Relate store
 results/heldout.jsonl     raw answers, call counts     results/traces.jsonl      full transcripts, 12 showcase cases
-results/intake.jsonl      extraction runs              results/scan.jsonl        scan runs (partial)
+results/intake.jsonl      extraction runs              results/scan_lite/         scan benchmark (all tiers)
 answer_key.json           planted errors, all 80 cases docs/img/                  screenshots used above
 ```
 
@@ -244,7 +252,7 @@ answer_key.json           planted errors, all 80 cases docs/img/                
 
 - **Product:** deterministic ownership-chain checks, evidence-cited verdicts, minimal proofs, a live graph view with a read-only Cypher console and remove-a-relationship experiments, replay by two dates, what-would-fix-it, paste and scan intake with confidence, an MCP server, a benchmark harness, and a web app with an overview page.
 - **Third-party:** Relate (`relate-db`, embedded Cypher graph database), `google-genai`, `mcp`, `pillow`, `numpy`, `pytest`, `uv`.
-- **AI tools:** Google Gemini powers benchmark Arms A to C and the readers (`gemini-3.5-flash-lite`) and scan reading (`gemini-3.5-flash`). The project was built with Claude Code (Anthropic) as the coding assistant.
+- **AI tools:** Google Gemini powers benchmark Arms A to C and the readers (`gemini-3.5-flash-lite`) and scan reading (`gemini-3.5-flash-lite` in the benchmark). The project was built with Claude Code (Anthropic) as the coding assistant.
 
 ## License
 
