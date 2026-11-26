@@ -35,20 +35,20 @@ def run_one(case, tier, seed=0):
     v = out["result"]["verdict"]
     return dict(case=case["id"], tier=tier, label=case["label"], verdict=v, correct=v == case["label"],
                 false_clean=(v == "clean") if case["label"] == "defective" else None, located=where == gold_where(case),
-                records=n, records_wrong=len(wrong), records_silent=len(silent), flagged=len(flagged), warned=bool(out["warnings"]),
+                records=n, records_wrong=len(wrong), records_silent=len(silent), flagged=len(flagged), false_flags=len([r for r in flagged if r not in wrong and flagged[r] in ("low", "medium")]), double_read=out["scan"].get("double_read", False), warned=bool(out["warnings"]),
                 silent_wrong_verdict=(v != case["label"]) and not out["warnings"] and not flagged, reader=out["reader"], pages=out["scan"]["pages"],
                 tokens=out["tokens"], secs=round(time.time() - t, 1), error=None)
 
 
 def report(rows):
-    print(f"{'tier':6}{'n':>4}{'verdict':>9}{'false-clean':>13}{'located':>9}{'date-exact recs':>17}{'errors flagged':>16}{'silent wrong verdicts':>23}{'tokens':>8}")
+    print(f"{'tier':6}{'n':>4}{'verdict':>9}{'false-clean':>13}{'located':>9}{'date-exact recs':>17}{'errors flagged':>16}{'silent wrong verdicts':>23}{'false alarms':>14}{'tokens':>8}")
     for tier in TIERS:
         R = [r for r in rows if r["tier"] == tier and not r["error"]]
         if not R: continue
         D = [r for r in R if r["false_clean"] is not None]
         recs = sum(r["records"] for r in R); bad = sum(r["records_wrong"] for r in R); sil = sum(r["records_silent"] for r in R)
         print(f"{tier:6}{len(R):>4}{100*statistics.mean(r['correct'] for r in R):>8.1f}%{100*statistics.mean(r['false_clean'] for r in D) if D else 0:>12.1f}%"
-              f"{100*statistics.mean(r['located'] for r in R):>8.1f}%{100*(recs-bad)/recs:>16.1f}%{(f'{bad-sil}/{bad}' if bad else '0/0'):>16}{sum(r['silent_wrong_verdict'] for r in R):>23}{int(statistics.mean(r['tokens'] for r in R)):>8}")
+              f"{100*statistics.mean(r['located'] for r in R):>8.1f}%{100*(recs-bad)/recs:>16.1f}%{(f'{bad-sil}/{bad}' if bad else '0/0'):>16}{sum(r['silent_wrong_verdict'] for r in R):>23}{f"{sum(r.get('false_flags', 0) for r in R)}/{recs - bad}":>14}{int(statistics.mean(r['tokens'] for r in R)):>8}")
 
 
 def main():

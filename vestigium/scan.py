@@ -137,6 +137,49 @@ def transcribe(files):
     return ans, st
 
 
+# ---------------------------------------------------------------- stage 1b: an independent second read
+# A model's own confidence turned out to be unreliable on poor photos (it was confidently wrong). So we read every scan twice,
+# the second time asking only for the facts that matter (dates and names), and flag any record where the two reads disagree.
+# The check is deterministic; it does not depend on the model knowing it is wrong.
+CHECK_PROMPT = """Read these scanned legal records again. For each record headed "Ref. <id>", list:
+- "dates": every date that appears anywhere in that record, including in stamps and handwritten notes, each as ISO yyyy-mm-dd;
+- "names": every person or company name in it, copied exactly as printed.
+Do not judge anything. Return ONE JSON object: {"records": [{"id": "<id>", "dates": ["yyyy-mm-dd", ...], "names": ["...", ...]}]}"""
+ISO = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
+
+
+def second_read(files):
+    from . import llm
+    return llm.ask_vision("You list the dates and names in documents exactly as they appear. You never judge legality.", CHECK_PROMPT, files, temperature=0.4)
+
+
+def _norm(n):
+    return re.sub(r"[^a-z]", "", str(n).lower())
+
+
+def cross_check(text, ans2):
+    """Compare the first read (transcript text) with the second read. Returns {record id: [what disagrees]}."""
+    from collections import Counter
+    from .extract import split_records
+    first = dict(split_records(text))
+    out = {}
+    for r in (ans2 or {}).get("records", []):
+        rid = str(r.get("id") or "")
+        if rid not in first: continue
+        t = first[rid]
+        d1 = Counter(ISO.findall(t)); d2 = Counter(x for x in (r.get("dates") or []) if ISO.fullmatch(str(x)))
+        diffs = []
+        for d in sorted((d1 - d2).keys() | (d2 - d1).keys()):
+            other = [x for x in (d2 - d1) if x != d] if d in d1 else [x for x in (d1 - d2) if x != d]
+            diffs.append(dict(what=f"date {d}", why="the two independent reads disagree" + (f" ({' / '.join(sorted({d, *other}))})" if other else "")))
+        flat = _norm(t)
+        for n in r.get("names") or []:
+            if len(_norm(n)) >= 4 and _norm(n) not in flat:
+                diffs.append(dict(what=f"name {n}", why="the second read saw a name the first read did not"))
+        if diffs: out[rid] = diffs
+    return out
+
+
 def transcript_text(ans):
     """Stage 1 JSON -> dossier text for stage 2 (the recording stamp becomes ', recorded <date>' after the first date)."""
     out, low, flags = [], {}, []
@@ -155,20 +198,35 @@ def transcript_text(ans):
     return "\n\n".join(out), low, flags
 
 
-def scan_analyze(files, as_of=None, transcriber=None):
-    """Full pipeline for an upload. Carries read-confidence through to the verdict."""
+def scan_analyze(files, as_of=None, transcriber=None, checker=None):
+    """Full pipeline for an upload. Carries read-confidence, and disagreement between two reads, through to the verdict.
+    checker: the second reader; defaults to a real second read when the first read is real (tests pass their own or none)."""
     from .intake import analyze
     ans, st = (transcriber or transcribe)(files)
     if not ans or not ans.get("pages"):
         return dict(error="The scanner could not read those pages. Try a clearer photo or a PDF.")
     text, low, flags = transcript_text(ans)
+    checker = checker if checker is not None else (None if transcriber else second_read)
+    disagree, st2 = {}, {}
+    if checker:
+        try:
+            ans2, st2 = checker(files)
+            disagree = cross_check(text, ans2)
+        except Exception as e:                                   # no second read: say so, never pretend it agreed
+            disagree, st2 = {}, dict(error=str(e)[:80])
+    page_of = {r.get("id"): pg.get("page") for pg in ans.get("pages", []) for r in pg.get("records", [])}
+    for rid, diffs in disagree.items():                          # a disagreement counts as LOW confidence, whatever the model said
+        low[rid] = page_of.get(rid)
+        f = next((f for f in flags if f["id"] == rid), None)
+        if f: f.update(confidence="low", unsure=f["unsure"] + diffs, disagree=True)
+        else: flags.append(dict(id=rid, page=page_of.get(rid), confidence="low", unsure=diffs, disagree=True))
     out = analyze(text, reader="auto", as_of=as_of)
     if out.get("error"): return out
     cited = {p for pr in out.get("proof", []) for p in pr.get("passages", [])}
     notes = []
     for rid, pg in low.items():
         if rid in cited:
-            notes.append(f"The verdict rests on record {rid} (page {pg}), which was read with LOW confidence: check it against the original.")
+            notes.append(f"The verdict rests on record {rid} (page {pg}), which was read with LOW confidence" + (" (two independent reads disagree)" if rid in disagree else "") + ": check it against the original.")
         elif not cited:
             pass
     if not cited and low:
@@ -176,6 +234,10 @@ def scan_analyze(files, as_of=None, transcriber=None):
     for f in flags:
         if f["confidence"] == "medium" and f["id"] in cited:
             notes.append(f"Record {f['id']} (page {f['page']}) was read with medium confidence and the verdict rests on it.")
-    out.update(scan=dict(pages=len(ans["pages"]), transcript=text, flags=flags, low_confidence=low, tokens=st.get("tokens", 0)),
-               warnings=out.get("warnings", []) + notes, tokens=out.get("tokens", 0) + st.get("tokens", 0))
+    if checker and st2.get("error"):
+        notes.append("The second, independent read failed, so this scan was read only once: check the key dates against the original.")
+    t2 = st2.get("tokens", 0)
+    out.update(scan=dict(pages=len(ans["pages"]), transcript=text, flags=flags, low_confidence=low, disagree=sorted(disagree), double_read=bool(checker) and not st2.get("error"),
+                         tokens=st.get("tokens", 0) + t2),
+               warnings=out.get("warnings", []) + notes, tokens=out.get("tokens", 0) + st.get("tokens", 0) + t2)
     return out

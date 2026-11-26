@@ -76,3 +76,30 @@ def test_scan_pipeline_makes_no_network_call_when_the_transcript_is_canonical(mo
     monkeypatch.setattr(llm, "ask", boom); monkeypatch.setattr(llm, "ask_vision", boom)
     c = C["prop-006"]
     assert scan_analyze([], as_of=c["as_of"], transcriber=fake(c))["result"]["verdict"] == "defective"
+
+
+def test_double_read_flags_a_disagreeing_date_even_when_the_model_was_sure():
+    from vestigium.scan import cross_check
+    c = next(x for x in all_cases() if x["id"] == "prop-014")
+    text = dossier(c, "clean")
+    rid, body = split_records(text)[3]
+    import re
+    d = re.findall(r"\d{4}-\d{2}-\d{2}", body)[0]
+    wrong = d[:-1] + ("1" if d[-1] != "1" else "2")
+    first = text.replace(body, body.replace(d, wrong, 1))         # the first read misread one digit, confidently
+    second = {"records": [{"id": i, "dates": re.findall(r"\d{4}-\d{2}-\d{2}", b), "names": []} for i, b in split_records(text)]}
+    dis = cross_check(first, second)
+    assert list(dis) == [rid] and any(d in x["why"] or d in x["what"] for x in dis[rid])
+    assert cross_check(text, second) == {}                       # two agreeing reads raise nothing
+
+
+def test_disagreement_becomes_a_low_confidence_warning():
+    c = next(x for x in all_cases() if x["id"] == "prop-014")
+    text = dossier(c, "clean")
+    def checker(files):                                          # second read that disagrees on every date of P5
+        import re
+        recs = [{"id": i, "dates": (["1999-01-01"] if i == "P5" else re.findall(r"\d{4}-\d{2}-\d{2}", b)), "names": []} for i, b in split_records(text)]
+        return {"records": recs}, {"tokens": 5}
+    out = scan_analyze([], as_of=c["as_of"], transcriber=fake(c), checker=checker)
+    assert out["scan"]["disagree"] == ["P5"] and "P5" in out["scan"]["low_confidence"]
+    assert any("two independent reads disagree" in w for w in out["warnings"])

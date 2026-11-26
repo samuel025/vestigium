@@ -133,10 +133,10 @@ def _parse(text):
         return None
 
 
-def ask_vision(system, prompt, files):
+def ask_vision(system, prompt, files, temperature=0.0):
     """One paced multimodal call. files = [(name, mime, bytes)] (PDF or images). Returns (parsed_json|None, stats)."""
     parts = [types.Part(text=prompt)] + [types.Part.from_bytes(data=b, mime_type=m) for _, m, b in files]
-    cfg = types.GenerateContentConfig(system_instruction=system, temperature=0.0, response_mime_type="application/json")
+    cfg = types.GenerateContentConfig(system_instruction=system, temperature=temperature, response_mime_type="application/json")
     r = _generate([types.Content(role="user", parts=parts)], cfg, model=VISION_MODEL)
     st = dict(model_calls=1, tokens=(r.usage_metadata.total_token_count or 0) if r.usage_metadata else 0)
     text = r.text or ""

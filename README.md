@@ -165,15 +165,18 @@ Nobody types out a 20-page deed. The upload box (and `POST /api/scan`) accepts P
 
 How we test it: `render_scan()` makes synthetic scans from our dossiers, in three tiers (a clean PDF, a phone photo with rotation, uneven lighting, blur and JPEG damage, and a poor photo), with the recording date appearing *only* as a red stamp or a handwriting-style note, as on a real recorded deed. "Try a sample phone photo" in the app renders one and reads it.
 
-**Results** (`uv run python -m vestigium.scan_bench`, held-out 40 cases per tier, one run, `gemini-3.5-flash-lite` for vision; raw rows in `results/scan_lite/scan.jsonl`):
+**Double read.** A model's own confidence proved unreliable on poor photos (below), so every scan is read **twice**: the second, independent read lists only each record's dates and names, and code compares the two. Any record where they disagree is marked low confidence, whatever the model said, and the verdict names the record and page to check. It is deterministic and does not depend on the model knowing it is wrong.
 
-| Tier | Verdict accuracy | Defective called clean | Right finding at the right record | Records with every date read exactly | Misreads the model flagged | Wrong verdicts with no warning |
-|---|---|---|---|---|---|---|
-| Clean PDF | 100% | 0% | 100% | 99.8% | 0 of 1 | 0 |
-| Phone photo | 100% | 0% | 100% | 99.8% | 0 of 1 | 0 |
-| Poor photo | 90.0% | 4.0% (1 case) | 82.5% | 99.0% | 0 of 4 | 4 |
+**Results** (`uv run python -m vestigium.scan_bench`, held-out 40 cases per tier, `gemini-3.5-flash-lite` for vision; raw rows in `results/scan_x2/` with the double read and `results/scan_lite/` with a single read):
 
-**What this says, plainly.** Clean PDFs and ordinary phone photos read reliably. Poor photos do not: 4 of 40 verdicts were wrong, including one defective chain called clean, and **the model's self-reported confidence caught none of the 6 misread records**. So the confidence flag is a mechanism that works when the model is unsure, but on this test the model was confidently wrong; do not treat "no flag" as "read correctly" on a bad photo. (Three of the four wrong verdicts failed safe: they came back *inconclusive*, with the engine reporting a gap rather than calling the chain clean. The fourth is the false clean.) An earlier partial run with `gemini-3.5-flash` (33 clean-PDF cases, all correct) is in `results/scan.jsonl`; we switched because that model's free tier allows only 20 requests a day per key. Tested only on synthetic pages: true handwriting, real scanner noise, and dedicated OCR services (Google Document AI, AWS Textract) are untested.
+| Tier | Verdict accuracy | Defective called clean | Right finding at the right record | Records with every date read exactly | Misreads flagged | Correct records flagged (false alarms) | Wrong verdicts with no warning |
+|---|---|---|---|---|---|---|---|
+| Clean PDF | 100% | 0% | 100% | 99.8% | 0 of 1 | 1 of 401 | 0 |
+| Phone photo | 100% | 0% | 100% | 99.8% | 0 of 1 | 3 of 401 | 0 |
+| Poor photo | 95.0% | **0%** | 87.5% | 98.8% | **3 of 5** | 10 of 397 | 2 |
+| *Poor photo, single read* | *90.0%* | *4.0% (1 case)* | *82.5%* | *99.0%* | *0 of 4* | *–* | *4* |
+
+**What this says, plainly.** Clean PDFs and ordinary phone photos read reliably. On poor photos the model's self-reported confidence caught **none** of its misreads; the double read caught 3 of 5 at the cost of flagging about 1 in 40 correct records, and in this run no defective chain was called clean (the single-read run had one). Two limits remain: a misread both reads share is not caught (2 of 5 on poor photos, and the single misread on the PDF and phone tiers), and two clean poor-photo cases came back *inconclusive* without a warning; no date was misread there and we have not diagnosed why, but they failed safe (a gap, not a false clean). Runs vary: the first read itself differs between runs, so compare the catch rate more than the verdict percentages. An earlier partial run with `gemini-3.5-flash` (33 clean-PDF cases, all correct) is in `results/scan.jsonl`; we switched because that model's free tier allows only 20 requests a day per key. Tested only on synthetic pages: true handwriting, real scanner noise, and dedicated OCR services (Google Document AI, AWS Textract) are untested.
 
 ### Use it from your own agent (MCP)
 
@@ -225,7 +228,7 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
   (we score the *type* of record the agent names against the answer key; each answer-key fix is separately verified to turn its case clean).
 - **The graph lab's edge removal is limited** to `FOLLOWS`, `ACTED_UNDER` and `CLEARED_BY` (the relationships the rules can notice); outcomes are precomputed for the 80 built-in cases, and editing or running your own Cypher, or removing from a pasted dossier, needs the local server. The query console is read-only by keyword filtering on a throwaway copy, a guard for a local demo, not a hardened sandbox.
 - **Single-file Relate store only for the demo;** benchmark graphs are in-memory per case.
-- **Scans are tested on synthetic photos only, and confidence flags are not reliable on poor photos** (see *Scanned documents*: 0 of 6 misreads flagged, 4 of 40 poor-photo verdicts wrong).
+- **Scans are tested on synthetic photos only.** The model's own confidence flags were unreliable; the double read catches 3 of 5 poor-photo misreads, not all (see *Scanned documents*).
 - Not built: running Relate in the browser (WASM), Relate's own `relate serve` MCP endpoint for the `.rl` store (our MCP server exposes the rule engine instead), Google Document AI or AWS Textract (we use a vision model).
 
 ## Layout
@@ -244,7 +247,7 @@ vestigium/llm.py          Gemini wrapper: key rotation, pacing, tool loop, visio
 demo/index.html           overview / landing page      demo/app.html             the app
 demo/data.js, bench.js    exported data                vestigium.rl              persistent Relate store
 results/heldout.jsonl     raw answers, call counts     results/traces.jsonl      full transcripts, 12 showcase cases
-results/intake.jsonl      extraction runs              results/scan_lite/         scan benchmark (all tiers)
+results/intake.jsonl      extraction runs              results/scan_x2/           scan benchmark (double read)
 answer_key.json           planted errors, all 80 cases docs/img/                  screenshots used above
 ```
 
