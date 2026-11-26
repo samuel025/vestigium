@@ -1,0 +1,265 @@
+{
+ "source": "NYC ACRIS via NYC Open Data (Real Property Legals 8h5j-fqxa, Master bnx9-e6tj, Parties 636b-3b5g)",
+ "sample": "5 adjacent blocks in one Brooklyn neighbourhood, deeds recorded 2003-2026",
+ "lots": 36,
+ "deeds": 90,
+ "links": 54,
+ "link_match": {
+  "exact": 50,
+  "fuzzy": 2,
+  "no match": 2
+ },
+ "verdicts": {
+  "clean": 34,
+  "defective": 2
+ },
+ "findings": [
+  {
+   "lot": 7,
+   "rule": "PROP-CHAIN",
+   "transfer": "T2",
+   "review": "false alarm: the same couple, their two-word surname written with a space when they bought and without one when they sold"
+  },
+  {
+   "lot": 8,
+   "rule": "PROP-CHAIN",
+   "transfer": "T2",
+   "review": "register inconsistency: the buyer is recorded as an exchange titleholder '...2006-175' and sells as '...2007-175'; probably the same entity, but the public record does not say so, so a person should check"
+  }
+ ],
+ "days_signing_to_recording": {
+  "median": 22.0,
+  "max": 336,
+  "over_90": 12,
+  "of": 90
+ },
+ "signed_before_previous_recorded": 4,
+ "per_lot": [
+  {
+   "lot": 1,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 2,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 3,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 4,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 5,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 6,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 7,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2"
+    }
+   ]
+  },
+  {
+   "lot": 8,
+   "deeds": 2,
+   "verdict": "defective",
+   "findings": [
+    {
+     "rule": "PROP-CHAIN",
+     "transfer": "T2"
+    }
+   ]
+  },
+  {
+   "lot": 9,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 10,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 11,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 12,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 13,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 14,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 15,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 16,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 17,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 18,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 19,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 20,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 21,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 22,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 23,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 24,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 25,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 26,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 27,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 28,
+   "deeds": 4,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 29,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 30,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 31,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 32,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 33,
+   "deeds": 5,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 34,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 35,
+   "deeds": 3,
+   "verdict": "clean",
+   "findings": []
+  },
+  {
+   "lot": 36,
+   "deeds": 2,
+   "verdict": "clean",
+   "findings": []
+  }
+ ]
+}

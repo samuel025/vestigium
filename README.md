@@ -6,7 +6,7 @@ Built on [Relate by Neo4j](https://relatedb.ai).
 
 ![Vestigium checking a chain: three links pass, the fourth breaks](docs/img/landing.png)
 
-> All data is **synthetic**: fictional parties, a fictional jurisdiction, generic rules. Nothing here is real, and nothing here is legal advice.
+> The benchmark data is **synthetic**: fictional parties, a fictional jurisdiction, generic rules. One section tests the engine on 90 real, public New York City deeds (anonymised in this repo). Nothing here is legal advice.
 
 **Open the overview:** `uv run python -m vestigium.serve`, then <http://127.0.0.1:8000/>. The app is at <http://127.0.0.1:8000/app.html>.
 
@@ -63,7 +63,7 @@ Ownership is a chain of *relationships*: who gave up the asset, who received it,
 git clone https://github.com/samuel025/vestigium && cd vestigium
 uv sync                                   # installs relate-db (Relate's Python package), google-genai, mcp, pillow
 cp .env.example .env                      # only for the LLM parts; add GEMINI_API_KEY (several keys can be rotated)
-uv run pytest -q                          # 38 tests, no network needed
+uv run pytest -q                          # 43 tests, no network needed
 uv run python -m vestigium.build_store    # writes vestigium.rl and answer_key.json
 uv run python -m vestigium.serve          # overview at http://127.0.0.1:8000/ , app at /app.html
 uv run python -m vestigium.cli prop-014   # one case in the terminal: verdict, rule, evidence, fix, timeline
@@ -218,6 +218,20 @@ These tests found two real problems, now fixed, which is why they are worth runn
 
 What this does *not* show: that the rules are right for any real jurisdiction. It shows the engine is deterministic, order- and name-independent, and does what its rules say.
 
+### Real records: 90 deeds from New York City
+
+Everything above is synthetic. To see what happens on real records, `vestigium/acris.py` imports deeds from **NYC ACRIS**, the city's public register of property documents (NYC Open Data: Real Property Legals, Master and Parties). The sample is 5 adjacent blocks in one Brooklyn neighbourhood: **36 lots with two or more deeds, 90 deeds recorded 2003–2026, 54 seller-to-previous-buyer links**. Each deed brings its two real dates (signed, recorded) and its grantor and grantee names; the importer builds the same graph and the **unchanged** rule engine checks it.
+
+| | |
+|---|---|
+| Verdicts | 34 clean, 2 defective |
+| Links where the seller matched the previous buyer | 50 exactly, 2 by the stated fuzzy match (a middle name spelled out; two companies listed on one line), 2 not at all |
+| The 2 findings, checked by hand | **1 false alarm**: the same couple, their two-word surname written with a space when they bought and without one when they sold. **1 real register inconsistency**: a buyer recorded as an exchange titleholder "...2006-175" sells as "...2007-175"; probably the same entity, but the record does not say so, which is exactly what a person should check |
+| Days from signing to recording | median 22, max 336; 12 of 90 deeds took over 90 days |
+| Deeds signed before the previous deed was on the register | 4 of 54 |
+
+**What it shows:** on real records the chain rule is quiet (no flood of false alarms) and the flags it raises are worth a look; the two-date model is not academic, since one deed in eight took over three months to reach the register. **What it does not show:** that Vestigium finds real fraud (none was expected in 36 ordinary lots), or that it works beyond deeds. Limits, stated plainly: ACRIS does not say which earlier deed a seller acquired through, so deeds are linked in recorded order and the earliest deed in the window is treated as the start; whether a seller "is" the previous buyer is decided by a deliberately simple, tested name match in the importer (`same()`), which misses spelling variants like the one above rather than guessing; liens are not checked, because a satisfaction is not linked to its mortgage in the fields we fetched and New York mortgages are routinely satisfied weeks after the sale. Raw downloads contain real names and stay in `data/acris_raw/` (gitignored); the committed report (`results/acris_real.json`) is anonymised. To reproduce, export the three datasets filtered to the lots you want into `data/acris_raw/` and run `uv run python -m vestigium.acris`.
+
 ### Limitations — please read
 
 - **Arm B is noisy.** Its three repeats scored 52.5%, 62.5% and 47.5%, so its spread is wide; the free-tier quota meant B (about 12.6 requests per case) took two days to finish. Rerun with
@@ -225,6 +239,7 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
   and reran it (correct in all 3 repeats). Across the 120 C runs the repair retry fired once (prop-050, repeat 3) and the repaired answer was correct.
 - **Small sample.** 40 cases (3 inconclusive and 4 clean per pack-side are few), one model, so the percentages for A and B are rough.
 - **The rules and the generator were written together by the same people.** 100% for C and D is expected and is not evidence the rules are right for the real world. Arm D exists to show this: it is the ceiling of the rules themselves, and it is the agent-free baseline.
+- **Real-record test is small and deeds-only** (90 NYC deeds, see *Real records*); everything else is synthetic.
 - **The held-out split is a flag, not a time gap.** Every third case is marked held-out and not used to tune; cases were not written after a rule freeze.
 - **One small model.** A stronger model might narrow the gap for A and B.
 - **Arms A-D assume a correct graph.** Extraction is scored separately (section above), not chained into the four-arm table. Not scored: per-case fix-by-copy accuracy for agent-proposed records
@@ -246,6 +261,7 @@ vestigium/mcp_server.py   MCP tools                    vestigium/serve.py       
 vestigium/arms.py         benchmark arms A-D           vestigium/bench.py        scoring + report (resumable)
 vestigium/intake_bench.py extraction benchmark         vestigium/scan_bench.py   scan benchmark (resumable)
 vestigium/graphlab.py     read-only Cypher, remove-a-relationship experiments
+vestigium/acris.py        real NYC deeds (ACRIS) -> graph -> rules
 vestigium/llm.py          Gemini wrapper: key rotation, pacing, tool loop, vision
 demo/index.html           overview / landing page      demo/app.html             the app
 demo/data.js, bench.js    exported data                vestigium.rl              persistent Relate store
