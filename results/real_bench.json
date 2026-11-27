@@ -1,0 +1,53 @@
+{
+ "source": "Philadelphia Real Estate Transfer Tax records, deterministic sample of seller-to-previous-buyer links (half flagged by the engine, half accepted), shuffled",
+ "labelled_by": "a person, blind to the engine's answer, reading only the two register entries",
+ "items": 150,
+ "labelled": 150,
+ "label_counts": {
+  "variant": 34,
+  "same": 71,
+  "different": 45
+ },
+ "engine": {
+  "n": 150,
+  "accuracy": 80.0,
+  "precision": 60.0,
+  "recall": 100.0,
+  "true_breaks_found": 45,
+  "false_alarms": 30,
+  "breaks_missed": 0,
+  "correct_links": 75
+ },
+ "gemini_reading_names": {
+  "n": 148,
+  "accuracy": 93.9,
+  "precision": 86.0,
+  "recall": 95.6,
+  "true_breaks_found": 43,
+  "false_alarms": 7,
+  "breaks_missed": 2,
+  "correct_links": 96
+ },
+ "engine_flags_ai_may_clear": {
+  "n": 150,
+  "accuracy": 96.7,
+  "precision": 93.5,
+  "recall": 95.6,
+  "true_breaks_found": 43,
+  "false_alarms": 3,
+  "breaks_missed": 2,
+  "correct_links": 102
+ },
+ "engine_decides_ai_labels_flags": {
+  "flags": 75,
+  "real_breaks": 45,
+  "false_alarms": 30,
+  "false_alarms_labelled_probable_variant": 27,
+  "real_breaks_labelled_probable_variant": 2
+ },
+ "what_the_engine_flagged_turned_out_to_be": {
+  "variant": 15,
+  "same": 15,
+  "different": 45
+ }
+}

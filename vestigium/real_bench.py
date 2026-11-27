@@ -114,10 +114,18 @@ def score():
     gemini = {i: {"same": "link", "different": "break"}.get(a) for i, a in gem.items()}
     from collections import Counter
     flagged_labels = Counter(labels[i] for i in labels if items[i]["_engine_flagged"])
+    # Two ways to combine them. (1) The AI may clear a flag it reads as the same party (the AI decides: against our principle).
+    # (2) The rules decide; the AI only labels each flag "probable spelling variant" or not, so a person checks those first.
+    cleared = {i: ("break" if items[i]["_engine_flagged"] and gem.get(i) != "same" else "link") for i in items} if gem else None
+    fl = [i for i in truth if items[i]["_engine_flagged"]]
+    annotate = dict(flags=len(fl), real_breaks=sum(truth[i] == "break" for i in fl), false_alarms=sum(truth[i] == "link" for i in fl),
+                    false_alarms_labelled_probable_variant=sum(truth[i] == "link" and gem.get(i) == "same" for i in fl),
+                    real_breaks_labelled_probable_variant=sum(truth[i] == "break" and gem.get(i) == "same" for i in fl)) if gem else None
     out = dict(source="Philadelphia Real Estate Transfer Tax records, deterministic sample of seller-to-previous-buyer links (half flagged by the engine, half accepted), shuffled",
                labelled_by="a person, blind to the engine's answer, reading only the two register entries",
                items=len(items), labelled=len(labels), label_counts=dict(Counter(labels.values())),
                engine=metrics(engine), gemini_reading_names=metrics(gemini) if gem else None,
+               engine_flags_ai_may_clear=metrics(cleared) if gem else None, engine_decides_ai_labels_flags=annotate,
                what_the_engine_flagged_turned_out_to_be=dict(flagged_labels))
     (ROOT / "results" / "real_bench.json").write_text(json.dumps(out, indent=1))
     return out

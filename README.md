@@ -44,7 +44,17 @@ Open the [demo case](https://vestigium-demo.vercel.app/app.html?case=prop-014): 
 
 The hard tier holds the cases that trip people up: two defects in one chain, sound chains that look suspicious, a missing record under a "title is clear" summary, a power of attorney that does not cover a sale, contradictory filings, and an early defect followed by a long run of clean sales. The rules were frozen (with fingerprints) *before* those cases existed. [Full benchmark →](docs/benchmark.md)
 
-**2. It runs on real records.** The unchanged engine checked **30,803 real public deeds** from New York and Philadelphia (about 10,000 properties). 90% of seller-to-buyer links match; every flag falls into an explainable kind (a name spelled two ways, an estate selling, a foreclosure), and **445 sales have no record anywhere in the public register of how the seller got the property**, exactly what a title examiner chases. Real data also found bugs in our own name matching, now fixed and tested. [Real records →](docs/real-records.md)
+**2. It runs on real records.** The unchanged engine checked **30,803 real public deeds** from New York and Philadelphia (about 10,000 properties). 90% of seller-to-buyer links match; every flag falls into an explainable kind (a name spelled two ways, an estate selling, a foreclosure), and **445 sales have no record anywhere in the public register of how the seller got the property**, exactly what a title examiner chases. Real data also found bugs in our own name matching, now fixed and tested.
+
+**A blind test on real records.** Public registers publish no answer key, so a person labelled 150 real Philadelphia links (half the engine flagged, half it accepted, shuffled, engine answers hidden): is the seller the previous buyer?
+
+| Against blind human labels | Accuracy | Real breaks caught | False alarms |
+|---|---|---|---|
+| Rule engine alone | 80.0% | **45 of 45** | 30 (every one a register typo: "SEMMELRITH"/"SEMMELROTH") |
+| Gemini reading the names alone | 93.9% | 43 of 45 | 7 (some on identical names) |
+| **Rules decide, AI labels each flag** | rules' verdicts | **45 of 45** | 30, of which **27 arrive labelled "probable spelling variant"** |
+
+The rules never let a real break through; the AI is better at reading messy names but misses some breaks and invents others. Together, with the rules deciding and the AI only annotating, nothing is missed and almost every false alarm is pre-sorted for a quick human check. [Real records →](docs/real-records.md)
 
 ![The Real records section of the overview page](docs/img/real-records.png)
 
@@ -103,8 +113,8 @@ uv run python -m vestigium.serve         # then open http://127.0.0.1:8000/app.h
 
 ## Honest limits
 
-- **The benchmark is synthetic, and the rules and cases share an author.** So 100% shows the engine does what its rules say, not that the rules fit any real jurisdiction. That is why the hard tier was written after a rule freeze, and why we tested on 30,803 real deeds.
-- **The real-record test covers deeds only** (not liens or powers of attorney), and a flag there means "worth a look", not a proven defect.
+- **The agent benchmarks are synthetic, and the rules and cases share an author.** So 100% there shows the engine does what its rules say. That is why the hard tier was written after a rule freeze, and why the chain rule is also measured **on real records against blind human labels** (above).
+- **Real records can only test the chain and date rules.** Public registers hold neither a power of attorney's terms nor which payoff released which mortgage, so the authority and lien rules are tested on synthetic cases. The blind test has one labeller and 150 links; a flag on real data means "worth a look", not a proven defect.
 - **Small samples, one small model:** 40 + 40 held-out cases on Gemini's free tier.
 - **Scans are tested on synthetic pages:** clean PDFs and phone photos read perfectly; poor photos are right 95–97.5% of the time, and a misread both reads share still gets through.
 - **Not legal advice.** The rules are generic and the jurisdiction is fictional.

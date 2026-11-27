@@ -50,6 +50,8 @@ An **AI agent** investigates the graph, calls the checks and explains the result
 
 **A harder tier** of 40 more held-out cases, written only after the rules were frozen (multi-defect chains, sound chains that look suspicious, missing records under a 'title is clear' summary, powers that do not cover a sale, contradictory filings): documents only 72.5%, graph with its own Cypher 50%, graph with the rule engine **100% in all three repeats**. Shown a missing record under a 'title is clear' summary, the documents-only agent said clean 18 times out of 18; the rule-backed agent abstained every time and named the missing record.
 
+**On real records, against blind human labels.** No public register has an answer key, so a person labelled 150 real Philadelphia seller-to-buyer links without seeing the engine's answers. The rule engine caught **all 45 real breaks** (100% recall) with 30 false alarms, every one a typo in the register. Gemini reading the same names was more accurate overall (93.9%) but missed 2 breaks. With the rules deciding and the AI only labelling flags, nothing is missed and 27 of the 30 false alarms arrive marked "probable spelling variant".
+
 A graph by itself did not help; connected context plus deterministic checks did. We say plainly that the rules and the generator were written together (so 100% is a ceiling, not a real-world claim,
 which is why Arm D exists), that Arm B is noisy (47.5% to 62.5% across its three repeats), that the original held-out split is a flag, not a time gap (the hard tier is not: its cases were written after the rules were frozen). The generator, answer key, raw answers for every run, full transcripts for 12 showcase cases and a one-command rerun are in the repo.
 

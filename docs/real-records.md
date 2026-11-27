@@ -46,3 +46,26 @@ We read random samples by hand (drawn from the first 1,000 properties, which are
 **What it shows:** the rule engine runs unchanged on 30,803 real deeds in about a minute and a half; its flags fall into a few explainable kinds; and recording delays are common (1 deed in 12 took over three months), so the two-date model matters. **What it does not show:** that any flagged property has an actual title defect (we did not search beyond the public register), or anything about liens: a satisfaction is not linked to its mortgage in the fields we read, and mortgages are routinely satisfied weeks after a sale. Deeds are linked in recorded order because neither register says which earlier deed a seller acquired through.
 
 **Privacy and reproduction.** Raw downloads hold real names and stay in `data/acris_raw/` and `data/philly_raw/` (gitignored); the committed reports (`results/acris_real.json`, `results/philly_real.json`) and the app data (`demo/real.js`) carry no names, addresses or parcel numbers (app ids are one-way hashes). Philadelphia: `uv run python -m vestigium.philly fetch --n 10000` (about 3 minutes, free public API) then `uv run python -m vestigium.philly` (about 5 minutes including the register lookups). New York: fetch the lots from Real Property Legals (e.g. `https://data.cityofnewyork.us/resource/8h5j-fqxa.json?$where=borough=3 AND block between 5200 and 5204&$limit=5000`), then those documents' rows from Master (`bnx9-e6tj`) and the deeds' parties from Parties (`636b-3b5g`) with `$where=document_id in(...)`; save them as `legals.json`, `master.json` (keyed by `document_id`) and `parties.json` in `data/acris_raw/`, and run `uv run python -m vestigium.acris`, which also rebuilds `demo/real.js`. (The NYC API refused our network, so we fetched those pages through Firecrawl's scraper; the data is the same public API response.)
+
+
+## A benchmark on real records, against blind human labels
+
+The numbers above describe what the engine flags; they cannot say whether a flag is *right*, because no public register publishes an answer key. So a person supplied one.
+
+**Protocol** (`vestigium/real_bench.py`). From the Philadelphia sample, 150 seller-to-previous-buyer links were drawn with a fixed seed: 75 the engine flagged and 75 it accepted, shuffled under neutral ids. A local labelling page (`demo/label.html`, served by `vestigium.serve`) showed only the two real register entries, never the engine's answer (a test checks this), and asked one question: *is the seller of the later deed the same party as the buyer of the earlier one?* Answers: same party · same party, written differently · different party · can't tell. The same question went to Gemini (`gemini-3.5-flash-lite`), one link at a time, also blind. Real names stay in `data/philly_raw/` (gitignored); `results/real_bench.json` holds counts only.
+
+**Labels:** 71 same party, 34 same party written differently, 45 different party, 0 can't tell.
+
+| Against the human labels | Accuracy | Precision | Recall | Breaks missed | False alarms |
+|---|---|---|---|---|---|
+| Rule engine (stated name matching + `PROP-CHAIN`) | 80.0% | 60.0% | **100%** | **0 of 45** | 30 |
+| Gemini reading the names | 93.9% | 86.0% | 95.6% | 2 of 45 | 7 |
+| Engine flags, AI may clear a flag it reads as the same party | 96.7% | 93.5% | 95.6% | 2 of 45 | 3 |
+| **Engine decides, AI only labels each flag** | 80.0% | 60.0% | **100%** | **0** | 30, **27 labelled "probable spelling variant"** |
+
+**What we found.**
+- **The rules never missed a real break.** All 30 false alarms are typos in the register itself ("SEMMELRITH" / "SEMMELROTH", "MANANGEMENT" / "MANAGEMENT", "PLYMOUNTH" / "PLYMOUTH", "WORLEY" / "WORKLEY"): the matcher deliberately refuses near-miss names.
+- **Gemini reads messy names far better**, but it called identical names different (e.g. the same two lenders listed on both deeds) and accepted 2 links the labeller judged broken. Both are arguable: a woman with the same first name and middle initial under a new surname (possibly a marriage), and a trust company that was taken over by another bank (possibly a successor). They are counted as misses.
+- **Letting the AI clear flags is the most accurate (96.7%)**, but it lets those 2 through and it means the AI decides. Keeping the rules in charge and using the AI only to **label** flags keeps every real break and pre-sorts 27 of the 30 false alarms as "probable spelling variant", which is how a person would want to review them. This is the project's principle (the AI reads, the rules decide) measured on real data.
+
+**Limits.** One labeller; 150 links; one city; the question is name identity, so this measures the chain rule and the name matching, not the authority or lien rules. The 75/75 split oversamples flags, so precision here is not the precision on the whole register.
