@@ -190,6 +190,27 @@ if __name__ == "__main__":
         print(json.dumps({k: v for k, v in rep.items() if k != "per_property"}, indent=1), flush=True)
 
 
+def ai_reading(opa, prev, deed):
+    """Gemini reads the two sets of names (the blind-test question) and answers same / different / unsure. Cached locally,
+    because the names are real; only the one-word answer reaches the app."""
+    f = RAW / "ai_labels.json"
+    cache = json.loads(f.read_text()) if f.exists() else {}
+    key = f"{opa}|{deed['id']}"
+    if key not in cache:
+        from . import llm
+        from .real_bench import PROMPT
+        p = PROMPT.format(e_type=prev.get("type", "DEED"), e_signed=prev["effective"], e_rec=prev["recorded"], e_buyers="; ".join(prev["buyers"]),
+                          l_type=deed.get("type", "DEED"), l_signed=deed["effective"], l_rec=deed["recorded"], l_sellers="; ".join(deed["sellers"]))
+        try:
+            _, st = llm.ask("You compare names in property records. Answer with one word.", p, max_calls=0)
+            w = str(st.get("final_text") or "").strip().lower().strip('"*. ')
+            cache[key] = "same" if w.startswith("same") else "different" if w.startswith("diff") else "unsure"
+        except Exception:
+            return None
+        f.write_text(json.dumps(cache))
+    return cache[key]
+
+
 def export_app(per_category=4, clean=6):
     """A representative, deterministic selection of Philadelphia properties for the app: a few of every kind of finding,
     plus clean ones. Anonymised like New York (numbered owners, no names, no addresses)."""
@@ -209,8 +230,16 @@ def export_app(per_category=4, clean=6):
     import hashlib
     for k, opa, deeds, cs in picked:
         sid = hashlib.sha1(('vestigium:' + opa).encode()).hexdigest()[:6]   # stable across sample sizes; not reversible to a parcel
-        def notes(r, cs=cs):
+        def notes(r, cs=cs, deeds=deeds, opa=opa):
             n = [f"Why it was flagged (importer's category, from the full public register): {c}." for c in dict.fromkeys(cs)]
+            for f in r["findings"]:                   # the AI reads the names; it may label a flag, never clear it
+                if f["rule"] != "PROP-CHAIN": continue
+                i = int(f["transfer"][1:]); word = ai_reading(opa, deeds[i - 2], deeds[i - 1])
+                if word == "same":
+                    n.append(f"AI reading of the names at {f['transfer']}: probable spelling variant of the previous buyer. The rule still flags it; "
+                             "a person should confirm the names (in our blind test, 27 of 30 such false alarms were labelled this way).")
+                elif word == "different":
+                    n.append(f"AI reading of the names at {f['transfer']}: a different party from the previous buyer, which agrees with the rule.")
             return n + ["Real public record (Philadelphia Real Estate Transfer Tax records), anonymised. Deeds are linked in recorded order "
                         "and names are matched by the importer; sheriff's deeds are lawful breaks the synthetic rules do not model."]
         c = app_case(sid, deeds, f"phl-{sid}", f"Philadelphia {sid}", "Philadelphia property", notes, None, None, None)

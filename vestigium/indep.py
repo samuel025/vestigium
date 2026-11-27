@@ -17,7 +17,7 @@ from collections import Counter, defaultdict
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CASES, RUNS = ROOT / "results" / "indep_cases.jsonl", ROOT / "results" / "indep_runs.jsonl"
-AUTHOR = "gemini-2.5-flash"
+AUTHOR = "gemma-4-26b-a4b-it"
 
 # situation -> (what the author is told, the correct verdict). Plain English, no rule names, no schema.
 SITUATIONS = {
