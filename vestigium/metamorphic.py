@@ -12,7 +12,7 @@ from .engine import run_checks
 from .whatif import build
 
 DATE_KEYS = {"effective", "recorded", "valid_from", "valid_to", "died", "died_recorded"}
-NAME_KEYS = {"name", "agent", "holder"}
+NAME_KEYS = {"name", "agent", "holder", "signer"}
 
 
 def signature(res, idmap=None):
@@ -50,10 +50,13 @@ def rename_ids(case, rng):
 
 
 def rename_names(case, rng):
+    """Rename every person consistently: the same name always becomes the same new name, wherever it appears
+    (a party, the agent a power of attorney names, the person who signed)."""
     c = copy.deepcopy(case)
+    new = {}
     for _, p in c["nodes"]:
         for k in NAME_KEYS & p.keys():
-            p[k] = f"Zed{rng.randint(10**5, 10**6)} Q"
+            p[k] = new.setdefault(p[k], f"Zed{rng.randint(10**5, 10**6)} Q")
     return c, {}
 
 

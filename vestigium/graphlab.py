@@ -5,7 +5,7 @@ import re
 from .engine import run_checks, PACKS
 from .whatif import build
 
-REMOVABLE = ("FOLLOWS", "ACTED_UNDER", "CLEARED_BY")      # the relationships whose absence the rules can notice
+REMOVABLE = ("FOLLOWS", "ACTED_UNDER", "CLEARED_BY", "GRANTED_BY", "REVOKED_BY")      # the relationships whose absence the rules can notice
 
 PRESETS = {
     "chain": dict(title="Walk the chain", text="Each transfer, who sold, who bought, and the earlier transfer it follows", cypher="""

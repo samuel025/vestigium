@@ -364,8 +364,8 @@ const V=l=>`<span class="verdict v-${l}">${l.toUpperCase()}</span>`;
 const col={clean:'var(--ok)',defective:'var(--bad)',inconclusive:'var(--gap)'};
 const TR=window.VESTIGIUM_TRACES||{};
 const KIND={'PROP-AUTH':'Expired authority','PROP-LIEN':'Unreleased lien','PROP-CHAIN':'Seller was not the owner','PROP-DUP':'Sold twice','PROP-DATE':'Deed dated before ownership','PROP-DEATH':'Signed after death','PROP-GAP':'Gap in the chain','PROP-AUTH-MISSING':'Agent with no authority on file','clean':'Clean chain','adversarial':'Misleading "title is clear" summary',
- 'VEH-OWN':'Seller not the titled owner','VEH-LIEN':'Unreleased lien','VEH-BRAND':'Salvage brand dropped','VEH-ODO':'Odometer rolled back','VEH-GAP':'Gap in the title chain','VEH-ODO-MISSING':'Odometer not stated','pasted dossier':'Your dossier','real-clean':'Real records: the chain checks out','real-flag':'Real records: a seller the register does not match'};
-const SHORT={'real-clean':'Clean','real-flag':'Flagged, reviewed by hand','adversarial':'Misleading summary','PROP-AUTH-MISSING':'Missing authority','PROP-CHAIN':'Seller not the owner','PROP-DATE':'Deed before ownership','VEH-OWN':'Seller not the owner','VEH-ODO-MISSING':'Odometer not stated'};
+ 'VEH-OWN':'Seller not the titled owner','VEH-LIEN':'Unreleased lien','VEH-BRAND':'Salvage brand dropped','VEH-ODO':'Odometer rolled back','VEH-GAP':'Gap in the title chain','VEH-ODO-MISSING':'Odometer not stated','pasted dossier':'Your dossier','PROP-AUTH-PRINCIPAL':'Power of attorney from the wrong person','PROP-AUTH-SCOPE':'Power of attorney that does not cover a sale','PROP-AUTH-REVOKED':'Power of attorney revoked before the sale','PROP-AUTH-SIGNER':'Signed by someone the power does not name','revoked-late':'Revoked before the sale, filed after it','auth-valid':'Agent-signed sale that holds up','real-clean':'Real records: the chain checks out','real-flag':'Real records: a seller the register does not match'};
+const SHORT={'PROP-AUTH-PRINCIPAL':'Wrong person granted it','PROP-AUTH-SCOPE':'Power does not cover a sale','PROP-AUTH-REVOKED':'Revoked before the sale','PROP-AUTH-SIGNER':'Wrong signer','revoked-late':'Revoked, filed late','auth-valid':'Valid agent sale','real-clean':'Clean','real-flag':'Flagged, reviewed by hand','adversarial':'Misleading summary','PROP-AUTH-MISSING':'Missing authority','PROP-CHAIN':'Seller not the owner','PROP-DATE':'Deed before ownership','VEH-OWN':'Seller not the owner','VEH-ODO-MISSING':'Odometer not stated'};
 const kname=c=>KIND[c.kind]||c.kind,kshort=c=>SHORT[c.kind]||kname(c);
 const byId=(c,i)=>c.nodes.find(n=>n.id===i);
 const nTransfers=c=>c.nodes.filter(n=>n.label==='Transfer').length;
@@ -376,9 +376,9 @@ function fill(){if(pack==='real'){const list=D.filter(c=>c.split==='real'),group
     const rank=g=>/flagged/.test(g)?0:/clean/.test(g)?(g.startsWith('New York')?1:9):2;groups.sort((a,b)=>rank(a[0])-rank(b[0]));
     const o=c=>`<option value="${c.id}">${c.title} · ${c.short} · ${nTransfers(c)} deeds</option>`;
     $('pick').innerHTML=groups.map(([g,cs])=>`<optgroup label="${esc(g)}">${cs.map(o).join('')}</optgroup>`).join('');pick(groups[0][1][0].id);return}
-  const list=D.filter(c=>c.domain===pack&&c.split!=='real'),show=list.filter(c=>TR[c.id]),rest=list.filter(c=>!TR[c.id]&&c.id!=='pasted'),pasted=list.filter(c=>c.id==='pasted');
+  const list=D.filter(c=>c.domain===pack&&c.split!=='real'),show=list.filter(c=>TR[c.id]),rest=list.filter(c=>!TR[c.id]&&c.id!=='pasted'&&c.split!=='auth'),auth=list.filter(c=>c.split==='auth'),pasted=list.filter(c=>c.id==='pasted');
   const opt=c=>`<option value="${c.id}">${kshort(c)} · ${nTransfers(c)} transfers · ${c.id}</option>`;
-  $('pick').innerHTML=(pasted.length?`<optgroup label="Yours">${pasted.map(opt).join('')}</optgroup>`:'')+(show.length?`<optgroup label="Showcase (agent replay available)">${show.map(opt).join('')}</optgroup>`:'')+`<optgroup label="More ${pack} cases">${rest.map(opt).join('')}</optgroup>`;
+  $('pick').innerHTML=(pasted.length?`<optgroup label="Yours">${pasted.map(opt).join('')}</optgroup>`:'')+(show.length?`<optgroup label="Showcase (agent replay available)">${show.map(opt).join('')}</optgroup>`:'')+(auth.length?`<optgroup label="Power of attorney, in depth">${auth.map(opt).join('')}</optgroup>`:'')+`<optgroup label="More ${pack} cases">${rest.map(opt).join('')}</optgroup>`;
   pick((show[0]||list[0]).id)}
 function pick(id){cur=D.find(c=>c.id===id);const r=cur.result;sel=(r.findings.length+r.missing.length)?0:null;
   tshow=false;tstep=0;clearInterval(tplay);clearInterval(slideT);$('trbtn').textContent='Replay the investigation';
@@ -394,6 +394,15 @@ const idxLE=(arr,d)=>{let i=0;arr.forEach((x,j)=>{if(x<=d)i=j});return arr[0]>d?
 function TT(){const c=cur,cell=c.grid[vstep][step];return{valid:c.vdates[vstep],known:c.kdates[step],code:cell[0],keys:cell[1]?cell[1].split(','):[],full:atEnd()}}
 const VER=['clean','defective','inconclusive'];
 function ruleKind(r){if(!KIND2[r]){Object.values((window.VESTIGIUM_LAB||{}).rules||{}).flat().forEach(x=>KIND2[x.id]=x.kind)}return KIND2[r]||(/MISSING|GAP|NO-RECORDS|UNREAD/.test(r)?'gap':'defect')}
+/* ---- authority, in depth: every question the rules ask about a power of attorney ---- */
+function authChecks(c,rr,tn){const au=rr.find(r=>r[0]===tn.id&&r[1]==='ACTED_UNDER');if(!au)return null;const a=byId(c,au[2]);if(!a)return null;
+  const seller=rr.find(r=>r[1]==='FROM'&&r[2]===tn.id),gb=rr.find(r=>r[0]===a.id&&r[1]==='GRANTED_BY'),rv=rr.find(r=>r[0]===a.id&&r[1]==='REVOKED_BY'),rd=rv&&byId(c,rv[2]);
+  const out=[{q:'in force on the signing date',ok:tn.effective>=a.valid_from&&(!a.valid_to||tn.effective<=a.valid_to),d:`valid ${a.valid_from} to ${a.valid_to||'open'}, signed ${tn.effective}`}];
+  if(gb){const g=byId(c,gb[2]);out.push({q:'granted by the seller',ok:!!(seller&&gb[2]===seller[0]),d:`granted by ${g?g.name:gb[2]}${seller&&byId(c,seller[0])?', seller '+byId(c,seller[0]).name:''}`})}
+  if(a.scope)out.push({q:'covers selling',ok:a.scope==='sell',d:a.scope==='sell'?'authorises the sale':`authorises ${a.scope} only`});
+  if(rd)out.push({q:'not revoked before the signing',ok:!(rd.effective<=tn.effective),d:`revoked ${rd.effective}, filed ${rd.recorded}`});
+  if(tn.signer)out.push({q:'signed by the agent it names',ok:tn.signer===a.agent,d:`${tn.signer} signed; it names ${a.agent}`});
+  return{au,a,out,ok:out.every(x=>x.ok)}}
 /* ---- main render ---- */
 function render(){const c=cur,tt=TT(),known=tt.known,valid=tt.valid,ver=VER[tt.code],full=tt.full,res=c.result;
   const fullItems=[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))];
@@ -442,7 +451,7 @@ function graph(items,known,full){const c=cur,ts=c.nodes.filter(n=>n.label==='Tra
   const el=$('graph');el.classList.toggle('pop',anim);el.innerHTML=h;
   // authority and claims, linked to the selected proof
   const sev=new Set(need);
-  $('attach').innerHTML='<span class="eyebrow">Attached records</span>'+(c.nodes.filter(n=>['Claim','Authority'].includes(n.label)).map(n=>{const txt=n.label==='Claim'?`${n.kind} · ${n.holder}`:`authority · ${n.agent} · ${n.valid_from} → ${n.valid_to||'open'}`;const hot=tpass(n.id).some(p=>sev.has(p));return `<span class="chipx ${hot?'hot':''}">${esc(txt)}</span>`}).join('')||'<span class="note">none: no claims or delegated authority in this chain</span>');
+  $('attach').innerHTML='<span class="eyebrow">Attached records</span>'+(c.nodes.filter(n=>['Claim','Authority'].includes(n.label)).map(n=>{const txt=n.label==='Claim'?`${n.kind} · ${n.holder}`:`power of attorney · ${n.agent} · ${n.valid_from} → ${n.valid_to||'open'}`+(n.scope&&n.scope!=='sell'?` · ${n.scope} only`:'')+(c.rels.some(r=>r[0]===n.id&&r[1]==='REVOKED_BY')?' · revoked':'');const hot=tpass(n.id).some(p=>sev.has(p));return `<span class="chipx ${hot?'hot':''}">${esc(txt)}</span>`}).join('')||'<span class="note">none: no claims or delegated authority in this chain</span>');
   // keep the flagged transfer in view
   const fi=ts.findIndex(t=>bad.has(t.id)||gap.has(t.id));
   requestAnimationFrame(()=>{if(anim||sel!==null){const b=fi>=0&&el.children[fi*2];el.style.scrollBehavior=anim?'auto':'smooth';if(b&&anim)el.scrollLeft=Math.max(0,b.offsetLeft-el.clientWidth/2+b.offsetWidth/2);else if(anim)el.scrollLeft=0}edges()})}
@@ -562,8 +571,8 @@ const LAB=window.VESTIGIUM_LAB||{rules:{property:[],vehicle:[]},presets:{}};
 let L={node:null,edge:null,tab:null,removed:null,rm:null,rowSel:null,walk:null,walkT:null,res:null,busy:false};
 const sortedT=c=>c.nodes.filter(n=>n.label==='Transfer').sort((a,b)=>{const k=t=>/^T\d+$/.test(t.id)?+t.id.slice(1):1e3;return k(a)-k(b)||(a.id<b.id?-1:1)});
 const ekey=r=>r.join('>');
-const REM=['FOLLOWS','ACTED_UNDER','CLEARED_BY'];
-const EMEAN={FOLLOWS:'this transfer comes straight after that one (the link the chain is built from)',ACTED_UNDER:'the transfer was signed under that authority',CLEARED_BY:'the lien was released by that document',FROM:'the seller',TO:'the buyer',MOVES:'the transfer moves this asset',EVIDENCED_BY:'the passage of text that proves it',AGAINST:'the claim is against this asset'};
+const REM=['FOLLOWS','ACTED_UNDER','CLEARED_BY','GRANTED_BY','REVOKED_BY'];
+const EMEAN={GRANTED_BY:'who gave the power of attorney (it must be the seller)',REVOKED_BY:'the document that withdrew the power of attorney',FOLLOWS:'this transfer comes straight after that one (the link the chain is built from)',ACTED_UNDER:'the transfer was signed under that authority',CLEARED_BY:'the lien was released by that document',FROM:'the seller',TO:'the buyer',MOVES:'the transfer moves this asset',EVIDENCED_BY:'the passage of text that proves it',AGAINST:'the claim is against this asset'};
 function liveRels(){return L.removed?cur.rels.filter(r=>ekey(r)!==L.removed):cur.rels}
 /* the verdict as the engine sees the graph right now (with the removed relationship, if any) */
 function eff(){const res=cur.result;let items=[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))],verdict=res.verdict;
@@ -586,7 +595,7 @@ function labLayout(c){const ts=sortedT(c),sp=88,x0=140,YA=42,YT=158,YP=256,YE=36
   const top=[],last=ts.length?pos[ts[ts.length-1].id].x:x0;
   c.nodes.filter(n=>n.label==='Authority').forEach(a=>{const r=c.rels.filter(r=>r[1]==='ACTED_UNDER'&&r[2]===a.id).map(r=>pos[r[0]]).filter(Boolean);top.push({id:a.id,x:r.length?r.reduce((s,p)=>s+p.x,0)/r.length:x0,w:96})});
   c.nodes.filter(n=>n.label==='Claim').forEach(k=>{const nx=ts.find(t=>t.effective>k.effective);top.push({id:k.id,x:nx?pos[nx.id].x-sp/2:last+sp/2,w:96})});
-  c.nodes.filter(n=>n.label==='Document').forEach(d=>{const r=c.rels.find(r=>r[1]==='CLEARED_BY'&&r[2]===d.id),k=r&&top.find(t=>t.id===r[0]);top.push({id:d.id,x:(k?k.x:x0)+104,w:96})});
+  c.nodes.filter(n=>n.label==='Document').forEach(d=>{const r=c.rels.find(r=>(r[1]==='CLEARED_BY'||r[1]==='REVOKED_BY')&&r[2]===d.id),k=r&&top.find(t=>t.id===r[0]);top.push({id:d.id,x:(k?k.x:x0)+104,w:96})});
   top.sort((a,b)=>a.x-b.x);let mx=x0;top.forEach(t=>{if(t.x<mx)t.x=mx;mx=t.x+t.w+10;pos[t.id]={x:t.x,y:YA,w:t.w,h:30}});
   const own={};c.rels.filter(r=>r[1]==='EVIDENCED_BY').forEach(r=>(own[r[0]]=own[r[0]]||[]).push(r[2]));
   const taken=[];Object.entries(own).forEach(([o,ps])=>{const op=pos[o];if(op)ps.forEach((p,k)=>{let x=op.x+(k-(ps.length-1)/2)*16;while(taken.some(t=>Math.abs(t-x)<14))x+=14;taken.push(x);pos[p]={x,y:YE,w:10,h:10}})});
@@ -595,7 +604,7 @@ function epath(r,pos){const[a,t,b]=r,A=pos[a],B=pos[b];if(!A||!B)return null;let
   if(t==='FOLLOWS'){if(Math.abs(A.x-B.x)<=110)return`M${A.x-A.w/2} ${A.y}L${B.x+B.w/2+4} ${B.y}`;return`M${A.x} ${A.y-A.h/2}C${A.x} ${A.y-72} ${B.x} ${B.y-72} ${B.x} ${B.y-B.h/2-4}`}
   if(t==='FROM'){p=[A.x,A.y-A.h/2];q=[B.x-10,B.y+B.h/2+3]}else if(t==='TO'){p=[A.x+10,A.y+A.h/2];q=[B.x,B.y-B.h/2-3]}
   else if(t==='MOVES'){p=[A.x,A.y-A.h/2];q=[B.x+B.w/2+2,B.y]}else if(t==='ACTED_UNDER'){p=[A.x,A.y-A.h/2];q=[B.x,B.y+B.h/2+3]}
-  else if(t==='AGAINST'){p=[A.x-A.w/2,A.y];q=[B.x+B.w/2+3,B.y]}else if(t==='CLEARED_BY'){p=[A.x+A.w/2,A.y];q=[B.x-B.w/2-3,B.y]}
+  else if(t==='AGAINST'){p=[A.x-A.w/2,A.y];q=[B.x+B.w/2+3,B.y]}else if(t==='GRANTED_BY'){p=[A.x-A.w/4,A.y+A.h/2];q=[B.x,B.y-B.h/2-3]}else if(t==='REVOKED_BY'){p=[A.x+A.w/2,A.y];q=[B.x-B.w/2-3,B.y]}else if(t==='CLEARED_BY'){p=[A.x+A.w/2,A.y];q=[B.x-B.w/2-3,B.y]}
   else{p=[A.x,A.y+A.h/2];q=[B.x,B.y-B.h/2-1]}
   return`M${p[0]} ${p[1]}L${q[0]} ${q[1]}`}
 /* which nodes and relationships to light up: the walk, else the rows of the current query */
@@ -625,7 +634,7 @@ function labDraw(){const c=cur,{pos,W,H,YT,YP,YE}=labLayout(c),{n:hn,e:he}=lit()
     if(lab==='Transfer')body=`<rect x="${-p.w/2}" y="${-p.h/2}" width="${p.w}" height="${p.h}" rx="9"/><text class="id" y="-1">${esc(nd.id)}</text><text class="s" y="12">${esc(nd.effective)}</text>`;
     else if(lab==='Party')body=`<rect x="${-p.w/2}" y="${-p.h/2}" width="${p.w}" height="${p.h}" rx="12"/><text y="4">${esc((nd.name||'').length>14?nd.name.slice(0,13)+'…':nd.name)}</text>`;
     else if(lab==='Passage')body=`<rect x="${-p.w/2}" y="${-p.h/2}" width="${p.w}" height="${p.h}" rx="2"/>`;
-    else{const sub=lab==='Asset'?'asset':lab==='Authority'?`${(nd.valid_from||'').slice(0,7)} → ${(nd.valid_to||'open').slice(0,7)}`:lab==='Claim'?nd.kind:'release';
+    else{const sub=lab==='Asset'?'asset':lab==='Authority'?`${(nd.valid_from||'').slice(0,7)} → ${(nd.valid_to||'open').slice(0,7)}`:lab==='Claim'?nd.kind:(nd.kind||'release');
       body=`<rect x="${-p.w/2}" y="${-p.h/2}" width="${p.w}" height="${p.h}" rx="7"/><text class="id" y="-1" style="font-size:11.5px">${esc(nd.id)}</text><text class="s" y="10">${esc(sub)}</text>`}
     s+=`<g class="n ${lab.toLowerCase()} ${st} ${h} ${sel?'sel':''}" data-n="${esc(nd.id)}" transform="translate(${p.x} ${p.y})"><title>${esc(lab)} ${esc(nd.id)}</title>${body}</g>`});
   $('labsvg').innerHTML=s+'</svg>';
@@ -639,11 +648,11 @@ function labInspect(){const c=cur,box=$('labinsp');
     else{h+=`<div class="kv">${Object.entries(n).filter(([k])=>!['label','id','text','doc'].includes(k)).map(([k,v])=>`<span>${esc(k)} <i>${esc(v)}</i></span>`).join('')}</div>`;
       if(n.label==='Transfer'){const rr=liveRels(),from=rr.find(r=>r[1]==='FROM'&&r[2]===n.id),to=rr.find(r=>r[0]===n.id&&r[1]==='TO'),fo=rr.find(r=>r[0]===n.id&&r[1]==='FOLLOWS'),au=rr.find(r=>r[0]===n.id&&r[1]==='ACTED_UNDER');
         h+=`<div class="kv" style="margin-top:6px"><span>seller <i>${esc(from?byId(c,from[0]).name:'?')}</i></span><span>buyer <i>${esc(to?byId(c,to[2]).name:'?')}</i></span><span>follows <i>${fo?esc(fo[2]):'nothing'}</i></span></div>`;
-        if(au){const a=byId(c,au[2]),ok=n.effective>=a.valid_from&&(!a.valid_to||n.effective<=a.valid_to);
-          h+=`<div style="margin-top:8px">Signed by an agent on <b>${esc(n.effective)}</b> under <b>${esc(a.id)}</b>, valid <b>${esc(a.valid_from)}</b> to <b>${esc(a.valid_to||'open')}</b>: <span class="${ok?'ok':'no'}">${ok?'✓ inside the window':'✗ signed outside the window'}</span></div>`}
+        const ac=authChecks(c,rr,n);
+        if(ac)h+=`<div style="margin-top:8px">Signed by an agent under the power of attorney <b>${esc(ac.a.id)}</b> (agent: <b>${esc(ac.a.agent||'?')}</b>). Every question the rules ask:</div>`+ac.out.map(x=>`<div style="margin-top:4px"><span class="${x.ok?'ok':'no'}">${x.ok?'✓':'✗'}</span> <b>${esc(x.q)}</b> <span class="mut">· ${esc(x.d)}</span></div>`).join('');
         h+=`<button class="btn2" data-walk="${esc(n.id)}">Walk the chain back from here</button>`}}
     box.innerHTML=h;return}
-  box.innerHTML='Click a transfer, a party or a line. Select a <code>FOLLOWS</code>, <code>ACTED_UNDER</code> or <code>CLEARED_BY</code> line to remove it and watch the verdict change.'}
+  box.innerHTML='Click a transfer, a party or a line. Select a <code>FOLLOWS</code>, <code>ACTED_UNDER</code>, <code>GRANTED_BY</code>, <code>REVOKED_BY</code> or <code>CLEARED_BY</code> line to remove it and watch the verdict change.'}
 
 function labRes(){const E=eff(),b=$('labres');
   if(!L.removed||!L.rm){b.innerHTML=`<div class="note">Nothing removed. This is the graph exactly as stored; the verdict above is what the Cypher rules return on it.</div>`;return}
@@ -690,9 +699,9 @@ function walkStart(from){stopWalk();const c=cur,ts=sortedT(c);if(!ts.length)retu
     if(!same){broke++;log(`<code>${esc(t)}</code> → <code>${esc(p)}</code> · seller <b>${esc(seller?seller.name:'?')}</b> but ${esc(p)}'s buyer was <b>${esc(buyer?buyer.name:'?')}</b> <span class="no">✗ broken link</span>`,'badl')}
     else if(!dateok){broke++;log(`<code>${esc(t)}</code> → <code>${esc(p)}</code> · deed dated ${esc(tn.effective)}, before the seller acquired on ${esc(pn.effective)} <span class="no">✗ impossible order</span>`,'badl')}
     else log(`<code>${esc(t)}</code> → <code>${esc(p)}</code> · seller <b>${esc(seller.name)}</b> is ${esc(p)}'s buyer <span class="ok">✓</span>`,'okl');
-    const au=rr.find(r=>r[0]===t&&r[1]==='ACTED_UNDER');
-    if(au){const a=byId(c,au[2]),ok=tn.effective>=a.valid_from&&(!a.valid_to||tn.effective<=a.valid_to);L.walk.nodes.add(a.id);L.walk.edges.add(ekey(au));
-      if(!ok)broke++;log(`<code>${esc(t)}</code> was signed by an agent under <code>${esc(a.id)}</code> (valid ${esc(a.valid_from)} to ${esc(a.valid_to||'open')}) on ${esc(tn.effective)} ${ok?'<span class="ok">✓ inside the window</span>':'<span class="no">✗ outside the window</span>'}`,ok?'okl':'badl')}
+    const ac=authChecks(c,rr,tn);
+    if(ac){L.walk.nodes.add(ac.a.id);L.walk.edges.add(ekey(ac.au));rr.filter(r=>r[0]===ac.a.id&&(r[1]==='GRANTED_BY'||r[1]==='REVOKED_BY')).forEach(r=>{L.walk.nodes.add(r[2]);L.walk.edges.add(ekey(r))});
+      if(!ac.ok)broke++;log(`<code>${esc(t)}</code> was signed by an agent under <code>${esc(ac.a.id)}</code>: `+ac.out.map(x=>`${esc(x.q)} <span class="${x.ok?'ok':'no'}">${x.ok?'✓':'✗'}</span>`).join(' · '),ac.ok?'okl':'badl')}
     t=p;labDraw();return false};
   if(go()){stopWalk();return}L.walkT=setInterval(()=>{if(!L.walk||go())stopWalk()},950)}
 function walkClear(){stopWalk();L.walk=null;$('walklog').innerHTML=''}

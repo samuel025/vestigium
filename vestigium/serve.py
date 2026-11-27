@@ -6,13 +6,13 @@ import base64, json, pathlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 from .dossier import dossier
-from .generator import all_cases
+from .generator import demo_cases
 from .intake import analyze
 from .scan import scan_analyze, render_scan, TIERS
 from .graphlab import run_cypher, remove_edge, case_from_client, without
 
 DEMO = pathlib.Path(__file__).resolve().parent.parent / "demo"
-CASES = {c["id"]: c for c in all_cases()}
+CASES = {c["id"]: c for c in demo_cases()}
 
 
 class H(SimpleHTTPRequestHandler):

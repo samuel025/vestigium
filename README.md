@@ -15,7 +15,7 @@ Vestigium takes the paperwork behind a property or a vehicle (deeds, titles, lie
 ## In 30 seconds
 
 - **The problem.** A chain of sales can look fine document by document and still be broken: a seller who never owned the property, a deed signed under an expired power of attorney, a loan on the property that was never paid off, a car's salvage history quietly dropped.
-- **What Vestigium does.** It checks every sale against the one before it, and against the authority and claims around it, using 14 plain rules written as graph queries.
+- **What Vestigium does.** It checks every sale against the one before it, and against the authority and claims around it, using 18 plain rules written as graph queries.
 - **What you get.** A verdict, the rule that decided it, the sale where it breaks, and the smallest set of records that proves it. If a record is missing it says *inconclusive* and names the missing record, instead of guessing.
 - **Where AI fits.** An AI may *read* documents into facts (and shows you everything it read). It never decides. The rules decide, and the same records always give the same answer.
 
@@ -64,7 +64,7 @@ Then ask *"Use vestigium to check the dossier for prop-014 and explain the verdi
 ### 4. Check our claims
 
 ```bash
-uv run pytest -q                          # 48 tests, no network needed
+uv run pytest -q                          # 70 tests, no network needed
 uv run python -m vestigium.cli prop-014   # one case in the terminal: verdict, rule, evidence, fix, timeline
 uv run python -m vestigium.metamorphic    # 1,600 fresh cases + invariance checks
 uv run python -m vestigium.philly fetch --n 10000 && uv run python -m vestigium.philly   # the real Philadelphia test (~8 min)
@@ -87,7 +87,7 @@ uv run python -m vestigium.philly fetch --n 10000 && uv run python -m vestigium.
 flowchart LR
   D["Documents<br/>paste · PDF · photo"] --> R["Reader<br/>copies facts, never judges"]
   R --> G[("Relate graph<br/>Asset · Party · Transfer<br/>Claim · Authority · Document · Passage")]
-  G --> E["Rule engine<br/>14 named Cypher checks"]
+  G --> E["Rule engine<br/>18 named Cypher checks"]
   E --> V{"Verdict"}
   V --> C["clean"]
   V --> X["defective<br/>+ rule id + transfer"]
@@ -98,7 +98,7 @@ flowchart LR
 1. **Documents.** Paste text, upload a PDF, or photograph a deed (stamps, handwritten notes and blur included).
 2. **Reader.** An offline regex reader handles canonical wording; a language model handles anything else; a vision model reads scans, and every scan is read a second time so that any date or name the two reads disagree on is flagged for a person to check.
 3. **Graph.** Facts land in one Relate graph: `Asset`, `Party`, `Transfer`, `Claim`, `Authority`, `Document`, `Passage`, linked by `FROM`, `TO`, `MOVES`, `FOLLOWS`, `AGAINST`, `CLEARED_BY`, `ACTED_UNDER`, `EVIDENCED_BY`, and more. **Every fact carries two dates**: when it took effect and when it was recorded.
-4. **Rule engine.** Fourteen named Cypher checks (eight for property, six for vehicles). Gap rules produce *inconclusive*; the rest produce *defective*.
+4. **Rule engine.** Eighteen named Cypher checks (twelve for property, six for vehicles). Gap rules produce *inconclusive*; the rest produce *defective*.
 5. **Proof.** The verdict comes with its trail: verdict → rule id → graph path → evidence → exact document passage, the *smallest set of records* it rests on, and *what record would fix it*.
 
 ![How it works: five steps from documents to proof](docs/img/how-it-works.png)
@@ -139,7 +139,22 @@ Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini 
 
 ![Replaying an agent investigation next to a documents-only agent](docs/img/app-replay.png)
 
-**Rule packs** (`vestigium/rules.py`): *Property*: PROP-CHAIN, PROP-DUP, PROP-LIEN, PROP-AUTH, PROP-DATE, PROP-DEATH, PROP-GAP, PROP-AUTH-MISSING. *Vehicle*: VEH-OWN, VEH-LIEN, VEH-BRAND, VEH-ODO, VEH-GAP, VEH-ODO-MISSING.
+**Rule packs** (`vestigium/rules.py`): *Property*: PROP-CHAIN, PROP-DUP, PROP-LIEN, PROP-AUTH, PROP-AUTH-PRINCIPAL, PROP-AUTH-SCOPE, PROP-AUTH-REVOKED, PROP-AUTH-SIGNER, PROP-DATE, PROP-DEATH, PROP-GAP, PROP-AUTH-MISSING. *Vehicle*: VEH-OWN, VEH-LIEN, VEH-BRAND, VEH-ODO, VEH-GAP, VEH-ODO-MISSING.
+
+### Power of attorney, in depth
+
+Most chains break where someone signs *for* the owner. Vestigium asks every question a title examiner would about that power of attorney, each as its own rule on the graph:
+
+| Rule | The question | Graph pattern |
+|---|---|---|
+| `PROP-AUTH` | Was it in force on the signing date? | the sale's date against the authority's `valid_from` / `valid_to` |
+| `PROP-AUTH-PRINCIPAL` | Did the **seller** grant it? | `(authority)-[:GRANTED_BY]->(person)` must be the seller `-[:FROM]->(sale)` |
+| `PROP-AUTH-SCOPE` | Does it cover **selling**, not just managing? | the authority's `scope` |
+| `PROP-AUTH-REVOKED` | Was it **revoked** before the signing? | `(authority)-[:REVOKED_BY]->(revocation)`, dated before the sale and on file by the date you ask about |
+| `PROP-AUTH-SIGNER` | Did the agent it names actually **sign**? | the sale's `signer` against the authority's `agent` |
+| `PROP-AUTH-MISSING` | Is there an authority at all? | an agent-signed sale with no `ACTED_UNDER` (inconclusive, not defective) |
+
+A defect fires only when **no other** authority on the sale answers every question (one shared Cypher condition), so a ratification fixes it. A revocation has two dates too: one signed before the sale but filed after it is invisible to an investigator at the sale and appears once filed, which the *Two kinds of time* grid shows. The app's case picker has a **Power of attorney, in depth** group (18 cases: 3 of each defect, 2 late-filed revocations, 4 valid agent sales that look risky); clicking an agent-signed sale, or *Walk the chain*, lists each question with ✓ or ✗. These cases were written after the 80-case benchmark and are not part of its held-out split; the new rules change no verdict on those 80 (tested).
 
 ### The graph, live
 

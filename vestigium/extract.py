@@ -59,10 +59,14 @@ def read_rules(text):
                          odometer=None if g[5] == "not stated" else int(g[5]), title_branded=g[6] == "BRANDED SALVAGE")
             f = re.search(r"(?:through|follows) the record at \[([^\]]+)\]", tail)
             a = re.search(r"as agent under the authority at \[([^\]]+)\]", tail)
+            sb = re.search(r"Signed by (.+?) as agent", tail)
             r.update(root=bool(ROOT.search(tail)), follows=f and f[1],
-                     signed_by_agent=bool(a) or "Signed by an authorised agent" in tail, authority=a and a[1])
-        elif (m := re.match(rf"POWER OF ATTORNEY granted to (.+?), valid from {DATE} (?:until {DATE}|with no end date)\.", s)):
-            r.update(type="authority", agent=m[1], valid_from=m[2], valid_to=m[3])
+                     signed_by_agent=bool(a) or "Signed by an authorised agent" in tail, authority=a and a[1], signed_by=sb and sb[1])
+        elif (m := re.match(rf"POWER OF ATTORNEY granted (?:by (.+?) )?to (.+?), valid from {DATE} (?:until {DATE}|with no end date)(?:, authorising (the sale of the property|the management and letting of the property only))?\.", s)):
+            r.update(type="authority", granted_by=m[1], agent=m[2], valid_from=m[3], valid_to=m[4],
+                     scope={"the sale of the property": "sell", "the management and letting of the property only": "management"}.get(m[5]))
+        elif (m := re.match(rf"REVOCATION dated {DATE}, recorded {DATE}: the power of attorney at \[([^\]]+)\] is revoked\.", s)):
+            r.update(type="revocation", date=m[1], recorded=m[2], revokes=m[3])
         elif (m := re.match(rf"(?:MORTGAGE|LIEN) dated {DATE}, recorded {DATE}: (.+?) holds a lien", s)):
             r.update(type="lien", date=m[1], recorded=m[2], holder=m[3])
         elif (m := re.match(rf"SALVAGE BRAND dated {DATE}, recorded {DATE}: .+ by (.+?)\.$", s)):
@@ -83,8 +87,10 @@ Return ONE JSON object: {"asset_kind": "property" or "vehicle", "asset_label": "
 with one entry per dossier record, keeping its bracketed id, in any order. Each entry has "id" and "type":
 - "deed" (property) or "title" (vehicle): "date", "recorded" (ISO yyyy-mm-dd), "from", "to" (full names), "root" (true only if the record says the chain
   begins there), "follows" (id of the record the text says the grantor/title came through, else null), "signed_by_agent" (true if signed by an agent),
-  "authority" (id of the authority record cited, else null), and for titles "odometer" (integer, or null if "not stated") and "title_branded" (true if branded salvage).
-- "authority": "agent", "valid_from", "valid_to" (null if no end date).
+  "authority" (id of the authority record cited, else null), "signed_by" (name of the person who signed as agent, else null), and for titles "odometer" (integer, or null if "not stated") and "title_branded" (true if branded salvage).
+- "authority": "agent", "granted_by" (who gave the power, else null), "valid_from", "valid_to" (null if no end date),
+  "scope" ("sell" if it authorises selling the property, "management" if only managing or letting it, null if not stated).
+- "revocation": "date", "recorded", "revokes" (id of the power-of-attorney record it revokes).
 - "lien" or "brand": "holder", "date", "recorded".  - "release": "date", "recorded", "releases" (id of the lien record).
 - "death": "person", "died", "recorded".  - "other": surveys, receipts, summaries, anything else.
 Convert every date to ISO yyyy-mm-dd. Copy every person's name EXACTLY as written in that record, even if it is abbreviated (e.g. "G. Stone"):
@@ -120,6 +126,13 @@ def _canon(names):
     return out
 
 
+def _same_person(a, b):
+    """'H. Agent' and 'Heath Agent' are the same signer; 'Iris Wren' and 'Heath Agent' are not."""
+    A, B = str(a).replace(".", " ").split(), str(b).replace(".", " ").split()
+    if not A or not B or A[-1].lower() != B[-1].lower(): return False
+    return all(x[0].lower() == y[0].lower() for x, y in zip(A[:-1], B[:-1]))
+
+
 def assemble(ir, as_of=None):
     """IR -> case dict the engine can load. Passages are the dossier's own records, so citations resolve to real text."""
     recs = {r["id"]: r for r in ir["records"] if r.get("id")}
@@ -128,7 +141,7 @@ def assemble(ir, as_of=None):
     nodes = [("Asset", dict(id=A, **({"vin": ir.get("asset_label")} if veh else {"address": ir.get("asset_label")})))]
     rels = []
     nodes += [("Passage", dict(id=i, text=r.get("text", ""))) for i, r in recs.items()]
-    canon = _canon([r.get(k) for r in recs.values() for k in ("from", "to", "person")])
+    canon = _canon([r.get(k) for r in recs.values() for k in ("from", "to", "person", "granted_by")])
     pid = {}
     died = {canon.get(r["person"], r["person"]): r for r in recs.values() if r.get("type") == "death"}
 
@@ -152,6 +165,9 @@ def assemble(ir, as_of=None):
         props = dict(id=t, effective=r.get("date"), recorded=r.get("recorded"))
         if r.get("root"): props["root"] = True
         if r.get("signed_by_agent"): props["by_agent"] = True
+        au = recs.get(r.get("authority")) or {}
+        if r.get("signed_by") and au.get("agent") and not _same_person(r["signed_by"], au["agent"]):
+            props["signer"] = r["signed_by"]                   # only a genuine mismatch is recorded; "H. Agent" for "Heath Agent" is not one
         if veh:
             if r.get("odometer") is not None: props["odometer"] = r["odometer"]
             props["title_branded"] = bool(r.get("title_branded"))
@@ -163,8 +179,12 @@ def assemble(ir, as_of=None):
         if r.get("authority") in recs: rels.append((t, "ACTED_UNDER", "AU-" + r["authority"]))
     for r in recs.values():
         if r.get("type") == "authority":
-            nodes.append(("Authority", dict(id="AU-" + r["id"], agent=r.get("agent"), valid_from=r.get("valid_from"), valid_to=r.get("valid_to"))))
+            nodes.append(("Authority", dict(id="AU-" + r["id"], agent=r.get("agent"), valid_from=r.get("valid_from"), valid_to=r.get("valid_to"), scope=r.get("scope"))))
             rels.append(("AU-" + r["id"], "EVIDENCED_BY", r["id"]))
+            if r.get("granted_by"): rels.append(("AU-" + r["id"], "GRANTED_BY", party(r["granted_by"])))
+        elif r.get("type") == "revocation" and r.get("revokes") in recs:
+            nodes.append(("Document", dict(id="D-" + r["id"], kind="revocation", effective=r.get("date"), recorded=r.get("recorded"))))
+            rels += [("AU-" + r["revokes"], "REVOKED_BY", "D-" + r["id"]), ("D-" + r["id"], "EVIDENCED_BY", r["id"])]
         elif r.get("type") in ("lien", "brand"):
             nodes.append(("Claim", dict(id="C-" + r["id"], kind=r["type"], holder=r.get("holder"), effective=r.get("date"), recorded=r.get("recorded"))))
             rels += [("C-" + r["id"], "AGAINST", A), ("C-" + r["id"], "EVIDENCED_BY", r["id"])]

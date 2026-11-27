@@ -255,3 +255,64 @@ def vehicle_cases(seed=11):
 
 def all_cases():
     return property_cases() + vehicle_cases()
+
+
+# ---------------- authority in depth (developed after the 80-case benchmark; not part of its held-out split) ----------------
+AUTH_KINDS = ["PROP-AUTH-PRINCIPAL", "PROP-AUTH-SCOPE", "PROP-AUTH-REVOKED", "PROP-AUTH-SIGNER"]
+
+
+def make_auth_case(i, rng, kind):
+    """An agent-signed sale with a fully described power of attorney: who granted it, to whom, for what, until when,
+    and who actually signed. `kind` plants one defect; 'auth-valid' plants none (a sale that looks risky but is sound);
+    'revoked-late' revokes the authority before the sale but files the revocation only afterwards."""
+    n = rng.randint(4, 9)
+    c = _chain(rng, n)
+    k = rng.randint(2, n); t = _node(c, f"T{k}"); d = date.fromisoformat(t["effective"])
+    seller = f"p{k-1}"
+    agent = f"{rng.choice(NAMES)} {rng.choice(['Notary', 'Counsel', 'Agent', 'Proxy'])}"
+    au = dict(id="AU1", agent=agent, valid_from=iso(d - timedelta(days=rng.randint(200, 500))), valid_to=iso(d + timedelta(days=rng.randint(60, 400))), scope="sell")
+    t["by_agent"] = True; t["signer"] = agent
+    granted_by, label = seller, "defective"
+    scope_text = "the sale of the property"
+    if kind == "PROP-AUTH-PRINCIPAL":
+        granted_by = f"p{k-2}"                                           # an earlier owner, who no longer owned it
+    elif kind == "PROP-AUTH-SCOPE":
+        au["scope"] = "management"; scope_text = "the management and letting of the property only"
+    elif kind == "PROP-AUTH-SIGNER":
+        t["signer"] = f"{rng.choice(NAMES)} {rng.choice(SURN)}"
+    elif kind in ("PROP-AUTH-REVOKED", "revoked-late"):
+        rv = d - timedelta(days=rng.randint(15, 60))
+        rec = rv + timedelta(days=2) if kind == "PROP-AUTH-REVOKED" else d + timedelta(days=rng.randint(30, 90))
+        c["nodes"] += [("Document", dict(id="RV1", kind="revocation", effective=iso(rv), recorded=iso(rec))),
+                       ("Passage", dict(id="PRV", doc="revocation", text=f"REVOCATION dated {iso(rv)}: the grantor revokes the power of attorney given to {agent}."))]
+        c["rels"] += [("AU1", "REVOKED_BY", "RV1"), ("RV1", "EVIDENCED_BY", "PRV")]
+    else:
+        label = "clean"
+    gname = next(p["name"] for _, p in c["nodes"] if p.get("id") == granted_by)
+    c["nodes"] += [("Authority", au),
+                   ("Passage", dict(id="PAU", doc="poa", text=f"POWER OF ATTORNEY granted by {gname} to {agent}, valid from {au['valid_from']} until {au['valid_to']}, authorising {scope_text}."))]
+    c["rels"] += [(f"T{k}", "ACTED_UNDER", "AU1"), ("AU1", "GRANTED_BY", granted_by), ("AU1", "EVIDENCED_BY", "PAU")]
+    _node(c, f"P{k}")["text"] += f" Signed by {t['signer']} as agent for the Grantor."
+    rule = "PROP-AUTH-REVOKED" if kind == "revoked-late" else (kind if label == "defective" else None)
+    key = dict(transfer=f"T{k}" if rule else None, rule=rule, missing=None, fix_type="valid_authority" if rule else None,
+               fix=dict(nodes=[("Authority", dict(id="AU2", agent=t["signer"], valid_from=iso(d - timedelta(days=1)), valid_to=None, scope="sell"))],
+                        rels=[(f"T{k}", "ACTED_UNDER", "AU2"), ("AU2", "GRANTED_BY", seller)],
+                        describe="a ratification by the seller, naming the person who signed and covering the sale") if rule else None)
+    _distractors(c, rng)
+    last = max(date.fromisoformat(c["ts"][-1]["effective"]) + timedelta(days=60), _latest_recorded(c) + timedelta(days=1))
+    for l, p in c["nodes"]:
+        if l == "Document" and p.get("recorded"): last = max(last, date.fromisoformat(p["recorded"]) + timedelta(days=1))
+    return dict(id=f"auth-{i:03d}", domain="property", pack="property", kind=kind, label=label, adversarial=False, hard=True,
+                asset="A1", as_of=iso(last), n_transfers=n, key=key, nodes=c["nodes"], rels=c["rels"], distractors=c["distractors"], split="auth")
+
+
+def authority_cases(seed=23):
+    rng = random.Random(seed)
+    plan = [k for k in AUTH_KINDS for _ in range(3)] + ["revoked-late"] * 2 + ["auth-valid"] * 4
+    rng.shuffle(plan)
+    return [make_auth_case(i, rng, k) for i, k in enumerate(plan)]
+
+
+def demo_cases():
+    """Everything the app, the server and the MCP tools offer: the 80 benchmark cases plus the authority cases."""
+    return all_cases() + authority_cases()

@@ -12,12 +12,12 @@ from mcp.server.mcpserver import MCPServer
 
 from .dossier import dossier
 from .engine import PACKS, run_checks
-from .generator import all_cases
+from .generator import demo_cases
 from .intake import analyze_ir, package
 from .rules import PROPERTY_RULES, VEHICLE_RULES
 from .whatif import build, would_fix
 
-CASES = {c["id"]: c for c in all_cases()}
+CASES = {c["id"]: c for c in demo_cases()}
 RECORD_TYPES = {"deed", "title", "authority", "lien", "brand", "release", "death", "other"}
 ISO = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 DATE_FIELDS = ("date", "recorded", "valid_from", "valid_to", "died")

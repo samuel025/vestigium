@@ -5,6 +5,13 @@ parameters, so a chain can be replayed as it was true and as it was known."""
 # Visibility filter used by every rule: effective on/before as_of, recorded on/before known.
 VIS = "t.effective <= date($as_of) AND t.recorded <= date($known)"
 
+# An authority that fully covers this sale (used so a defect fires only when no other authority covers it):
+# in force on the signing date, covers selling, not revoked as known, granted by the seller, naming the signer.
+GOOD = ("ok.valid_from <= t.effective AND (ok.valid_to IS NULL OR ok.valid_to >= t.effective) AND coalesce(ok.scope, 'sell') = 'sell' "
+        "AND NOT EXISTS { (ok)-[:REVOKED_BY]->(r2:Document) WHERE r2.effective <= t.effective AND r2.recorded <= date($known) } "
+        "AND NOT EXISTS { (ok)-[:GRANTED_BY]->(pp:Party) WHERE NOT (pp)-[:FROM]->(t) } "
+        "AND (t.signer IS NULL OR ok.agent IS NULL OR ok.agent = t.signer)")
+
 # Real definitions (TO is Transfer->Party, FROM is Party->Transfer per the plan).
 PROPERTY_RULES = {
     "PROP-CHAIN": dict(kind="defect", text="Grantor was not the previous grantee", cypher=f"""
@@ -58,6 +65,33 @@ WHERE {VIS} AND t.by_agent = true AND NOT (t)-[:ACTED_UNDER]->(:Authority)
 RETURN t.id AS transfer, 'Signed by an agent but no authority record exists' AS detail,
        'power of attorney or resolution authorising the signatory' AS missing,
        [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+
+    # --- authority, in depth: who granted it, what it covers, whether it was revoked, who actually signed ---
+    "PROP-AUTH-PRINCIPAL": dict(fix_type="valid_authority", kind="defect", text="Authority granted by someone other than the seller", cypher=f"""
+MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (t)-[:ACTED_UNDER]->(au:Authority)-[:GRANTED_BY]->(pr:Party), (g:Party)-[:FROM]->(t)
+WHERE {VIS} AND pr <> g AND NOT EXISTS {{ (t)-[:ACTED_UNDER]->(ok:Authority) WHERE ok <> au AND {GOOD} }}
+RETURN t.id AS transfer, pr.name + ' granted the power of attorney, but ' + g.name + ' was the seller' AS detail,
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(au)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+
+    "PROP-AUTH-SCOPE": dict(fix_type="valid_authority", kind="defect", text="Authority does not cover selling", cypher=f"""
+MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (t)-[:ACTED_UNDER]->(au:Authority)
+WHERE {VIS} AND au.scope IS NOT NULL AND au.scope <> 'sell' AND NOT EXISTS {{ (t)-[:ACTED_UNDER]->(ok:Authority) WHERE ok <> au AND {GOOD} }}
+RETURN t.id AS transfer, 'The power of attorney covers ' + au.scope + ' only, not a sale' AS detail,
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(au)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+
+    "PROP-AUTH-REVOKED": dict(fix_type="valid_authority", kind="defect", text="Authority revoked before signing", cypher=f"""
+MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (t)-[:ACTED_UNDER]->(au:Authority)-[:REVOKED_BY]->(rv:Document)
+WHERE {VIS} AND rv.effective <= t.effective AND rv.recorded <= date($known)
+  AND NOT EXISTS {{ (t)-[:ACTED_UNDER]->(ok:Authority) WHERE ok <> au AND {GOOD} }}
+RETURN t.id AS transfer, 'The power of attorney was revoked on ' + toString(rv.effective) + ', before the signing on ' + toString(t.effective) AS detail,
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(au)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(rv)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
+
+    "PROP-AUTH-SIGNER": dict(fix_type="valid_authority", kind="defect", text="Signed by someone the authority does not name", cypher=f"""
+MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (t)-[:ACTED_UNDER]->(au:Authority)
+WHERE {VIS} AND t.signer IS NOT NULL AND au.agent IS NOT NULL AND t.signer <> au.agent
+  AND NOT EXISTS {{ (t)-[:ACTED_UNDER]->(ok:Authority) WHERE ok <> au AND {GOOD} }}
+RETURN t.id AS transfer, t.signer + ' signed, but the power of attorney names ' + au.agent AS detail,
+       [(t)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] + [(au)-[:EVIDENCED_BY]->(ps:Passage) | ps.id] AS evidence"""),
 
     "PROP-DEATH": dict(kind="defect", text="Grantor deceased at signing", cypher=f"""
 MATCH (t:Transfer)-[:MOVES]->(:Asset {{id:$asset}}), (g:Party)-[:FROM]->(t)

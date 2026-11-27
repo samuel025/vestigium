@@ -1,6 +1,6 @@
 """Export demo data (graph, verdicts, timeline, fixes, recorded agent runs) for the static demo page."""
 import json, pathlib
-from .generator import all_cases, documents
+from .generator import all_cases, demo_cases, documents
 from .engine import run_checks, timeline, two_times
 from .whatif import build, would_fix
 from .proof import proofs
@@ -73,7 +73,7 @@ def landing_data(cases):
 def export():
     rec = runs()
     cases = []
-    for c in all_cases():
+    for c in demo_cases():
         db = build(c)
         r = run_checks(db, c["asset"], c["as_of"], pack=c["pack"])
         dates = sorted({p["recorded"] for l, p in c["nodes"] if l == "Transfer"} | {c["as_of"]})

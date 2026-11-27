@@ -54,14 +54,19 @@ def dossier(case, style="clean", seed=0):
             s += f" Grantor acquired title through the record at [{rec(u)}]." if not veh else f" This title follows the record at [{rec(u)}]."
         if t.get("by_agent"):
             au = rel(tid, "ACTED_UNDER")
-            s += (f" Signed by {nodes[au[0]][1]['agent']} as agent under the authority at [{rec(au[0])}]." if au
+            s += (f" Signed by {t.get('signer') or nodes[au[0]][1]['agent']} as agent under the authority at [{rec(au[0])}]." if au
                   else " Signed by an authorised agent on behalf of the Grantor.")
         recs.append((rec(tid), s))
 
     for nid, (lab, p) in nodes.items():
         if lab == "Authority":
             to = f"until {F(p['valid_to'])}" if p.get("valid_to") else "with no end date"
-            recs.append((rec(nid), f"POWER OF ATTORNEY granted to {p['agent']}, valid from {F(p['valid_from'])} {to}."))
+            gb = [nodes[x][1]["name"] for x in rel(nid, "GRANTED_BY")]
+            scope = {"sell": ", authorising the sale of the property", "management": ", authorising the management and letting of the property only"}.get(p.get("scope"), "")
+            recs.append((rec(nid), f"POWER OF ATTORNEY granted {'by ' + gb[0] + ' ' if gb else ''}to {p['agent']}, valid from {F(p['valid_from'])} {to}{scope}."))
+            for rv in rel(nid, "REVOKED_BY"):
+                rd = nodes[rv][1]
+                recs.append((rec(rv), f"REVOCATION dated {F(rd['effective'])}, recorded {F(rd['recorded'])}: the power of attorney at [{rec(nid)}] is revoked."))
         elif lab == "Claim":
             pid = rec(nid)
             if p["kind"] == "brand":

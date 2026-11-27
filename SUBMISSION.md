@@ -10,7 +10,7 @@ Before money changes hands on a property or a vehicle, someone has to be sure th
 a deed signed under a power of attorney that expired the month before, a lien that was never released, a seller who was never the previous buyer, a salvage brand dropped from a later title.
 A reader skimming the documents tends to call such a chain "clean". Vestigium reconstructs the history, checks every transfer, and shows the broken link together with the record that proves it.
 
-All data is synthetic, with a fictional jurisdiction and generic rules. It is not legal advice.
+The benchmark data is synthetic, with a fictional jurisdiction and generic rules; the engine is also run on 30,803 real public deeds. It is not legal advice.
 
 ## What connects to what (effective use of connected context)
 
@@ -30,6 +30,9 @@ An **AI agent** investigates the graph, calls the checks and explains the result
 - **Real records.** The unchanged engine checked **30,803 real deeds** (about 10,000 properties) from New York's public ACRIS register and Philadelphia's transfer records. 90% of links match; every kind of flag is labelled, from register spelling variants to foreclosures, and about 1 break in 5 has no record anywhere in the public register of how the seller acquired the property. Real data also exposed bugs in our name matching and one impossible date in the register, now handled and tested. All anonymised and browsable in the app's Real tab.
 - **Scanned documents.** Upload a PDF or phone photo; a vision model transcribes it (stamps and handwritten notes included) and reports how sure it is. If a verdict rests on a record read with low confidence, the answer says which page to check. The model's own confidence turned out unreliable (it flagged none of its misreads), so every scan is now read twice and any record where the two reads disagree is flagged. Benchmarked on synthetic scans (40 held-out cases per tier): clean PDFs and phone photos 100% correct; poor photos 95–97.5% across two runs, with the double read catching 2–3 of 5 misreads at about 1 in 40 false alarms. A misread both reads share is still missed, and in one of the two runs that produced a defective chain called clean, so bad photos are not safe yet.
 - **An overview page.** `demo/index.html` explains the problem, the five-step pipeline, the two-date idea and the benchmark with live, animated examples; the app is `demo/app.html`.
+- **Power of attorney, in depth.** Most broken chains break where someone signs for the owner. Five rules ask a title examiner's questions as graph patterns: was it in force on the signing date, did the *seller* grant it, does it cover *selling*, was it *revoked* (and was the revocation on file yet), and did the named agent actually sign. A ratification by the seller fixes it.
+- **What else it breaks.** When a sale fails, every later sale whose chain of title passes through it is marked, by one graph walk.
+- **Two kinds of time.** Separate controls for what was legally true on a date and what an investigator could have known from the register on that date, with a verdict grid for every pair.
 - **Paste a dossier.** Paste deeds, titles, liens and powers of attorney in any wording; a reader extracts the facts, the rule engine decides, and the same proof trail appears. On messy wording a pattern-matching reader gets 17.5% right and Gemini gets 100% (held-out, 3 repeats), and nothing unreadable is ever called clean.
 - **MCP server.** Any MCP client (Claude Desktop, Claude Code) can call the engine: its own model reads the documents, our deterministic engine decides, and every cited record comes back with its exact text.
 - **Side-by-side race.** A document-only agent next to the rule-backed agent, from recorded runs.
