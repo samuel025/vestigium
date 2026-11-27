@@ -29,14 +29,17 @@ Vestigium takes the paperwork behind a property or a vehicle (deeds, titles, lie
 
 ### 1. In your browser (no install, 2 minutes)
 
-Open **<https://vestigium-demo.vercel.app/app.html>**. It starts on a property where the seller signed through an agent whose power of attorney had already expired.
+Open **<https://vestigium-demo.vercel.app/app.html>**. It starts on one question: **would you buy this property?** The header answers it ("No, not on this evidence. The chain breaks at T5, and 7 later sales rest on it"), and the **Investigate** buttons walk you through how it knows:
 
-1. **Read the verdict** at the top right, and the one-line reason under the title.
-2. **Find the broken sale** in the ownership chain: each box is one sale; the red one is where a rule failed, and the striped ones after it are later sales that rest on it.
-3. **Open the proof** (right panel): the rule, the sentence of the deed it rests on, and how few records that took.
-4. **Use the two kinds of time**: *legally true on* (what had happened) and *known on* (what was on the public register). Press **Show a sale signed but not yet on file** to see a defect that existed legally but could not yet be found.
-5. **Break a link in the graph** (step 5 in *Try this*): remove one relationship and watch the verdict change.
-6. **Switch to the *Real* tab** to browse real, anonymised deeds from New York and Philadelphia.
+1. **Where does it break?** Each box is one sale; the red one is where a rule failed, and the striped ones after it rest on it.
+2. **What proves it?** The rule, the exact sentences of the records behind it, and how few records that took.
+3. **Was the signer allowed?** Every question about the power of attorney, each with ✓ or ✗.
+4. **What else does it break?** The later sales whose chain of title passes through the broken one.
+5. **What could you have known?** The two kinds of time: here, the broken sale was signed on 1 May but filed on 4 May, so anyone checking in between was told *clean*.
+6. **What would fix it?** The record that would make the chain sound, tested on a copy of the graph.
+7. **Break a link in the graph**: remove one relationship and watch the verdict change.
+
+Then switch to the **Real** tab to browse real, anonymised deeds from New York and Philadelphia.
 
 Use the **Property / Vehicle / Real** switch and the case picker to explore other cases. Press **?** in the app for a short guide to every panel.
 

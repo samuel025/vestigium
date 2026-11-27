@@ -64,6 +64,8 @@ nav select{flex:0 1 380px;min-width:0}@media(max-width:700px){nav select{flex:1 
 .gstep:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1px var(--hi);color:var(--hi)}.gstep:active{transform:translateY(1px)}
 .gstep i{font:600 12px var(--mono);font-style:normal;width:24px;height:24px;border-radius:50%;background:var(--chip);color:var(--hi);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--edge)}
 .gstep[hidden]{display:none}
+.qa{margin-top:14px;display:inline-flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:9px 14px;border-radius:12px;background:var(--panel);box-shadow:var(--key);font-size:15px;color:var(--mut)}
+.qa b{font-weight:600}.qa .y{color:var(--ok)}.qa .n{color:var(--bad)}.qa .w{color:var(--gap)}
 
 /* ---- layout ---- */
 .grid{display:grid;grid-template-columns:minmax(0,1fr) 410px;grid-template-areas:"chain proof" "graph graph" "time time" "agents agents" "bench bench";gap:18px;align-items:start}
@@ -285,16 +287,18 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
   <p style="color:var(--mut);margin-top:18px">The AI never decides: the rules do, and the same records always give the same answer. Nothing here is legal advice.</p>
 </div></div>
 <div class="case">
-  <div><span class="eyebrow" id="ceyebrow">Case</span><h1 id="ctitle"></h1><div class="sub" id="csub"></div></div>
+  <div><span class="eyebrow" id="ceyebrow">Case</span><h1 id="ctitle"></h1><div class="sub" id="csub"></div><div class="qa" id="qa"></div></div>
   <div class="vbox"><div id="verdict"></div><div id="warns"></div></div>
 </div>
 
-<div class="guide" id="guide"><span class="eyebrow">Try this</span>
-  <button class="gstep" id="g1"><i>1</i>Spot the broken link</button>
-  <button class="gstep" id="g2"><i>2</i>Open the proof</button>
-  <button class="gstep" id="g3"><i>3</i>Travel through time</button>
-  <button class="gstep" id="g4"><i>4</i>Try the fix</button>
-  <button class="gstep" id="g5"><i>5</i>Break a link in the graph</button>
+<div class="guide" id="guide"><span class="eyebrow">Investigate</span>
+  <button class="gstep" id="g1"><i>1</i>Where does it break?</button>
+  <button class="gstep" id="g2"><i>2</i>What proves it?</button>
+  <button class="gstep" id="gA"><i>3</i>Was the signer allowed?</button>
+  <button class="gstep" id="gD"><i>4</i>What else does it break?</button>
+  <button class="gstep" id="g3"><i>5</i>What could you have known?</button>
+  <button class="gstep" id="g4"><i>6</i>What would fix it?</button>
+  <button class="gstep" id="g5"><i>7</i>Break a link in the graph</button>
 </div>
 
 <div class="grid">
@@ -403,6 +407,7 @@ function authChecks(c,rr,tn){const au=rr.find(r=>r[0]===tn.id&&r[1]==='ACTED_UND
   if(rd)out.push({q:'not revoked before the signing',ok:!(rd.effective<=tn.effective),d:`revoked ${rd.effective}, filed ${rd.recorded}`});
   if(tn.signer)out.push({q:'signed by the agent it names',ok:tn.signer===a.agent,d:`${tn.signer} signed; it names ${a.agent}`});
   return{au,a,out,ok:out.every(x=>x.ok)}}
+function renumber(){let n=0;document.querySelectorAll('#guide .gstep').forEach(b=>{if(!b.hidden)b.querySelector('i').textContent=++n})}
 /* ---- main render ---- */
 function render(){const c=cur,tt=TT(),known=tt.known,valid=tt.valid,ver=VER[tt.code],full=tt.full,res=c.result;
   const fullItems=[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))];
@@ -418,6 +423,9 @@ function render(){const c=cur,tt=TT(),known=tt.known,valid=tt.valid,ver=VER[tt.c
   $('warns').innerHTML=(full&&c.warnings||[]).map(w=>`<div class="proofnote" style="margin-top:12px"><span class="warn">⚠</span> ${esc(w)}</div>`).join('');
   // guide
   $('g1').hidden=!items.length;$('g2').hidden=!items.length;$('g4').hidden=!(full&&c.fix);
+  const ft=fullItems[0]&&fullItems[0].transfer;$('gA').hidden=!(ft&&c.rels.some(r=>r[0]===ft&&r[1]==='ACTED_UNDER'));$('gD').hidden=!(res.downstream||[]).length;
+  const r0=res.verdict;$('qa').innerHTML=`Would you buy this ${c.domain==='vehicle'?'vehicle':'property'}? `+(r0==='clean'?'<b class="y">On this evidence, yes.</b> Every sale checks out.':r0==='defective'?`<b class="n">No, not on this evidence.</b> The chain breaks at ${esc(fullItems[0].transfer)}${(res.downstream||[]).length?`, and ${res.downstream.length} later sale${res.downstream.length>1?'s rest':' rests'} on it`:''}.`:`<b class="w">Not yet.</b> A record is missing, so nobody can tell.`)+(c.split==='real'?' <span class="mut">(real record: a flag means worth a look, not a proven defect)</span>':'');
+  renumber();
   $('chint').textContent=items.length?'Each box is one sale. Coral marks a broken sale, amber a missing record, striped coral a later sale that rests on a broken one. White rings mark the records in the selected proof. At an earlier date, a dashed box is a sale already signed but not yet on the register.':'Each box is one transfer, joined to the one before it. A green tick means no check flagged it.';
   // findings
   $('findings').innerHTML=items.map((f,i)=>`<div class="finding ${sel===i?'sel':''}" data-i="${i}" style="animation-delay:${i*70}ms"><div class="rule" style="color:${f.t==='gap'?'var(--gap)':'var(--bad)'}">${esc(f.rule)} · ${esc(f.transfer)}</div><div class="d">${esc(f.detail)}</div>${f.missing?`<div class="mut" style="margin-top:4px;font-size:13.5px">Missing: ${esc(f.missing)}</div>`:''}</div>`).join('')||(full?'<div class="proofnote">Nothing to flag. Slide through time or open the agent replay below.</div>':'<div class="note">No check fails for this pair of dates. Move both dates to the end for the full result.</div>');
@@ -502,7 +510,9 @@ $('pv').onclick=()=>{pack='vehicle';setSeg();fill()};
 $('pr').onclick=()=>{pack='real';setSeg();fill()};
 $('g1').onclick=()=>{$('chaincard').scrollIntoView({block:'center'});const b=document.querySelector('.tb.bad,.tb.gap');if(b){b.animate([{transform:'translateY(-3px) scale(1)'},{transform:'translateY(-3px) scale(1.07)'},{transform:'translateY(-3px) scale(1)'}],{duration:700,iterations:2})}};
 $('g2').onclick=()=>{if(!atEnd())toEnd();sel=sel??0;render();$('proofcard').scrollIntoView({block:'nearest',behavior:'smooth'})};
-$('g3').onclick=()=>{clearInterval(slideT);const n=cur.kdates.length-1;if(n<1)return;$('chaincard').scrollIntoView({block:'start'});LOCK=true;step=0;vstep=idxLE(cur.vdates,cur.kdates[0]);syncSliders();render();slideT=setInterval(()=>{if(step>=n){clearInterval(slideT);toEnd();render();return}step++;vstep=idxLE(cur.vdates,cur.kdates[step]);syncSliders();render()},520)};
+$('gA').onclick=()=>{if(!atEnd()){toEnd();render()}const t=[...cur.result.findings,...cur.result.missing][0].transfer;walkClear();L.node=t;L.edge=null;labInspect();labDraw();$('labinsp').scrollIntoView({block:'center',behavior:'smooth'});$('labinsp').animate([{boxShadow:'0 0 0 2px #fff'},{boxShadow:'0 0 0 1px var(--line)'}],{duration:1400})};
+$('gD').onclick=()=>{if(!atEnd())toEnd();sel=0;render();const a=document.querySelector('.affnote');if(a){a.scrollIntoView({block:'center',behavior:'smooth'});a.animate([{boxShadow:'0 0 0 2px #ff6363'},{boxShadow:'0 0 0 1px rgba(255,99,99,.35)'}],{duration:1400})}};
+$('g3').onclick=()=>{if(bestGap()){showGap();return}clearInterval(slideT);const n=cur.kdates.length-1;if(n<1)return;$('chaincard').scrollIntoView({block:'start'});LOCK=true;step=0;vstep=idxLE(cur.vdates,cur.kdates[0]);syncSliders();render();slideT=setInterval(()=>{if(step>=n){clearInterval(slideT);toEnd();render();return}step++;vstep=idxLE(cur.vdates,cur.kdates[step]);syncSliders();render()},520)};
 $('g4').onclick=()=>{if(!atEnd()){toEnd();render()}$('proofcard').scrollIntoView({block:'nearest',behavior:'smooth'});$('fixbtn').click()};
 
 /* ---- paste or upload (needs `uv run python -m vestigium.serve`; falls back with a note on static hosting) ---- */
