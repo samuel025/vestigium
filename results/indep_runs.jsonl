@@ -1,0 +1,144 @@
+{"arm": "A", "case": "ind-clean-0", "rep": 0, "verdict": "clean", "record": null, "tokens": 1417, "error": null}
+{"arm": "A", "case": "ind-clean-0", "rep": 1, "verdict": "clean", "record": null, "tokens": 1415, "error": null}
+{"arm": "A", "case": "ind-clean-0", "rep": 2, "verdict": "clean", "record": null, "tokens": 1415, "error": null}
+{"arm": "V", "case": "ind-clean-0", "rep": 0, "verdict": "clean", "rules": [], "records": [], "tokens": 2621, "error": null}
+{"arm": "A", "case": "ind-clean-1", "rep": 0, "verdict": "clean", "record": null, "tokens": 1234, "error": null}
+{"arm": "A", "case": "ind-clean-1", "rep": 1, "verdict": "clean", "record": null, "tokens": 1232, "error": null}
+{"arm": "A", "case": "ind-clean-1", "rep": 2, "verdict": "clean", "record": null, "tokens": 1228, "error": null}
+{"arm": "V", "case": "ind-clean-1", "rep": 0, "verdict": "defective", "rules": ["PROP-CHAIN"], "records": ["R3", "R8"], "tokens": 2277, "error": null}
+{"arm": "A", "case": "ind-clean-2", "rep": 0, "verdict": "clean", "record": null, "tokens": 1150, "error": null}
+{"arm": "A", "case": "ind-clean-2", "rep": 1, "verdict": "inconclusive", "record": null, "tokens": 1153, "error": null}
+{"arm": "A", "case": "ind-clean-2", "rep": 2, "verdict": "inconclusive", "record": null, "tokens": 1150, "error": null}
+{"arm": "V", "case": "ind-clean-2", "rep": 0, "verdict": "clean", "rules": [], "records": [], "tokens": 2102, "error": null}
+{"arm": "A", "case": "ind-clean-3", "rep": 0, "verdict": "clean", "record": null, "tokens": 1295, "error": null}
+{"arm": "A", "case": "ind-clean-3", "rep": 1, "verdict": "clean", "record": null, "tokens": 1291, "error": null}
+{"arm": "A", "case": "ind-clean-3", "rep": 2, "verdict": "clean", "record": null, "tokens": 1289, "error": null}
+{"arm": "V", "case": "ind-clean-3", "rep": 0, "verdict": "clean", "rules": [], "records": [], "tokens": 2459, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-0", "rep": 0, "verdict": "clean", "record": null, "tokens": 1197, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-0", "rep": 1, "verdict": "clean", "record": null, "tokens": 1202, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-0", "rep": 2, "verdict": "clean", "record": null, "tokens": 1201, "error": null}
+{"arm": "V", "case": "ind-clean-tricky-0", "rep": 0, "verdict": "clean", "rules": [], "records": [], "tokens": 2219, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-1", "rep": 0, "verdict": "clean", "record": null, "tokens": 1231, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-1", "rep": 1, "verdict": "clean", "record": null, "tokens": 1210, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-1", "rep": 2, "verdict": "clean", "record": null, "tokens": 1209, "error": null}
+{"arm": "V", "case": "ind-clean-tricky-1", "rep": 0, "verdict": "clean", "rules": [], "records": [], "tokens": 2195, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-2", "rep": 0, "verdict": "clean", "record": null, "tokens": 1155, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-2", "rep": 1, "verdict": "clean", "record": null, "tokens": 1156, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-2", "rep": 2, "verdict": "clean", "record": null, "tokens": 1158, "error": null}
+{"arm": "V", "case": "ind-clean-tricky-2", "rep": 0, "verdict": "clean", "rules": [], "records": [], "tokens": 2078, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-3", "rep": 0, "verdict": "clean", "record": null, "tokens": 1215, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-3", "rep": 1, "verdict": "clean", "record": null, "tokens": 1214, "error": null}
+{"arm": "A", "case": "ind-clean-tricky-3", "rep": 2, "verdict": "clean", "record": null, "tokens": 1217, "error": null}
+{"arm": "V", "case": "ind-clean-tricky-3", "rep": 0, "verdict": "clean", "rules": [], "records": [], "tokens": 2260, "error": null}
+{"arm": "A", "case": "ind-not-owner-0", "rep": 0, "verdict": "inconclusive", "record": "R4", "tokens": 1225, "error": null}
+{"arm": "A", "case": "ind-not-owner-0", "rep": 1, "verdict": "inconclusive", "record": "R4", "tokens": 1205, "error": null}
+{"arm": "A", "case": "ind-not-owner-0", "rep": 2, "verdict": "inconclusive", "record": "R4", "tokens": 1205, "error": null}
+{"arm": "V", "case": "ind-not-owner-0", "rep": 0, "verdict": "defective", "rules": ["PROP-LIEN", "PROP-GAP", "PROP-GAP"], "records": ["R3", "R4", "R6"], "tokens": 2217, "error": null}
+{"arm": "A", "case": "ind-not-owner-1", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1246, "error": null}
+{"arm": "A", "case": "ind-not-owner-1", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1246, "error": null}
+{"arm": "A", "case": "ind-not-owner-1", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1248, "error": null}
+{"arm": "V", "case": "ind-not-owner-1", "rep": 0, "verdict": "defective", "rules": ["PROP-CHAIN"], "records": ["R1", "R5"], "tokens": 2198, "error": null}
+{"arm": "A", "case": "ind-not-owner-2", "rep": 0, "verdict": "inconclusive", "record": "R4", "tokens": 941, "error": null}
+{"arm": "A", "case": "ind-not-owner-2", "rep": 1, "verdict": "inconclusive", "record": "R4", "tokens": 940, "error": null}
+{"arm": "A", "case": "ind-not-owner-2", "rep": 2, "verdict": "inconclusive", "record": "R4", "tokens": 937, "error": null}
+{"arm": "V", "case": "ind-not-owner-2", "rep": 0, "verdict": "inconclusive", "rules": ["PROP-GAP"], "records": ["R4"], "tokens": 1912, "error": null}
+{"arm": "A", "case": "ind-not-owner-3", "rep": 0, "verdict": "defective", "record": "R4", "tokens": 1146, "error": null}
+{"arm": "A", "case": "ind-not-owner-3", "rep": 1, "verdict": "defective", "record": "R4", "tokens": 1140, "error": null}
+{"arm": "A", "case": "ind-not-owner-3", "rep": 2, "verdict": "defective", "record": "R4", "tokens": 1140, "error": null}
+{"arm": "V", "case": "ind-not-owner-3", "rep": 0, "verdict": "defective", "rules": ["PROP-CHAIN", "PROP-LIEN"], "records": ["R1", "R3", "R4"], "tokens": 2092, "error": null}
+{"arm": "A", "case": "ind-sold-twice-0", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1069, "error": null}
+{"arm": "A", "case": "ind-sold-twice-0", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1063, "error": null}
+{"arm": "A", "case": "ind-sold-twice-0", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1078, "error": null}
+{"arm": "V", "case": "ind-sold-twice-0", "rep": 0, "verdict": "defective", "rules": ["PROP-LIEN", "PROP-DUP", "PROP-LIEN"], "records": ["R2", "R3", "R5"], "tokens": 2021, "error": null}
+{"arm": "A", "case": "ind-sold-twice-1", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1195, "error": null}
+{"arm": "A", "case": "ind-sold-twice-1", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1184, "error": null}
+{"arm": "A", "case": "ind-sold-twice-1", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1181, "error": null}
+{"arm": "V", "case": "ind-sold-twice-1", "rep": 0, "verdict": "defective", "rules": ["PROP-DUP", "PROP-LIEN", "PROP-GAP"], "records": ["R2", "R3", "R5"], "tokens": 2029, "error": null}
+{"arm": "A", "case": "ind-sold-twice-2", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 999, "error": null}
+{"arm": "A", "case": "ind-sold-twice-2", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 994, "error": null}
+{"arm": "A", "case": "ind-sold-twice-2", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 999, "error": null}
+{"arm": "V", "case": "ind-sold-twice-2", "rep": 0, "verdict": "defective", "rules": ["PROP-CHAIN", "PROP-CHAIN", "PROP-DUP", "PROP-LIEN"], "records": ["R1", "R3", "R4", "R5"], "tokens": 1915, "error": null}
+{"arm": "A", "case": "ind-sold-twice-3", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 912, "error": null}
+{"arm": "A", "case": "ind-sold-twice-3", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 912, "error": null}
+{"arm": "A", "case": "ind-sold-twice-3", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 912, "error": null}
+{"arm": "V", "case": "ind-sold-twice-3", "rep": 0, "verdict": "defective", "rules": ["PROP-DUP", "PROP-LIEN"], "records": ["R3", "R4", "R5"], "tokens": 1799, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-0", "rep": 0, "verdict": "clean", "record": null, "tokens": 1186, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-0", "rep": 1, "verdict": "clean", "record": null, "tokens": 1183, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-0", "rep": 2, "verdict": "clean", "record": null, "tokens": 1174, "error": null}
+{"arm": "V", "case": "ind-unreleased-lien-0", "rep": 0, "verdict": "defective", "rules": ["PROP-LIEN", "PROP-LIEN"], "records": ["R3", "R5", "R6"], "tokens": 2101, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-1", "rep": 0, "verdict": "clean", "record": null, "tokens": 1028, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-1", "rep": 1, "verdict": "clean", "record": null, "tokens": 1035, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-1", "rep": 2, "verdict": "clean", "record": null, "tokens": 1005, "error": null}
+{"arm": "V", "case": "ind-unreleased-lien-1", "rep": 0, "verdict": "defective", "rules": ["PROP-LIEN", "PROP-LIEN"], "records": ["R2", "R4", "R7"], "tokens": 2008, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-2", "rep": 0, "verdict": "clean", "record": null, "tokens": 1488, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-2", "rep": 1, "verdict": "clean", "record": null, "tokens": 1505, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-2", "rep": 2, "verdict": "clean", "record": null, "tokens": 1510, "error": null}
+{"arm": "V", "case": "ind-unreleased-lien-2", "rep": 0, "verdict": "defective", "rules": ["PROP-LIEN", "PROP-LIEN", "PROP-GAP", "PROP-GAP"], "records": ["R2", "R5", "R7"], "tokens": 2518, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-3", "rep": 0, "verdict": "clean", "record": null, "tokens": 1083, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-3", "rep": 1, "verdict": "clean", "record": null, "tokens": 1069, "error": null}
+{"arm": "A", "case": "ind-unreleased-lien-3", "rep": 2, "verdict": "clean", "record": null, "tokens": 1079, "error": null}
+{"arm": "V", "case": "ind-unreleased-lien-3", "rep": 0, "verdict": "defective", "rules": ["PROP-LIEN", "PROP-LIEN"], "records": ["R2", "R5", "R7"], "tokens": 2063, "error": null}
+{"arm": "A", "case": "ind-expired-poa-0", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1173, "error": null}
+{"arm": "A", "case": "ind-expired-poa-0", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1178, "error": null}
+{"arm": "A", "case": "ind-expired-poa-0", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1183, "error": null}
+{"arm": "V", "case": "ind-expired-poa-0", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH"], "records": ["R3", "R5"], "tokens": 2122, "error": null}
+{"arm": "A", "case": "ind-expired-poa-1", "rep": 0, "verdict": "defective", "record": "R4", "tokens": 1455, "error": null}
+{"arm": "A", "case": "ind-expired-poa-1", "rep": 1, "verdict": "defective", "record": "R4", "tokens": 1451, "error": null}
+{"arm": "A", "case": "ind-expired-poa-1", "rep": 2, "verdict": "defective", "record": "R4", "tokens": 1458, "error": null}
+{"arm": "V", "case": "ind-expired-poa-1", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH"], "records": ["R3", "R4"], "tokens": 2509, "error": null}
+{"arm": "A", "case": "ind-expired-poa-2", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1244, "error": null}
+{"arm": "A", "case": "ind-expired-poa-2", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1243, "error": null}
+{"arm": "A", "case": "ind-expired-poa-2", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1243, "error": null}
+{"arm": "V", "case": "ind-expired-poa-2", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH"], "records": ["R2", "R5"], "tokens": 2274, "error": null}
+{"arm": "A", "case": "ind-expired-poa-3", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1421, "error": null}
+{"arm": "A", "case": "ind-expired-poa-3", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1426, "error": null}
+{"arm": "A", "case": "ind-expired-poa-3", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1432, "error": null}
+{"arm": "V", "case": "ind-expired-poa-3", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH", "PROP-AUTH-PRINCIPAL"], "records": ["R4", "R5"], "tokens": 2476, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-0", "rep": 0, "verdict": "defective", "record": "R4", "tokens": 1262, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-0", "rep": 1, "verdict": "defective", "record": "R4", "tokens": 1267, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-0", "rep": 2, "verdict": "defective", "record": "R4", "tokens": 1276, "error": null}
+{"arm": "V", "case": "ind-poa-wrong-person-0", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-PRINCIPAL"], "records": ["R2", "R4"], "tokens": 2288, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-1", "rep": 0, "verdict": "defective", "record": "R6", "tokens": 1306, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-1", "rep": 1, "verdict": "defective", "record": "R6", "tokens": 1299, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-1", "rep": 2, "verdict": "defective", "record": "R6", "tokens": 1299, "error": null}
+{"arm": "V", "case": "ind-poa-wrong-person-1", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-PRINCIPAL"], "records": ["R4", "R6"], "tokens": 2401, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-2", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1463, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-2", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1458, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-2", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1458, "error": null}
+{"arm": "V", "case": "ind-poa-wrong-person-2", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-PRINCIPAL"], "records": ["R3", "R5"], "tokens": 2510, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-3", "rep": 0, "verdict": "defective", "record": "R6", "tokens": 1221, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-3", "rep": 1, "verdict": "defective", "record": "R6", "tokens": 1224, "error": null}
+{"arm": "A", "case": "ind-poa-wrong-person-3", "rep": 2, "verdict": "defective", "record": "R6", "tokens": 1231, "error": null}
+{"arm": "V", "case": "ind-poa-wrong-person-3", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-PRINCIPAL"], "records": ["R2", "R6"], "tokens": 2334, "error": null}
+{"arm": "A", "case": "ind-poa-scope-0", "rep": 0, "verdict": "defective", "record": "R4", "tokens": 1283, "error": null}
+{"arm": "A", "case": "ind-poa-scope-0", "rep": 1, "verdict": "defective", "record": "R4", "tokens": 1286, "error": null}
+{"arm": "A", "case": "ind-poa-scope-0", "rep": 2, "verdict": "defective", "record": "R4", "tokens": 1287, "error": null}
+{"arm": "V", "case": "ind-poa-scope-0", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-SCOPE"], "records": ["R2", "R4"], "tokens": 2318, "error": null}
+{"arm": "A", "case": "ind-poa-scope-1", "rep": 0, "verdict": "defective", "record": "R4", "tokens": 1106, "error": null}
+{"arm": "A", "case": "ind-poa-scope-1", "rep": 1, "verdict": "defective", "record": "R4", "tokens": 1100, "error": null}
+{"arm": "A", "case": "ind-poa-scope-1", "rep": 2, "verdict": "defective", "record": "R4", "tokens": 1098, "error": null}
+{"arm": "V", "case": "ind-poa-scope-1", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-PRINCIPAL", "PROP-AUTH-SCOPE", "PROP-CHAIN", "PROP-LIEN"], "records": ["R1", "R2", "R3", "R4"], "tokens": 2143, "error": null}
+{"arm": "A", "case": "ind-poa-scope-2", "rep": 0, "verdict": "defective", "record": "R4", "tokens": 1339, "error": null}
+{"arm": "A", "case": "ind-poa-scope-2", "rep": 1, "verdict": "defective", "record": "R4", "tokens": 1341, "error": null}
+{"arm": "A", "case": "ind-poa-scope-2", "rep": 2, "verdict": "defective", "record": "R4", "tokens": 1343, "error": null}
+{"arm": "V", "case": "ind-poa-scope-2", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-SCOPE", "PROP-LIEN"], "records": ["R2", "R3", "R4"], "tokens": 2393, "error": null}
+{"arm": "A", "case": "ind-poa-scope-3", "rep": 0, "verdict": "defective", "record": "R3", "tokens": 1092, "error": null}
+{"arm": "A", "case": "ind-poa-scope-3", "rep": 1, "verdict": "defective", "record": "R3", "tokens": 1091, "error": null}
+{"arm": "A", "case": "ind-poa-scope-3", "rep": 2, "verdict": "defective", "record": "R3", "tokens": 1099, "error": null}
+{"arm": "V", "case": "ind-poa-scope-3", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-SCOPE", "PROP-LIEN"], "records": ["R2", "R3", "R5", "R7"], "tokens": 2054, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-0", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1119, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-0", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1116, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-0", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1116, "error": null}
+{"arm": "V", "case": "ind-poa-revoked-0", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-REVOKED", "PROP-LIEN"], "records": ["R3", "R4", "R5", "R6", "R8"], "tokens": 2229, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-1", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1390, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-1", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1385, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-1", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1385, "error": null}
+{"arm": "V", "case": "ind-poa-revoked-1", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-REVOKED"], "records": ["R3", "R4", "R5"], "tokens": 2418, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-2", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1082, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-2", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1074, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-2", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1077, "error": null}
+{"arm": "V", "case": "ind-poa-revoked-2", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-REVOKED"], "records": ["R2", "R4", "R5"], "tokens": 2103, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-3", "rep": 0, "verdict": "defective", "record": "R5", "tokens": 1306, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-3", "rep": 1, "verdict": "defective", "record": "R5", "tokens": 1306, "error": null}
+{"arm": "A", "case": "ind-poa-revoked-3", "rep": 2, "verdict": "defective", "record": "R5", "tokens": 1306, "error": null}
+{"arm": "V", "case": "ind-poa-revoked-3", "rep": 0, "verdict": "defective", "rules": ["PROP-AUTH-REVOKED", "PROP-LIEN"], "records": ["R2", "R4", "R5", "R6", "R8"], "tokens": 2371, "error": null}

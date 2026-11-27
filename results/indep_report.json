@@ -1,0 +1,62 @@
+{
+ "A": {
+  "runs": 108,
+  "accuracy": 81.5,
+  "defective_called_clean": 14.3,
+  "abstains_on_missing": null,
+  "by_situation": {
+   "clean": 83.3,
+   "clean-tricky": 100.0,
+   "not-owner": 50.0,
+   "sold-twice": 100.0,
+   "unreleased-lien": 0.0,
+   "expired-poa": 100.0,
+   "poa-wrong-person": 100.0,
+   "poa-scope": 100.0,
+   "poa-revoked": 100.0
+  },
+  "errors": 0
+ },
+ "V": {
+  "runs": 36,
+  "accuracy": 94.4,
+  "defective_called_clean": 0.0,
+  "abstains_on_missing": null,
+  "by_situation": {
+   "clean": 75.0,
+   "clean-tricky": 100.0,
+   "not-owner": 75.0,
+   "sold-twice": 100.0,
+   "unreleased-lien": 100.0,
+   "expired-poa": 100.0,
+   "poa-wrong-person": 100.0,
+   "poa-scope": 100.0,
+   "poa-revoked": 100.0
+  },
+  "errors": 0
+ },
+ "V_disagreements": [
+  {
+   "case": "ind-clean-1",
+   "kind": "clean",
+   "expected": "clean",
+   "got": "defective",
+   "rules": [
+    "PROP-CHAIN"
+   ]
+  },
+  {
+   "case": "ind-not-owner-2",
+   "kind": "not-owner",
+   "expected": "defective",
+   "got": "inconclusive",
+   "rules": [
+    "PROP-GAP"
+   ]
+  }
+ ],
+ "cases": 36,
+ "authors": {
+  "gemini-3.6-flash": 36
+ }
+}

@@ -17,7 +17,8 @@ from collections import Counter, defaultdict
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CASES, RUNS = ROOT / "results" / "indep_cases.jsonl", ROOT / "results" / "indep_runs.jsonl"
-AUTHOR = "gemma-4-26b-a4b-it"
+AUTHORS = ["gemini-3.6-flash", "gemma-4-26b-a4b-it"]   # Gemma (another model family) was overloaded on the day; gemini-3.6-flash wrote the cases
+AUTHOR = AUTHORS[0]
 
 # situation -> (what the author is told, the correct verdict). Plain English, no rule names, no schema.
 SITUATIONS = {
@@ -62,12 +63,23 @@ def write(per=4, seed=3):
                 cid = f"ind-{kind}-{j}"
                 if cid in done: continue
                 extra = EXTRAS[(j + rng.randint(0, 3)) % len(EXTRAS)] or "Nothing extra."
-                ans, st = llm.ask("You are a careful writer of realistic synthetic legal records for software testing.",
-                                  BRIEF.format(situation=situation, extra=extra), model=AUTHOR, temperature=0.9)
-                if not ans or not ans.get("dossier"):
-                    print("author failed", cid, st.get("error_log")); continue
-                f.write(json.dumps(dict(id=cid, kind=kind, label=verdict, situation=situation, extra=extra, author=AUTHOR, **ans)) + "\n"); f.flush()
-                print("wrote", cid)
+                ans, who = None, None
+                for attempt in range(6):                       # authors get overloaded: back off, then fall back to another model
+                    for model in AUTHORS:
+                        try:
+                            ans, st = llm.ask("You are a careful writer of realistic synthetic legal records for software testing.",
+                                              BRIEF.format(situation=situation, extra=extra), model=model, temperature=0.9)
+                        except llm.DailyQuotaExhausted:
+                            raise
+                        except Exception as e:
+                            print("  busy:", model, str(e)[:60], flush=True); ans = None
+                        if ans and ans.get("dossier"): who = model; break
+                    if who: break
+                    time.sleep(60 * (attempt + 1))
+                if not who:
+                    print("author failed", cid, flush=True); continue
+                f.write(json.dumps(dict(id=cid, kind=kind, label=verdict, situation=situation, extra=extra, author=who, **ans)) + "\n"); f.flush()
+                print("wrote", cid, "by", who, flush=True)
 
 
 SYS_A = ("You check property ownership chains for a fictional jurisdiction. Not legal advice. Reply with ONLY a JSON object: "
@@ -119,7 +131,7 @@ def report():
                         by_situation={k: pct(v) for k, v in by.items()}, errors=sum(1 for r in rows if r["arm"] == arm and r.get("error")))
     out["V_disagreements"] = [dict(case=r["case"], kind=cases[r["case"]]["kind"], expected=cases[r["case"]]["label"], got=r["verdict"], rules=r.get("rules"))
                               for r in rows if r["arm"] == "V" and not r.get("error") and r["verdict"] != cases[r["case"]]["label"]]
-    out["cases"] = len(cases); out["author"] = AUTHOR
+    out["cases"] = len(cases); out["authors"] = dict(Counter(c.get("author") for c in cases.values()))
     (ROOT / "results" / "indep_report.json").write_text(json.dumps(out, indent=1))
     return out
 
