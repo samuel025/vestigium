@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vestigium · label real records</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#040506;--panel:#07080a;--well:#111214;--chip:#1b1c1e;--line:#26272a;--edge:#363739;--tx:#e6e6e6;--hi:#fff;--mut:#9c9c9d;--dim:#6a6b6c;--ok:#59d499;--bad:#ff6363;--gap:#e8b04a;
+ --mono:'Geist Mono',ui-monospace,Menlo,monospace;--sans:'Inter',system-ui,sans-serif;--key:inset 0 1px 0 rgba(255,255,255,.05),0 0 0 1px var(--line)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 var(--sans)}
+.wrap{max-width:900px;margin:0 auto;padding:28px 22px 60px}
+h1{font-weight:500;color:var(--hi);margin:0 0 6px;font-size:28px}.mut{color:var(--mut)}.eyebrow{font:500 11px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+.card{background:var(--panel);border-radius:18px;padding:20px 22px;box-shadow:var(--key);margin-top:16px}
+.rec{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.rec{grid-template-columns:1fr}}
+.deed{background:var(--well);border-radius:14px;padding:14px 16px;box-shadow:0 0 0 1px var(--line)}
+.deed .t{font:500 11px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.deed .d{font:400 12.5px var(--mono);color:var(--dim);margin:4px 0 10px}
+.who{font-size:13px;color:var(--dim);margin-top:8px}.names{font:500 16px var(--mono);color:var(--hi);line-height:1.6}
+.focus{box-shadow:0 0 0 1.5px #fff;border-radius:10px;padding:6px 10px;margin:4px -10px 0}
+.q{font-size:18px;color:var(--hi);margin:18px 0 12px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@media(max-width:700px){.opts{grid-template-columns:1fr}}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 14px;text-align:left;background:var(--chip);color:var(--tx);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 0 1px var(--line)}
+button:hover{box-shadow:0 0 0 1px var(--hi)}button.on{box-shadow:0 0 0 2px var(--hi);color:var(--hi)}
+button kbd{font:600 12px var(--mono);background:var(--well);border-radius:6px;padding:2px 7px;margin-right:8px;color:var(--hi)}
+.nav{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}.nav button{padding:8px 14px}
+.bar{height:8px;border-radius:9999px;background:var(--well);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);margin-top:10px}.bar i{display:block;height:100%;background:var(--ok)}
+.rules li{margin:4px 0;color:var(--mut);font-size:14px}.rules b{color:var(--tx)}
+.err{color:var(--gap)}
+</style></head><body><div class="wrap">
+<span class="eyebrow">Vestigium · a benchmark on real records</span>
+<h1>Is the seller the previous buyer?</h1>
+<p class="mut">Each item is one link in a real Philadelphia property chain: an earlier deed and the next deed for the same property. You see only the register entries, never what the engine decided. Your answers become the answer key. They are saved on this computer only.</p>
+<div class="card"><b>How to judge</b><ul class="rules">
+<li><b>Judge the names only.</b> Ignore the document type (a sheriff's deed lists the foreclosed owner as the seller).</li>
+<li><b>Same party:</b> the later seller is clearly the earlier buyer (names in "SURNAME FIRSTNAME" order; a middle initial or an extra co-owner does not matter; if several names are listed, it is enough that one clearly matches).</li>
+<li><b>Same party, written differently:</b> a misspelling or variant of the same person or company ("KRZSYTOF"/"KRZYSZTOF", "HOLDING"/"HOLDINGS"), or that person's estate, executor or trustee.</li>
+<li><b>Different party:</b> someone else sells: a relative, a different company, or a name with no connection.</li>
+<li><b>Can't tell:</b> the records genuinely do not let you decide. Use sparingly.</li></ul>
+<div class="mut" style="font-size:13px">Keys: <b>1 2 3 4</b> answer and move on · <b>←</b> back · <b>→</b> skip</div></div>
+<div id="app"><div class="card mut">Loading…</div></div>
+</div>
+<script>
+const $=id=>document.getElementById(id),esc=t=>String(t??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const OPTS=[['same','Same party'],['variant','Same party, written differently'],['different','Different party: the chain breaks here'],['unsure',"Can't tell from these records"]];
+let items=[],labels={},i=0;
+const deed=(d,role,focus)=>`<div class="deed"><div class="t">${esc(role)} · ${esc(d.type)}</div><div class="d">signed ${esc(d.signed)} · recorded ${esc(d.recorded)}</div>
+  <div class="who">sold by</div><div class="names ${focus==='sellers'?'focus':''}">${d.sellers.map(esc).join('<br>')}</div>
+  <div class="who">bought by</div><div class="names ${focus==='buyers'?'focus':''}">${d.buyers.map(esc).join('<br>')}</div></div>`;
+function draw(){const n=items.length,done=Object.keys(labels).length;if(!n)return;
+  if(i>=n){i=n-1}const it=items[i],cur=labels[it.id];
+  $('app').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between"><span class="eyebrow">${esc(it.id)} · item ${i+1} of ${n}</span><span class="eyebrow">${done} labelled</span></div>
+   <div class="bar"><i style="width:${100*done/n}%"></i></div>
+   <div class="rec" style="margin-top:16px">${deed(it.earlier,'Earlier deed','buyers')}${deed(it.later,'Later deed','sellers')}</div>
+   <div class="q">Is the <b>later seller</b> (white box, right) the same party as the <b>earlier buyer</b> (white box, left)?</div>
+   <div class="opts">${OPTS.map(([k,t],j)=>`<button data-k="${k}" class="${cur===k?'on':''}"><kbd>${j+1}</kbd>${esc(t)}</button>`).join('')}</div>
+   <div class="nav"><button id="back">← Back</button><button id="next">Skip →</button><button id="first">Next unlabelled</button>
+   <span class="mut" id="msg">${done===n?'All done. You can close this page; then run  uv run python -m vestigium.real_bench score':''}</span></div></div>`;
+  document.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>answer(b.dataset.k));
+  $('back').onclick=()=>{i=Math.max(0,i-1);draw()};$('next').onclick=()=>{i=Math.min(n-1,i+1);draw()};
+  $('first').onclick=()=>{const j=items.findIndex(x=>!labels[x.id]);if(j>=0){i=j;draw()}}}
+async function answer(k){const it=items[i];labels[it.id]=k;draw();
+  try{const r=await fetch('/api/label/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:it.id,label:k})});const j=await r.json();if(j.error)throw j.error}
+  catch(e){$('msg').innerHTML='<span class="err">Not saved: '+esc(e)+'</span>';return}
+  const j=items.findIndex((x,ix)=>ix>i&&!labels[x.id]);i=j>=0?j:Math.min(items.length-1,i+1);draw()}
+addEventListener('keydown',e=>{if(!items.length)return;if(e.key>='1'&&e.key<='4')answer(OPTS[+e.key-1][0]);if(e.key==='ArrowLeft'){i=Math.max(0,i-1);draw()}if(e.key==='ArrowRight'){i=Math.min(items.length-1,i+1);draw()}});
+fetch('/api/label/items').then(r=>r.json()).then(j=>{if(j.error){$('app').innerHTML=`<div class="card err">${esc(j.error)}</div>`;return}
+  items=j.items;labels=j.labels||{};i=Math.max(0,items.findIndex(x=>!labels[x.id]));draw()})
+ .catch(()=>{$('app').innerHTML='<div class="card err">This page needs the local server, because the real names never leave your computer: run <code>uv run python -m vestigium.serve</code> and open http://127.0.0.1:8000/label.html</div>'});
+</script></body></html>

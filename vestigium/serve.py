@@ -36,6 +36,10 @@ class H(SimpleHTTPRequestHandler):
             except Exception as e: return self._json({"error": f"The scanner is unavailable right now ({str(e)[:80]}). Try again in a minute."})
             if not out.get("error") and files[0][1] == "image/jpeg": out["preview"] = "data:image/jpeg;base64," + base64.b64encode(files[0][2]).decode()
             return self._json(out)
+        if u.path == "/api/label/items":          # blind labelling (local only: real names never leave this machine)
+            from .real_bench import public_items, LABELS, ITEMS
+            if not ITEMS.exists(): return self._json({"error": "No sample yet: run  uv run python -m vestigium.real_bench sample"}, 404)
+            return self._json({"items": public_items(), "labels": json.loads(LABELS.read_text()) if LABELS.exists() else {}})
         if u.path == "/api/ping": return self._json({"ok": True})
         super().do_GET()
 
@@ -72,6 +76,12 @@ class H(SimpleHTTPRequestHandler):
         self._json(run_cypher(case, str(body.get("query", ""))))
 
     def do_POST(self):
+        if urlparse(self.path).path == "/api/label/save":
+            from .real_bench import save_label
+            try:
+                body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
+                return self._json({"saved": save_label(str(body.get("id")), str(body.get("label")))})
+            except Exception as e: return self._json({"error": str(e)[:100]}, 400)
         if urlparse(self.path).path == "/api/scan": return self._scan()
         if urlparse(self.path).path in ("/api/cypher", "/api/remove"): return self._lab()
         if urlparse(self.path).path != "/api/analyze": return self._json({"error": "not found"}, 404)
