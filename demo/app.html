@@ -225,7 +225,7 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
 /* ---- help: a short guide to the page ---- */
 .helpbtn{width:34px;height:34px;padding:0;border-radius:50%;font:600 14px var(--sans)}
 .newbie{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 16px;padding:10px 14px;border-radius:12px;background:var(--panel);box-shadow:var(--key);font-size:13.5px;color:var(--mut)}
-.newbie b{color:var(--hi)}.newbie .sp{flex:1}
+.newbie[hidden]{display:none}.newbie b{color:var(--hi)}.newbie .sp{flex:1}
 #help{position:fixed;inset:0;z-index:80;display:none;background:rgba(0,0,0,.6);backdrop-filter:blur(6px)}
 #help.on{display:block}
 #help .sheet{position:absolute;right:16px;top:16px;bottom:16px;width:min(560px,calc(100% - 32px));overflow:auto;background:var(--panel);border-radius:20px;box-shadow:var(--key),0 30px 80px rgba(0,0,0,.6);padding:24px 26px;animation:rise .35s}
