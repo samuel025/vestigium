@@ -1,0 +1,9 @@
+{
+ "frozen_at": "2026-11-27T13:33:02Z",
+ "commit": "faf3968",
+ "note": "Rules frozen before the hard held-out tier was written. bench.py refuses to score split=hard if these files change.",
+ "sha256": {
+  "vestigium/rules.py": "71edffc6aebbfee097db375363af4b75b8df7fc95cf76a8802f060c13f0f2084",
+  "vestigium/engine.py": "ea1dc5384aa6980c46d4c9a645368367837ff764f6b4c7ce20284eeffd301ccb"
+ }
+}
