@@ -57,7 +57,7 @@ def _generate(contents, cfg, model=None):
             return c.models.generate_content(model=model or MODEL, contents=contents, config=cfg)
         except Exception as e:
             msg = str(e)
-            if isinstance(e, DailyQuotaExhausted) or attempt == 9 or not any(x in msg for x in ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE", "timed out", "Timeout", "disconnected", "ReadError", "ConnectError")):
+            if isinstance(e, DailyQuotaExhausted) or attempt == 9 or not any(x in msg for x in ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE", "504", "DEADLINE_EXCEEDED", "timed out", "Timeout", "disconnected", "ReadError", "ConnectError")):
                 raise
             if "PerDay" in msg or "per_day" in msg or "limit: 500" in msg or "RequestsPerDay" in msg:
                 cooldown(i, 6 * 3600)          # daily quota: park this key until the reset
@@ -65,21 +65,22 @@ def _generate(contents, cfg, model=None):
                 cooldown(i, 60 if "429" in msg or "RESOURCE_EXHAUSTED" in msg else 10)
 
 
-def ask(system, prompt, tools=(), max_calls=12):
+def ask(system, prompt, tools=(), max_calls=12, model=None, temperature=0.2):
     """Agent turn with a hand-written tool loop: every model call is paced, retries resume the run,
     and tool calls are hard-capped at max_calls. Returns (parsed_json|None, stats)."""
     fns = {t.__name__: t for t in tools}
     st = dict(tool_calls=0, tool_errors=0, tokens=0, model_calls=0, error_log=[], trace=[])
     cfg = types.GenerateContentConfig(
-        system_instruction=system, temperature=0.2, tools=list(tools) or None,
+        system_instruction=None if (model and "gemma" in model) else system, temperature=temperature, tools=list(tools) or None,
         automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True))
+    if model and "gemma" in model: prompt = system + "\n\n" + prompt          # Gemma takes no system instruction
     contents = [types.Content(role="user", parts=[types.Part(text=prompt)])]
     text = ""
     for _ in range(max_calls + 2):
         if st["tool_calls"] >= max_calls and tools:   # budget spent: force a final answer
             contents.append(types.Content(role="user", parts=[types.Part(text="Tool budget used up. Give your final JSON answer now.")]))
             cfg.tools = None
-        r = _generate(contents, cfg)
+        r = _generate(contents, cfg, model=model)
         st["model_calls"] += 1
         if r.usage_metadata:
             st["tokens"] += r.usage_metadata.total_token_count or 0
@@ -114,7 +115,7 @@ def ask(system, prompt, tools=(), max_calls=12):
             contents.append(types.Content(role="model", parts=[types.Part(text=text or "(empty)")]))
             contents.append(types.Content(role="user", parts=[types.Part(text="Your last reply was not a valid JSON object. Reply with ONLY the JSON object requested, nothing else.")]))
             cfg.tools = None
-            r = _generate(contents, cfg)
+            r = _generate(contents, cfg, model=model)
             st["model_calls"] += 1
             st["tokens"] += (r.usage_metadata.total_token_count or 0) if r.usage_metadata else 0
             ans = _parse(r.text or "")

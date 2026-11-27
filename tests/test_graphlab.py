@@ -43,3 +43,12 @@ def test_experiments_cover_every_removable_edge_and_pasted_graphs_work():
     c = case_from_client(body, CASES)
     assert c and run_cypher(c, "MATCH (n:Transfer) RETURN count(n) AS n")["rows"][0]["n"] == CLEAN["n_transfers"]
     assert case_from_client({"case": "nope"}, CASES) is None
+
+
+def test_custom_queries_run_on_a_relate_read_only_copy():
+    from vestigium.graphlab import query_read_only
+    import pytest
+    for q in ("CREATE (:Intruder)", "MATCH (n) DETACH DELETE n", "MATCH (t:Transfer) SET t.effective = date('1900-01-01') RETURN t"):
+        with pytest.raises(Exception, match="ReadOnly"):
+            query_read_only(CLEAN, q)                  # even with the keyword filter bypassed, Relate refuses the write
+    assert query_read_only(CLEAN, "MATCH (t:Transfer) RETURN count(t) AS n")[0]["n"] == CLEAN["n_transfers"]

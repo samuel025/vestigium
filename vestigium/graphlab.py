@@ -61,13 +61,31 @@ def case_params(case):
 
 def run_cypher(case, query, limit=100):
     """Run a read-only query on a fresh copy of the case graph. Returns {columns, rows, truncated} or {error}."""
-    err = check_read_only(query)
+    err = check_read_only(query)          # a friendly message for the obvious cases ...
     if err: return {"error": err}
-    db = build(case)
-    try: rows = db.execute(query, case_params(case)).data()
-    except Exception as e: return {"error": "Relate could not run that: " + str(e).splitlines()[0][:160]}
+    try: rows = query_read_only(case, query)   # ... but the guarantee is Relate's own read-only mode
+    except Exception as e:
+        msg = str(e).splitlines()[0]
+        if "ReadOnly" in msg: return {"error": "This console is read-only: Relate refused a write."}
+        return {"error": "Relate could not run that: " + msg[:160]}
     cols = list(rows[0].keys()) if rows else []
     return {"columns": cols, "rows": [{k: _clean(v) for k, v in r.items()} for r in rows[:limit]], "truncated": len(rows) > limit, "total": len(rows)}
+
+
+def query_read_only(case, query):
+    """Build the case into a throwaway single-file Relate store, close it, reopen it read_only=True and run the query.
+    Relate itself refuses any write (WriteOnReadOnlyAccessDatabase), whatever the query text."""
+    import relate, shutil, tempfile, os
+    from .engine import load_case
+    d = tempfile.mkdtemp(prefix="vestigium-q-")
+    try:
+        path = os.path.join(d, "case.rl")
+        w = relate.connect(path); load_case(w, case); w.close()
+        ro = relate.connect(path, read_only=True)
+        try: return ro.execute(query, case_params(case)).data()
+        finally: ro.close()
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
 
 
 def without(case, edge):

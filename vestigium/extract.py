@@ -160,6 +160,8 @@ def assemble(ir, as_of=None):
     moves = [r for r in recs.values() if r.get("type") in ("deed", "title")]
     for i, r in enumerate(sorted(moves, key=lambda r: (r.get("date") or "", r["id"])), 1):
         tid[r["id"]] = f"T{i}"
+    if moves and not any(r.get("root") for r in moves):     # nothing says where the chain starts: take the earliest deed in the file
+        min(moves, key=lambda r: (r.get("date") or "9999", r["id"]))["root"] = True
     for r in moves:
         t = tid[r["id"]]
         props = dict(id=t, effective=r.get("date"), recorded=r.get("recorded"))
