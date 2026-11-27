@@ -33,7 +33,27 @@ def run_checks(db, asset, as_of, known=None, pack="property"):
                         "detail": "No transfer of this asset was found, so no check could run", "missing": "the deeds or titles for this asset", "evidence": []})
     findings.sort(key=order); missing.sort(key=order)
     verdict = "defective" if findings else "inconclusive" if missing else "clean"
-    return {"verdict": verdict, "findings": findings, "missing": missing}
+    return {"verdict": verdict, "findings": findings, "missing": missing, "downstream": downstream(db, params, findings + missing)}
+
+
+# Every later sale that rests on a broken one: walk FOLLOWS backwards from each later transfer to the flagged one.
+DOWNSTREAM = """
+MATCH (later:Transfer)-[:FOLLOWS*1..60]->(t:Transfer {id:$t}), (later)-[:MOVES]->(:Asset {id:$asset})
+WHERE later.effective <= date($as_of) AND later.recorded <= date($known)
+RETURN DISTINCT later.id AS transfer"""
+
+
+def downstream(db, params, flagged):
+    """Later sales that depend on a flagged one, and which flagged sale(s) they depend on. A sale that is itself
+    flagged is reported as a finding, not here, so the three groups (broken, affected, fine) never overlap."""
+    own = {f["transfer"] for f in flagged}
+    dep = {}
+    for t in sorted(own - {"-"}):
+        for row in db.execute(DOWNSTREAM, {**params, "t": t}).data():
+            if row["transfer"] not in own:
+                dep.setdefault(row["transfer"], set()).add(t)
+    key = lambda x: (len(x), x)
+    return [dict(transfer=t, depends_on=sorted(r, key=key)) for t, r in sorted(dep.items(), key=lambda kv: key(kv[0]))]
 
 
 def timeline(db, asset, dates, as_of):

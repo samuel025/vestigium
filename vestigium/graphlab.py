@@ -13,6 +13,11 @@ MATCH (t:Transfer)-[:MOVES]->(:Asset {id:$asset}), (g:Party)-[:FROM]->(t), (t)-[
 OPTIONAL MATCH (t)-[:FOLLOWS]->(p:Transfer)
 RETURN t.id AS transfer, t.effective AS effective, g.name AS seller, h.name AS buyer, p.id AS follows
 ORDER BY t.effective, t.id"""),
+    "depends": dict(title="What rests on each sale", text="For every sale, how many later sales follow from it (if it is broken, all of them are affected)", cypher="""
+MATCH (t:Transfer)-[:MOVES]->(:Asset {id:$asset})
+OPTIONAL MATCH (later:Transfer)-[:FOLLOWS*1..60]->(t)
+RETURN t.id AS transfer, t.effective AS signed, count(DISTINCT later) AS later_sales_resting_on_it
+ORDER BY t.effective, t.id"""),
     "authority": dict(title="Who signed under what authority", text="Agent-signed transfers and the authority they cite", cypher="""
 MATCH (t:Transfer)-[:ACTED_UNDER]->(au:Authority)
 RETURN t.id AS transfer, t.effective AS signed, au.agent AS agent, au.valid_from AS valid_from, au.valid_to AS valid_to,

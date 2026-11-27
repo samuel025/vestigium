@@ -92,6 +92,11 @@ nav select{flex:0 1 380px;min-width:0}@media(max-width:700px){nav select{flex:1 
 .tb.proof:not(.bad):not(.gap){box-shadow:0 0 0 2px #fff}
 .tb.bad,.tb.gap{padding-bottom:26px}
 .tb.off{opacity:.2}
+.tb.aff{box-shadow:0 0 0 1.5px rgba(255,99,99,.5);background:repeating-linear-gradient(135deg,var(--well) 0 9px,#150d0e 9px 18px);padding-bottom:26px}
+.tb .flag.af{background:#150d0e;color:#ff9a9a;box-shadow:0 0 0 1px rgba(255,99,99,.45);font-weight:500}
+.tarr.af{color:rgba(255,99,99,.75)}
+.affnote{margin:10px 0;padding:10px 12px;border-radius:12px;background:#150d0e;box-shadow:0 0 0 1px rgba(255,99,99,.35);font-size:13.5px;color:var(--tx)}.affnote b{color:var(--hi)}
+#lab .n.aff rect{stroke:rgba(255,99,99,.65);stroke-dasharray:4 3;stroke-width:1.6}
 .tb .flag{position:absolute;left:14px;right:14px;bottom:-11px;text-align:center;font:600 10.5px var(--mono);letter-spacing:.05em;padding:3px 8px;border-radius:9999px;background:#1a0d0e;color:var(--bad);box-shadow:0 0 0 1px var(--bad)}
 .tb.gap .flag{background:#171106;color:var(--gap);box-shadow:0 0 0 1px var(--gap)}
 .tarr{flex:0 0 38px;display:flex;align-items:center;justify-content:center;color:var(--dim)}.tarr svg{width:24px;height:10px}
@@ -257,7 +262,8 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
   <h3>Read the answer</h3>
   <ul><li><span class="sw" style="background:var(--ok)"></span><b>Clean</b>: every sale follows from the one before it.</li>
   <li><span class="sw" style="background:var(--bad)"></span><b>Defective</b>: a rule found a problem. The red box is the sale where it breaks.</li>
-  <li><span class="sw" style="background:var(--gap)"></span><b>Inconclusive</b>: a record is missing. The amber box shows where, and nobody is accused.</li></ul>
+  <li><span class="sw" style="background:var(--gap)"></span><b>Inconclusive</b>: a record is missing. The amber box shows where, and nobody is accused.</li>
+  <li><span class="sw" style="background:repeating-linear-gradient(135deg,#ff6363 0 3px,#150d0e 3px 6px)"></span><b>Rests on a broken sale</b>: a later sale that looks fine on its own, but whose chain of title passes through the broken one.</li></ul>
   <h3>The panels, top to bottom</h3>
   <ol><li><b>Ownership chain</b>: one box per sale, oldest on the left, with who sold, who bought, when it was signed and when it was recorded.</li>
   <li><b>Findings &amp; proof</b>: the rule that fired and the exact sentences of the records behind it. <i>Minimal proof</i> says how few records the finding needs.</li>
@@ -301,7 +307,7 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
     <p class="hint">Every record is a node and every link is a relationship. The rules are plain Cypher queries over this graph. Click anything to inspect it, run a rule, or delete a relationship and watch the engine react.</p>
     <div class="labtop"><span id="labverdict"></span><span class="sp"></span><button id="walkbtn" class="btn2">Walk the chain</button><select id="rmsel" aria-label="Remove a relationship"></select><button id="rmgo" class="btn2">Remove it</button></div>
     <div class="svgwrap"><div id="labsvg"></div></div>
-    <div class="legend"><span><b>FOLLOWS</b> transfer to the one before</span><span><b>FROM / TO</b> seller, buyer</span><span><b>ACTED_UNDER</b> signing authority</span><span><b>MOVES</b> asset</span><span><b>EVIDENCED_BY</b> source text (small squares)</span><span><b>coral</b> defect · <b>amber</b> gap</span></div>
+    <div class="legend"><span><b>FOLLOWS</b> transfer to the one before</span><span><b>FROM / TO</b> seller, buyer</span><span><b>ACTED_UNDER</b> signing authority</span><span><b>MOVES</b> asset</span><span><b>EVIDENCED_BY</b> source text (small squares)</span><span><b>coral</b> defect · <b>amber</b> gap · <b>dashed</b> rests on a broken sale</span></div>
     <div class="inspect" id="labinsp"></div>
     <div class="walklog" id="walklog"></div>
     <div class="labres" id="labres"></div>
@@ -366,20 +372,21 @@ function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1],
   $('ceyebrow').textContent=c.split==='real'?'Real record · '+(c.id.startsWith('phl')?'Philadelphia transfer records':'NYC public register')+' · anonymised · '+c.title:(c.domain==='vehicle'?'Vehicle':'Property')+' · '+(c.id==='pasted'?'your dossier':c.id);
   $('ctitle').textContent=c.headline||kname(c);
   const first=res.findings[0]||res.missing[0];
-  $('csub').innerHTML=!full?`<b>${esc(assetOf(c))}</b> · as known on <b>${known}</b>: `+(ver==='clean'?'every transfer recorded so far checks out. Slide right to see what was filed later.':ver==='defective'?'a check already fails.':'a record is missing.'):`<b>${esc(assetOf(c))}</b> · ${nTransfers(c)} transfers · checked as of ${c.as_of}. `+(res.verdict==='clean'?'Every transfer links to the one before it, and no check finds a defect.':res.verdict==='defective'?`The first check to fail is <b>${esc(first.rule)}</b>: ${esc((first.text||'').toLowerCase())}.`:`A record is missing, so a check cannot decide: <b>${esc(first.missing||first.detail)}</b>.`);
+  $('csub').innerHTML=!full?`<b>${esc(assetOf(c))}</b> · as known on <b>${known}</b>: `+(ver==='clean'?'every transfer recorded so far checks out. Slide right to see what was filed later.':ver==='defective'?'a check already fails.':'a record is missing.'):`<b>${esc(assetOf(c))}</b> · ${nTransfers(c)} transfers · checked as of ${c.as_of}. `+(res.verdict==='clean'?'Every transfer links to the one before it, and no check finds a defect.':res.verdict==='defective'?`The first check to fail is <b>${esc(first.rule)}</b>: ${esc((first.text||'').toLowerCase())}.`+((res.downstream||[]).length?` <b>${res.downstream.length} later sale${res.downstream.length>1?'s rest':' rests'} on it</b>, so ${res.downstream.length>1?'they are':'it is'} affected too.`:''):`A record is missing, so a check cannot decide: <b>${esc(first.missing||first.detail)}</b>.`);
   $('asof').textContent=`valid as of ${c.as_of}`;
   $('verdict').innerHTML=V(full?res.verdict:ver)+(full?'':'<div class="note" style="margin-top:6px">replaying · slide right for the full result</div>');
   $('warns').innerHTML=(full&&c.warnings||[]).map(w=>`<div class="proofnote" style="margin-top:12px"><span class="warn">⚠</span> ${esc(w)}</div>`).join('');
   // guide
   $('g1').hidden=!items.length;$('g2').hidden=!items.length;$('g4').hidden=!(full&&c.fix);
-  $('chint').textContent=items.length?'Each box is one transfer. Coral or amber marks where a check fails; white rings mark the records in the selected proof.':'Each box is one transfer, joined to the one before it. A green tick means no check flagged it.';
+  $('chint').textContent=items.length?'Each box is one sale. Coral marks a broken sale, amber a missing record, striped coral a later sale that rests on a broken one. White rings mark the records in the selected proof.':'Each box is one transfer, joined to the one before it. A green tick means no check flagged it.';
   // findings
   $('findings').innerHTML=items.map((f,i)=>`<div class="finding ${sel===i?'sel':''}" data-i="${i}" style="animation-delay:${i*70}ms"><div class="rule" style="color:${f.t==='gap'?'var(--gap)':'var(--bad)'}">${esc(f.rule)} · ${esc(f.transfer)}</div><div class="d">${esc(f.detail)}</div>${f.missing?`<div class="mut" style="margin-top:4px;font-size:13.5px">Missing: ${esc(f.missing)}</div>`:''}</div>`).join('')||(full?'<div class="proofnote">Nothing to flag. Slide through time or open the agent replay below.</div>':'<div class="note">Slide to the right end to see the full result.</div>');
   $('phint').style.display=items.length?'':'none';
   $('fixbtn').style.display=full&&c.fix?'':'none';$('fix').innerHTML='';
   // evidence + minimal proof
   if(sel!==null&&items[sel]){const f=items[sel],pr=(c.proof||[])[sel],np=pr&&pr.records_total?`<div class="proofnote"><b>Minimal proof.</b> This finding rests on <b>${pr.passages.length} of ${pr.records_total}</b> records. The other ${pr.records_total-pr.passages.length} could be deleted without changing it.</div>`:'';
-    $('evidence').innerHTML=`<div class="sechead eyebrow">The records behind it</div>`+np+[...new Set(f.evidence)].map(p=>{const n=byId(c,p);return n?`<div class="pass"><code>${esc(p)}</code> ${esc(n.text)}</div>`:''}).join('')}
+    $('evidence').innerHTML=`<div class="sechead eyebrow">The records behind it</div>`+np+[...new Set(f.evidence)].map(p=>{const n=byId(c,p);return n?`<div class="pass"><code>${esc(p)}</code> ${esc(n.text)}</div>`:''}).join('');
+    {const dn=(c.result.downstream||[]).filter(d=>d.depends_on.includes(f.transfer)).map(d=>d.transfer);if(full&&dn.length)$('evidence').innerHTML+=`<div class="sechead eyebrow">Later sales that rest on it</div><div class="affnote"><b>${dn.length} later sale${dn.length>1?'s':''}</b> (${dn.map(esc).join(', ')}) ${dn.length>1?'have':'has'} a chain of title that passes through <b>${esc(f.transfer)}</b>. Until ${esc(f.transfer)} is resolved, every owner after it inherits the problem, however clean their own sale looks. <span class="mut">Found by walking the graph: every sale that FOLLOWS ${esc(f.transfer)}, directly or indirectly.</span></div>`}}
   else $('evidence').innerHTML='';
   graph(items,known,full);chips(known,items);race();
 }
@@ -393,12 +400,14 @@ function graph(items,known,full){const c=cur,ts=c.nodes.filter(n=>n.label==='Tra
   const name=(t,dir)=>{const rel=c.rels.find(x=>dir==='from'?(x[1]==='FROM'&&x[2]===t):(x[0]===t&&x[1]==='TO'));const p=rel&&byId(c,dir==='from'?rel[0]:rel[2]);return p?p.name:'?'};
   const anim=lastDrawn!==c.id;lastDrawn=c.id;
   let h='';
+  const aff=new Map(full?(c.result.downstream||[]).map(d=>[d.transfer,d.depends_on]):[]);
   ts.forEach((t,i)=>{
-    if(i>0){const f=c.rels.some(r=>r[0]===t.id&&r[1]==='FOLLOWS');h+=f?`<div class="tarr" style="--i:${i}">${ARROW}</div>`:`<div class="tarr gp" style="--i:${i}"><svg viewBox="0 0 30 10"><path d="M0 5H28" stroke="currentColor" stroke-width="1.6" stroke-dasharray="4 4" fill="none"/></svg>no link</div>`}
+    if(i>0){const f=c.rels.some(r=>r[0]===t.id&&r[1]==='FOLLOWS');h+=f?`<div class="tarr ${aff.has(t.id)?'af':''}" style="--i:${i}">${ARROW}</div>`:`<div class="tarr gp" style="--i:${i}"><svg viewBox="0 0 30 10"><path d="M0 5H28" stroke="currentColor" stroke-width="1.6" stroke-dasharray="4 4" fill="none"/></svg>no link</div>`}
     const isB=bad.has(t.id),isG=gap.has(t.id),seen=t.recorded<=known,isP=tpass(t.id).some(p=>need.has(p));
-    h+=`<div class="tb ${isB?'bad':isG?'gap':full&&seen?'ok':''} ${isP?'proof':''} ${seen?'':'off'}" data-t="${t.id}" style="--i:${i}"><div class="tid">${esc(t.id)}<em>${t.effective}</em></div><span class="chk">✓</span>
+    const isA=aff.has(t.id)&&!isB&&!isG;
+    h+=`<div class="tb ${isB?'bad':isG?'gap':isA?'aff':full&&seen?'ok':''} ${isP?'proof':''} ${seen?'':'off'}" data-t="${t.id}" style="--i:${i}"><div class="tid">${esc(t.id)}<em>${t.effective}</em></div><span class="chk">✓</span>
       <div class="p"><s>from</s>${esc(name(t.id,'from'))}</div><div class="p"><s>to</s>${esc(name(t.id,'to'))}</div>
-      <div class="meta"><span>recorded <b>${t.recorded}</b></span>${t.odometer!==undefined?`<span>odo <b>${t.odometer.toLocaleString?t.odometer.toLocaleString():t.odometer}</b></span>`:(c.domain==='vehicle'?'<span>odo <b>not stated</b></span>':'')}</div>${isB||isG?`<div class="flag">${esc(isB?bad.get(t.id):gap.get(t.id))}</div>`:''}</div>`});
+      <div class="meta"><span>recorded <b>${t.recorded}</b></span>${t.odometer!==undefined?`<span>odo <b>${t.odometer.toLocaleString?t.odometer.toLocaleString():t.odometer}</b></span>`:(c.domain==='vehicle'?'<span>odo <b>not stated</b></span>':'')}</div>${isB||isG?`<div class="flag">${esc(isB?bad.get(t.id):gap.get(t.id))}</div>`:''}${isA?`<div class="flag af" title="This sale's chain of title passes through ${esc(aff.get(t.id).join(', '))}">RESTS ON ${esc(aff.get(t.id).join(', '))}</div>`:''}</div>`});
   const el=$('graph');el.classList.toggle('pop',anim);el.innerHTML=h;
   // authority and claims, linked to the selected proof
   const sev=new Set(need);
@@ -555,6 +564,8 @@ function lit(){const n=new Map(),e=new Set(),c=cur;
 function labDraw(){const c=cur,{pos,W,H,YT,YP,YE}=labLayout(c),{n:hn,e:he}=lit(),E=eff(),stat=new Map();
   E.items.forEach(f=>{if(f.t==='defect'||!stat.has(f.transfer))stat.set(f.transfer,f.t==='defect'?'bad':'gap')});
   const flagged=new Set([...stat.keys()]);
+  {const par={};liveRels().forEach(r=>{if(r[1]==='FOLLOWS')par[r[0]]=r[2]});      // later sales resting on a flagged one
+   Object.keys(par).forEach(t=>{if(stat.has(t))return;let p=par[t];const seen=new Set();while(p&&!seen.has(p)){seen.add(p);if(stat.has(p)&&stat.get(p)!=='aff'){stat.set(t,'aff');break}p=par[p]}})}
   const order={EVIDENCED_BY:0,MOVES:1,AGAINST:2};
   let s=`<svg viewBox="0 0 ${W} ${H}" style="max-width:${W}px;margin:0 auto" role="img" aria-label="The ownership graph for this case: nodes and relationships"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L8 4L0 8z" fill="context-stroke"/></marker></defs>
    <text class="lane" x="10" y="${YT-34}">transfers</text><text class="lane" x="10" y="${YP-22}">parties</text><text class="lane" x="10" y="${YE-14}">evidence</text>`;

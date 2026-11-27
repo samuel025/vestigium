@@ -15,6 +15,8 @@ def main():
     print(f"{c['id']}  verdict: {r['verdict'].upper()}  (answer key: {c['label']})")
     for f in r["findings"] + r["missing"]:
         print(f"  {f['rule']} @ {f['transfer']}: {f['detail']}  evidence={f['evidence']}" + (f"\n    missing: {f['missing']}" if f.get("missing") else ""))
+    if r["downstream"]:
+        print(f"  later sales resting on it: {', '.join(d['transfer'] for d in r['downstream'])}")
     if c["key"]["fix"]:
         print(f"  what would fix it: {c['key']['fix']['describe']} -> {would_fix(c, c['key']['fix'])['verdict']}")
     dates = sorted({p["recorded"] for l, p in c["nodes"] if l == "Transfer"} | {c["as_of"]})

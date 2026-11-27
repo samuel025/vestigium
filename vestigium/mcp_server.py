@@ -41,7 +41,8 @@ def _compact(r):
         return out
     return dict(verdict=r["result"]["verdict"], as_of=r["as_of"], findings=f(r["result"]["findings"]), missing=f(r["result"]["missing"]),
                 evidence_text=r["evidence_text"], verdict_by_known_date=r["timeline"], what_would_fix_it=r["fix"] and dict(record=r["fix"], verdict_after=r["fix_verdict"]),
-                warnings=r["warnings"], extracted_records=r["extracted"])
+                warnings=r["warnings"], extracted_records=r["extracted"],
+                later_sales_affected=[dict(transfer=d["transfer"], depends_on=d["depends_on"]) for d in r["result"].get("downstream", [])])
 
 
 def _validate(records):

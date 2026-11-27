@@ -48,3 +48,14 @@ def test_empty_chain_is_inconclusive_not_clean():
     db = open_graph(); load_case(db, dict(nodes=[("Asset", dict(id="A1"))], rels=[]))
     r = run_checks(db, "A1", "2025-06-01")
     assert r["verdict"] == "inconclusive" and r["missing"][0]["rule"] == "NO-RECORDS"
+
+
+def test_later_sales_that_rest_on_a_broken_one_are_reported():
+    from vestigium.generator import all_cases
+    from vestigium.whatif import build
+    c = next(x for x in all_cases() if x["id"] == "prop-014")          # T5 signed under an expired power of attorney
+    r = run_checks(build(c), c["asset"], c["as_of"], pack=c["pack"])
+    assert [d["transfer"] for d in r["downstream"]] == ["T6", "T7", "T8", "T9", "T10", "T11", "T12"]
+    assert all(d["depends_on"] == ["T5"] for d in r["downstream"])
+    early = run_checks(build(c), c["asset"], "2019-06-01", pack=c["pack"])  # valid-time before T6: nothing rests on T5 yet
+    assert early["downstream"] == []
