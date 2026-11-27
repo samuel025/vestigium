@@ -10,8 +10,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 def runs():
     out = {}
-    f = ROOT / "results" / "heldout.jsonl"
-    if f.exists():
+    for f in (ROOT / "results" / "heldout.jsonl", ROOT / "results" / "hard.jsonl"):
+        if not f.exists(): continue
         for l in f.read_text().splitlines():
             r = json.loads(l)
             if not (r["stats"] or {}).get("error"):

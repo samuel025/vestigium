@@ -315,7 +315,7 @@ def authority_cases(seed=23):
 
 def demo_cases():
     """Everything the app, the server and the MCP tools offer: the 80 benchmark cases plus the authority cases."""
-    return all_cases() + authority_cases()
+    return all_cases() + authority_cases() + hard_cases()
 
 
 

@@ -196,6 +196,30 @@ Property and vehicle show the same pattern (A 55% / 57%, B 58% / 50%, C and D 10
 **Reading it:** a graph by itself did not help (B is no better than A, at ~39× the tokens, and swings from 47.5% to 62.5% between repeats). Giving the agent the rule engine's checks did (A 56% → C 100%, false-clean 35% → 0%),
 and it did so in every repeat. C matches D on every verdict; the agent's contribution is investigation and explanation, which this benchmark does not score.
 
+### The hard tier (40 more held-out cases, written after a rule freeze)
+
+We froze the rules first (`results/rules_frozen.json`, commit `c1f06c0`, before any hard case existed); `bench.py` refuses to score this tier if `rules.py` or `engine.py` change. The 40 cases (`generator.hard_cases()`): **8** chains with two defects, **8** sound chains that look suspicious (released liens, valid agents, a deed filed months late, a false rumour in the paperwork), **6** missing records under a "title is clear" summary, **6** powers of attorney valid on the date but not covering a sale, **6** contradictory records filed on different dates, and **6** defects at T2 or T3 followed by a long run of clean-looking sales. Same model (`gemini-3.5-flash-lite`), same evidence.
+
+| Arm | Runs | Accuracy | Defective called clean | Abstains correctly | Localizes¹ | Fix type | Citations valid | Tokens / case |
+|---|---|---|---|---|---|---|---|---|
+| A: documents only | 3 × 40 | 72.5% (identical in all 3 repeats) | 15.4% | **0%** | 0% | 55% | 98% | 721 |
+| B: graph + own Cypher | 1 × 40 | 50.0% | 46.2% | 33% | 50% | 68% | 81% | 21,797 |
+| C: graph + rule tools | 3 × 40 | **100%** (every repeat) | **0%** | **100%** | 100% | 89% | 100% | 3,805 |
+| D: rules alone | 1 × 40 | 100% | 0% | 100% | 100% | 100% | 100% | 0 |
+
+| Kind of case | A | B | C | D |
+|---|---|---|---|---|
+| Two defects in one chain | 75% | 75% | 100% | 100% |
+| Sound chain that looks suspicious | 88% | 62% | 100% | 100% |
+| Missing record under "title is clear" | **0%** | 33% | 100% | 100% |
+| Power valid but not covering a sale | 100% | 33% | 100% | 100% |
+| Contradictory records, different filing dates | 100% | 50% | 100% | 100% |
+| Early defect, then a long clean run | 67% | 33% | 100% | 100% |
+
+¹ Arm A sees only the documents, which cite passage ids (`P5`) and never transfer ids (`T5`), so it cannot name the transfer by construction; this is the same in the main table.
+
+**Reading it.** The sharpest result: shown a chain with a missing record and a summary saying the title is clear, the documents-only agent answered **clean all 18 times**. The agent with the rule engine abstained every time and named the missing record. Writing its own Cypher did not rescue the agent either (50%, at 30 times the tokens of A, and it called 46% of defective chains clean). Documents alone did well where the defect is stated in plain words (a power "authorising the management only"), which is fair to report. The usual caveat holds: the rules and the cases have one author, so C and D at 100% show the engine doing what its rules say, not that the rules are right for any real jurisdiction; the freeze makes sure the rules were not adjusted to these cases. B ran once (about 12 model calls per case). Raw runs: `results/hard.jsonl`.
+
 ### Paste a dossier: reading documents into the graph
 
 The UI's **Paste a dossier** box takes deeds, titles, liens, powers of attorney, releases and death certificates, extracts the facts, and hands them to the same rule engine
