@@ -67,7 +67,7 @@ Then ask *"Use vestigium to check the dossier for prop-014 and explain the verdi
 ### 4. Check our claims
 
 ```bash
-uv run pytest -q                          # 70 tests, no network needed
+uv run pytest -q                          # 74 tests, no network needed
 uv run python -m vestigium.cli prop-014   # one case in the terminal: verdict, rule, evidence, fix, timeline
 uv run python -m vestigium.metamorphic    # 1,600 fresh cases + invariance checks
 uv run python -m vestigium.philly fetch --n 10000 && uv run python -m vestigium.philly   # the real Philadelphia test (~8 min)
@@ -350,14 +350,14 @@ We read random samples by hand (drawn from the first 1,000 properties, which are
 - **Arm B is noisy.** Its three repeats scored 52.5%, 62.5% and 47.5%, so its spread is wide; the free-tier quota meant B (about 12.6 requests per case) took two days to finish. Rerun with
   `./run_benchmark.sh` (`REPEATS=3`); it resumes and fills the gaps. One C case (prop-011) failed on a malformed answer in the first run; we removed that row, added a JSON repair retry to the harness
   and reran it (correct in all 3 repeats). Across the 120 C runs the repair retry fired once (prop-050, repeat 3) and the repaired answer was correct.
-- **Small sample.** 40 cases (3 inconclusive and 4 clean per pack-side are few), one model, so the percentages for A and B are rough.
+- **Small samples.** 40 held-out cases in the main benchmark (3 inconclusive and 4 clean per pack-side are few) and 40 in the hard tier, one model, so the percentages for A and B are rough. On the hard tier, Arm B ran once (about 12 model calls per case), not three times.
 - **The rules and the generator were written together by the same people.** 100% for C and D is expected and is not evidence the rules are right for the real world. Arm D exists to show this: it is the ceiling of the rules themselves, and it is the agent-free baseline.
 - **The real-record test is deeds-only** (30,803 deeds, two cities, see *Real records*); it shows how the rules behave on real data, not whether any flagged property has a real defect. Everything else is synthetic.
-- **The held-out split is a flag, not a time gap.** Every third case is marked held-out and not used to tune; cases were not written after a rule freeze.
+- **The original held-out split is a flag, not a time gap.** Every third of the 80 cases is marked held-out and not used to tune, but those cases were not written after a rule freeze. The 40-case **hard tier** was: the rules were frozen first (`results/rules_frozen.json`) and the benchmark refuses to score it against changed rules.
 - **One small model.** A stronger model might narrow the gap for A and B.
 - **Arms A-D assume a correct graph.** Extraction is scored separately (section above), not chained into the four-arm table. Not scored: per-case fix-by-copy accuracy for agent-proposed records
   (we score the *type* of record the agent names against the answer key; each answer-key fix is separately verified to turn its case clean).
-- **The graph lab's edge removal is limited** to `FOLLOWS`, `ACTED_UNDER` and `CLEARED_BY` (the relationships the rules can notice); outcomes are precomputed for the 80 built-in cases, and editing or running your own Cypher, or removing from a pasted dossier, needs the local server. The query console is read-only by keyword filtering on a throwaway copy, a guard for a local demo, not a hardened sandbox.
+- **The graph lab's edge removal is limited** to `FOLLOWS`, `ACTED_UNDER`, `CLEARED_BY`, `GRANTED_BY` and `REVOKED_BY` (the relationships the rules can notice); outcomes are precomputed for every demo and real case, and editing or running your own Cypher, or removing from a pasted dossier, needs the local server. The query console is read-only by keyword filtering on a throwaway copy, a guard for a local demo, not a hardened sandbox.
 - **Single-file Relate store only for the demo;** benchmark graphs are in-memory per case.
 - **Scans are tested on synthetic photos only.** The model's own confidence flags were unreliable; the double read catches 3 of 5 poor-photo misreads, not all (see *Scanned documents*).
 - Not built: running Relate in the browser (WASM), Relate's own `relate serve` MCP endpoint for the `.rl` store (our MCP server exposes the rule engine instead), Google Document AI or AWS Textract (we use a vision model).
