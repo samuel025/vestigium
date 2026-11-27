@@ -128,7 +128,16 @@ nav select{flex:0 1 380px;min-width:0}@media(max-width:700px){nav select{flex:1 
 input[type=range]{width:100%;accent-color:#e6e6e6;margin:10px 0 4px}
 .strip{display:flex;gap:3px;margin:6px 0 10px}.strip i{flex:1;height:14px;border-radius:4px;opacity:.85;cursor:pointer;transition:opacity .15s}
 .strip i:hover{opacity:1}.strip i.cur{opacity:1;outline:2px solid var(--hi);outline-offset:2px}
-.tlrow{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.tlrow{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.tt2{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:start}@media(max-width:860px){.tt2{grid-template-columns:1fr}}
+.ttl{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:13.5px;color:var(--mut)}.ttl b{color:var(--hi);font:500 13px var(--mono)}
+.lock{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mut);margin-top:8px;cursor:pointer}.lock input{accent-color:#e6e6e6}
+.ttnote{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--well);box-shadow:0 0 0 1px var(--line);font-size:13.5px;color:var(--tx)}.ttnote b{color:var(--hi)}.ttnote:empty{display:none}
+#heat{display:grid;gap:3px;margin:10px 0 8px}#heat i{width:16px;height:16px;border-radius:4px;cursor:pointer;opacity:.82}#heat i:hover{opacity:1;outline:1px solid #fff}
+#heat i.cur{opacity:1;outline:2px solid #fff;outline-offset:1px}
+.tb.unrec{box-shadow:0 0 0 1.5px #8a8b8c;border:0;outline:1.5px dashed #9c9c9d;outline-offset:3px;padding-bottom:26px}
+.tb .flag.ur{background:#18191b;color:#cfcfd0;box-shadow:0 0 0 1px #6a6b6c;font-weight:500}
+.tc.unrec{outline:1.5px dashed #9c9c9d;outline-offset:2px}
 
 /* ---- agents ---- */
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.row{grid-template-columns:1fr}}
@@ -268,7 +277,7 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
   <ol><li><b>Ownership chain</b>: one box per sale, oldest on the left, with who sold, who bought, when it was signed and when it was recorded.</li>
   <li><b>Findings &amp; proof</b>: the rule that fired and the exact sentences of the records behind it. <i>Minimal proof</i> says how few records the finding needs.</li>
   <li><b>The graph itself</b>: the same case as the database holds it. Run any rule's query, <i>Walk the chain</i> link by link, or remove a relationship to see the verdict change.</li>
-  <li><b>Time travel</b>: slide back to see what the public register showed on an earlier date. Deeds are often recorded weeks after signing, so the answer can change.</li>
+  <li><b>Two kinds of time</b>: <i>legally true on</i> picks which sales had been signed; <i>known on</i> picks which deeds had reached the public register. Move them together to stand in an investigator's shoes on that day, or apart to compare what was true with what could be known. The grid shows the verdict for every pair.</li>
   <li><b>AI agents</b> (synthetic cases): an agent reading the documents alone, next to one that uses the rules. Replay it step by step.</li></ol>
   <h3>Words</h3>
   <ul><li><b>Grantor / grantee</b>: seller / buyer.</li><li><b>Lien</b>: a claim on the property, usually a loan, that should be released before a sale.</li>
@@ -317,10 +326,21 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
     </div>
   </div></div>
 
-  <div class="card a-time">
-    <h2>Time travel <small>what was known on…</small></h2><p class="hint">Every fact has two dates: when it took effect and when it was recorded. Slide back and the verdict changes with what had been filed.</p>
-    <div class="tlrow"><div id="tlabel" class="mut"></div></div>
-    <input type="range" id="slider" min="0" value="0" aria-label="Known-as-of date"><div class="strip" id="strip"></div>
+  <div class="card a-time" id="timecard">
+    <h2>Two kinds of time <small>what had happened · what was on file</small></h2>
+    <p class="hint">A sale is <b>legally true</b> from the day it is signed, but an investigator can only <b>know</b> about it once the deed reaches the public register, often weeks later. Vestigium keeps both dates for every fact, so it can answer either question.</p>
+    <div class="tt2">
+      <div class="ttc">
+        <div class="ttl"><span>Legally true on</span><b id="vlabel"></b></div>
+        <input type="range" id="vslider" min="0" value="0" aria-label="Legally true on">
+        <div class="ttl"><span>Known on (the public register)</span><b id="klabel"></b></div>
+        <input type="range" id="slider" min="0" value="0" aria-label="Known on">
+        <label class="lock"><input type="checkbox" id="lock" checked> Move both together: an investigator checking on that day</label>
+        <div class="tlrow"><div id="tlabel"></div><button class="btn2" id="ttex">Show a sale signed but not yet on file</button></div>
+        <div id="ttnote" class="ttnote"></div>
+      </div>
+      <div class="ttm"><div class="eyebrow">The verdict for every pair of dates</div><div id="heat"></div><div class="note">Down: legally true on · Across: known on · click any square</div></div>
+    </div>
     <div class="tchips" id="tchips"></div>
   </div>
 
@@ -338,7 +358,7 @@ table.ex td,table.ex th{padding:5px 8px;text-align:left;border-bottom:1px solid 
 <script src="data.js"></script>
 <script src="real.js"></script>
 <script>
-let D=window.VESTIGIUM.concat(window.VESTIGIUM_REAL||[]);const $=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0,lastDrawn=null,slideT=null;
+let D=window.VESTIGIUM.concat(window.VESTIGIUM_REAL||[]);let vstep=0,LOCK=true;const $=id=>document.getElementById(id);let pack='property',cur=null,sel=null,step=0,lastDrawn=null,slideT=null;
 const esc=t=>String(t??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const V=l=>`<span class="verdict v-${l}">${l.toUpperCase()}</span>`;
 const col={clean:'var(--ok)',defective:'var(--bad)',inconclusive:'var(--gap)'};
@@ -362,29 +382,40 @@ function fill(){if(pack==='real'){const list=D.filter(c=>c.split==='real'),group
   pick((show[0]||list[0]).id)}
 function pick(id){cur=D.find(c=>c.id===id);const r=cur.result;sel=(r.findings.length+r.missing.length)?0:null;
   tshow=false;tstep=0;clearInterval(tplay);clearInterval(slideT);$('trbtn').textContent='Replay the investigation';
-  step=cur.timeline.length-1;$('slider').max=cur.timeline.length-1;$('slider').value=step;$('pick').value=id;render();labInit()}
+  toEnd();$('pick').value=id;render();labInit()}
 
 function setSeg(){$('pp').classList.toggle('on',pack==='property');$('pv').classList.toggle('on',pack==='vehicle');$('pr').classList.toggle('on',pack==='real')}
+/* ---- two kinds of time: vstep indexes cur.vdates (legally true on), step indexes cur.kdates (known on) ---- */
+const KIND2={};
+const atEnd=()=>step===cur.kdates.length-1&&vstep===cur.vdates.length-1;
+function toEnd(){step=cur.kdates.length-1;vstep=cur.vdates.length-1;syncSliders()}
+function syncSliders(){$('slider').max=cur.kdates.length-1;$('slider').value=step;$('vslider').max=cur.vdates.length-1;$('vslider').value=vstep}
+const idxLE=(arr,d)=>{let i=0;arr.forEach((x,j)=>{if(x<=d)i=j});return arr[0]>d?0:i};
+function TT(){const c=cur,cell=c.grid[vstep][step];return{valid:c.vdates[vstep],known:c.kdates[step],code:cell[0],keys:cell[1]?cell[1].split(','):[],full:atEnd()}}
+const VER=['clean','defective','inconclusive'];
+function ruleKind(r){if(!KIND2[r]){Object.values((window.VESTIGIUM_LAB||{}).rules||{}).flat().forEach(x=>KIND2[x.id]=x.kind)}return KIND2[r]||(/MISSING|GAP|NO-RECORDS|UNREAD/.test(r)?'gap':'defect')}
 /* ---- main render ---- */
-function render(){const c=cur,known=c.timeline[step][0],ver=c.timeline[step][1],full=step===c.timeline.length-1,res=c.result;
-  const items=full?[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))]:[];
+function render(){const c=cur,tt=TT(),known=tt.known,valid=tt.valid,ver=VER[tt.code],full=tt.full,res=c.result;
+  const fullItems=[...res.findings.map(f=>({...f,t:'defect'})),...res.missing.map(f=>({...f,t:'gap'}))];
+  const items=full?fullItems:tt.keys.map(k=>{const [rule,transfer]=k.split('@');return fullItems.find(f=>f.rule===rule&&f.transfer===transfer)||{rule,transfer,text:rule,detail:'Fires for this pair of dates.',evidence:[],t:ruleKind(rule)==='gap'?'gap':'defect'}});
+  if(sel!==null&&!items[sel])sel=items.length?0:null;
   // header
   $('ceyebrow').textContent=c.split==='real'?'Real record · '+(c.id.startsWith('phl')?'Philadelphia transfer records':'NYC public register')+' · anonymised · '+c.title:(c.domain==='vehicle'?'Vehicle':'Property')+' · '+(c.id==='pasted'?'your dossier':c.id);
   $('ctitle').textContent=c.headline||kname(c);
   const first=res.findings[0]||res.missing[0];
-  $('csub').innerHTML=!full?`<b>${esc(assetOf(c))}</b> · as known on <b>${known}</b>: `+(ver==='clean'?'every transfer recorded so far checks out. Slide right to see what was filed later.':ver==='defective'?'a check already fails.':'a record is missing.'):`<b>${esc(assetOf(c))}</b> · ${nTransfers(c)} transfers · checked as of ${c.as_of}. `+(res.verdict==='clean'?'Every transfer links to the one before it, and no check finds a defect.':res.verdict==='defective'?`The first check to fail is <b>${esc(first.rule)}</b>: ${esc((first.text||'').toLowerCase())}.`+((res.downstream||[]).length?` <b>${res.downstream.length} later sale${res.downstream.length>1?'s rest':' rests'} on it</b>, so ${res.downstream.length>1?'they are':'it is'} affected too.`:''):`A record is missing, so a check cannot decide: <b>${esc(first.missing||first.detail)}</b>.`);
-  $('asof').textContent=`valid as of ${c.as_of}`;
-  $('verdict').innerHTML=V(full?res.verdict:ver)+(full?'':'<div class="note" style="margin-top:6px">replaying · slide right for the full result</div>');
+  $('csub').innerHTML=!full?`<b>${esc(assetOf(c))}</b> · legally true on <b>${valid}</b>, known on <b>${known}</b>: `+(ver==='clean'?'every sale signed and on file by then checks out.':ver==='defective'?`a check already fails (<b>${esc(items[0]?items[0].rule:'')}</b> at ${esc(items[0]?items[0].transfer:'')}).`:'a record is missing.')+(unrecorded(valid,known).length?` ${unrecorded(valid,known).length} signed sale${unrecorded(valid,known).length>1?'s were':' was'} not yet on the register.`:''):`<b>${esc(assetOf(c))}</b> · ${nTransfers(c)} transfers · checked as of ${c.as_of}. `+(res.verdict==='clean'?'Every transfer links to the one before it, and no check finds a defect.':res.verdict==='defective'?`The first check to fail is <b>${esc(first.rule)}</b>: ${esc((first.text||'').toLowerCase())}.`+((res.downstream||[]).length?` <b>${res.downstream.length} later sale${res.downstream.length>1?'s rest':' rests'} on it</b>, so ${res.downstream.length>1?'they are':'it is'} affected too.`:''):`A record is missing, so a check cannot decide: <b>${esc(first.missing||first.detail)}</b>.`);
+  $('asof').textContent=full?`as of ${c.as_of}`:`legally true on ${valid} · known on ${known}`;
+  $('verdict').innerHTML=V(full?res.verdict:ver)+(full?'':'<div class="note" style="margin-top:6px">at an earlier date · see <i>Two kinds of time</i></div>');
   $('warns').innerHTML=(full&&c.warnings||[]).map(w=>`<div class="proofnote" style="margin-top:12px"><span class="warn">⚠</span> ${esc(w)}</div>`).join('');
   // guide
   $('g1').hidden=!items.length;$('g2').hidden=!items.length;$('g4').hidden=!(full&&c.fix);
-  $('chint').textContent=items.length?'Each box is one sale. Coral marks a broken sale, amber a missing record, striped coral a later sale that rests on a broken one. White rings mark the records in the selected proof.':'Each box is one transfer, joined to the one before it. A green tick means no check flagged it.';
+  $('chint').textContent=items.length?'Each box is one sale. Coral marks a broken sale, amber a missing record, striped coral a later sale that rests on a broken one. White rings mark the records in the selected proof. At an earlier date, a dashed box is a sale already signed but not yet on the register.':'Each box is one transfer, joined to the one before it. A green tick means no check flagged it.';
   // findings
-  $('findings').innerHTML=items.map((f,i)=>`<div class="finding ${sel===i?'sel':''}" data-i="${i}" style="animation-delay:${i*70}ms"><div class="rule" style="color:${f.t==='gap'?'var(--gap)':'var(--bad)'}">${esc(f.rule)} · ${esc(f.transfer)}</div><div class="d">${esc(f.detail)}</div>${f.missing?`<div class="mut" style="margin-top:4px;font-size:13.5px">Missing: ${esc(f.missing)}</div>`:''}</div>`).join('')||(full?'<div class="proofnote">Nothing to flag. Slide through time or open the agent replay below.</div>':'<div class="note">Slide to the right end to see the full result.</div>');
+  $('findings').innerHTML=items.map((f,i)=>`<div class="finding ${sel===i?'sel':''}" data-i="${i}" style="animation-delay:${i*70}ms"><div class="rule" style="color:${f.t==='gap'?'var(--gap)':'var(--bad)'}">${esc(f.rule)} · ${esc(f.transfer)}</div><div class="d">${esc(f.detail)}</div>${f.missing?`<div class="mut" style="margin-top:4px;font-size:13.5px">Missing: ${esc(f.missing)}</div>`:''}</div>`).join('')||(full?'<div class="proofnote">Nothing to flag. Slide through time or open the agent replay below.</div>':'<div class="note">No check fails for this pair of dates. Move both dates to the end for the full result.</div>');
   $('phint').style.display=items.length?'':'none';
   $('fixbtn').style.display=full&&c.fix?'':'none';$('fix').innerHTML='';
   // evidence + minimal proof
-  if(sel!==null&&items[sel]){const f=items[sel],pr=(c.proof||[])[sel],np=pr&&pr.records_total?`<div class="proofnote"><b>Minimal proof.</b> This finding rests on <b>${pr.passages.length} of ${pr.records_total}</b> records. The other ${pr.records_total-pr.passages.length} could be deleted without changing it.</div>`:'';
+  if(sel!==null&&items[sel]){const f=items[sel],pr=(c.proof||[]).find(p=>p.rule===f.rule&&p.transfer===f.transfer),np=pr&&pr.records_total?`<div class="proofnote"><b>Minimal proof.</b> This finding rests on <b>${pr.passages.length} of ${pr.records_total}</b> records. The other ${pr.records_total-pr.passages.length} could be deleted without changing it.</div>`:'';
     $('evidence').innerHTML=`<div class="sechead eyebrow">The records behind it</div>`+np+[...new Set(f.evidence)].map(p=>{const n=byId(c,p);return n?`<div class="pass"><code>${esc(p)}</code> ${esc(n.text)}</div>`:''}).join('');
     {const dn=(c.result.downstream||[]).filter(d=>d.depends_on.includes(f.transfer)).map(d=>d.transfer);if(full&&dn.length)$('evidence').innerHTML+=`<div class="sechead eyebrow">Later sales that rest on it</div><div class="affnote"><b>${dn.length} later sale${dn.length>1?'s':''}</b> (${dn.map(esc).join(', ')}) ${dn.length>1?'have':'has'} a chain of title that passes through <b>${esc(f.transfer)}</b>. Until ${esc(f.transfer)} is resolved, every owner after it inherits the problem, however clean their own sale looks. <span class="mut">Found by walking the graph: every sale that FOLLOWS ${esc(f.transfer)}, directly or indirectly.</span></div>`}}
   else $('evidence').innerHTML='';
@@ -403,11 +434,11 @@ function graph(items,known,full){const c=cur,ts=c.nodes.filter(n=>n.label==='Tra
   const aff=new Map(full?(c.result.downstream||[]).map(d=>[d.transfer,d.depends_on]):[]);
   ts.forEach((t,i)=>{
     if(i>0){const f=c.rels.some(r=>r[0]===t.id&&r[1]==='FOLLOWS');h+=f?`<div class="tarr ${aff.has(t.id)?'af':''}" style="--i:${i}">${ARROW}</div>`:`<div class="tarr gp" style="--i:${i}"><svg viewBox="0 0 30 10"><path d="M0 5H28" stroke="currentColor" stroke-width="1.6" stroke-dasharray="4 4" fill="none"/></svg>no link</div>`}
-    const isB=bad.has(t.id),isG=gap.has(t.id),seen=t.recorded<=known,isP=tpass(t.id).some(p=>need.has(p));
+    const VAL=TT().valid,hap=t.effective<=VAL,isB=bad.has(t.id),isG=gap.has(t.id),seen=t.recorded<=known&&hap,isU=hap&&t.recorded>known,isP=tpass(t.id).some(p=>need.has(p));
     const isA=aff.has(t.id)&&!isB&&!isG;
-    h+=`<div class="tb ${isB?'bad':isG?'gap':isA?'aff':full&&seen?'ok':''} ${isP?'proof':''} ${seen?'':'off'}" data-t="${t.id}" style="--i:${i}"><div class="tid">${esc(t.id)}<em>${t.effective}</em></div><span class="chk">✓</span>
+    h+=`<div class="tb ${isB?'bad':isG?'gap':isA?'aff':full&&seen?'ok':''} ${isP?'proof':''} ${isU?'unrec':seen?'':'off'}" data-t="${t.id}" style="--i:${i}"><div class="tid">${esc(t.id)}<em>${t.effective}</em></div><span class="chk">✓</span>
       <div class="p"><s>from</s>${esc(name(t.id,'from'))}</div><div class="p"><s>to</s>${esc(name(t.id,'to'))}</div>
-      <div class="meta"><span>recorded <b>${t.recorded}</b></span>${t.odometer!==undefined?`<span>odo <b>${t.odometer.toLocaleString?t.odometer.toLocaleString():t.odometer}</b></span>`:(c.domain==='vehicle'?'<span>odo <b>not stated</b></span>':'')}</div>${isB||isG?`<div class="flag">${esc(isB?bad.get(t.id):gap.get(t.id))}</div>`:''}${isA?`<div class="flag af" title="This sale's chain of title passes through ${esc(aff.get(t.id).join(', '))}">RESTS ON ${esc(aff.get(t.id).join(', '))}</div>`:''}</div>`});
+      <div class="meta"><span>recorded <b>${t.recorded}</b></span>${t.odometer!==undefined?`<span>odo <b>${t.odometer.toLocaleString?t.odometer.toLocaleString():t.odometer}</b></span>`:(c.domain==='vehicle'?'<span>odo <b>not stated</b></span>':'')}</div>${isB||isG?`<div class="flag">${esc(isB?bad.get(t.id):gap.get(t.id))}</div>`:''}${isU?`<div class="flag ur">SIGNED · NOT FILED</div>`:''}${isA?`<div class="flag af" title="This sale's chain of title passes through ${esc(aff.get(t.id).join(', '))}">RESTS ON ${esc(aff.get(t.id).join(', '))}</div>`:''}</div>`});
   const el=$('graph');el.classList.toggle('pop',anim);el.innerHTML=h;
   // authority and claims, linked to the selected proof
   const sev=new Set(need);
@@ -419,12 +450,24 @@ function edges(){const el=$('graph'),w=$('chainwrap');const l=el.scrollLeft>8,r=
 $('graph').addEventListener('scroll',edges);addEventListener('resize',edges);
 $('cl').onclick=()=>{$('graph').style.scrollBehavior='smooth';$('graph').scrollLeft-=440};$('cr').onclick=()=>{$('graph').style.scrollBehavior='smooth';$('graph').scrollLeft+=440};
 
-/* ---- time travel chips ---- */
-function chips(known,items){const c=cur,ts=c.nodes.filter(n=>n.label==='Transfer').sort((a,b)=>{const k=t=>/^T\d+$/.test(t.id)?+t.id.slice(1):1e3;return k(a)-k(b)||(a.id<b.id?-1:1)});
-  const full=step===c.timeline.length-1,res=c.result,bad=new Set(res.findings.map(f=>f.transfer)),gp=new Set(res.missing.map(f=>f.transfer));
-  $('strip').innerHTML=c.timeline.map((t,i)=>`<i title="${t[0]}: ${t[1]}" style="background:${col[t[1]]}" class="${i===step?'cur':''}" data-i="${i}"></i>`).join('');
-  $('tlabel').innerHTML=`Known as of <b style="color:var(--hi)">${known}</b> &nbsp;→&nbsp; ${V(c.timeline[step][1])}`;
-  $('tchips').innerHTML=ts.map(t=>{const seen=t.recorded<=known;return `<span class="tc ${seen?'':'off'} ${seen&&bad.has(t.id)?'bad':''} ${seen&&gp.has(t.id)?'gap':''}" title="recorded ${t.recorded}">${esc(t.id)}</span>`}).join('')}
+/* ---- two kinds of time ---- */
+const sortedTs=c=>c.nodes.filter(n=>n.label==='Transfer').sort((a,b)=>{const k=t=>/^T\d+$/.test(t.id)?+t.id.slice(1):1e3;return k(a)-k(b)||(a.id<b.id?-1:1)});
+function unrecorded(valid,known){return sortedTs(cur).filter(t=>t.effective<=valid&&t.recorded>known)}
+function chips(known,items){const c=cur,tt=TT(),valid=tt.valid,ts=sortedTs(c),bad=new Set(items.filter(f=>f.t==='defect').map(f=>f.transfer)),gp=new Set(items.filter(f=>f.t==='gap').map(f=>f.transfer));
+  $('vlabel').textContent=valid;$('klabel').textContent=known;$('lock').checked=LOCK;
+  const n=c.kdates.length;$('heat').style.gridTemplateColumns=`repeat(${n},16px)`;
+  $('heat').innerHTML=c.grid.map((row,v)=>row.map((cell,k)=>`<i style="background:${col[VER[cell[0]]]}" class="${v===vstep&&k===step?'cur':''}" data-v="${v}" data-k="${k}" title="legally true on ${c.vdates[v]} · known on ${c.kdates[k]} → ${VER[cell[0]]}"></i>`).join('')).join('');
+  $('tlabel').innerHTML=`Verdict for this pair of dates &nbsp;→&nbsp; ${V(VER[tt.code])}`;
+  const ur=unrecorded(valid,known),later=ts.filter(t=>t.effective>valid&&t.recorded<=known);
+  $('ttnote').innerHTML=ur.length?`<b>Signed but not yet on file:</b> ${ur.map(t=>`${esc(t.id)} (signed ${t.effective}, recorded ${t.recorded})`).join('; ')}. Legally ${ur.length>1?'these sales had':'this sale had'} happened, but an investigator searching the register on ${known} could not have seen ${ur.length>1?'them':'it'}, so no check could use ${ur.length>1?'them':'it'}.`+(ur.some(t=>cur.result.findings.some(f=>f.transfer===t.id))?` <b>${esc(ur.find(t=>cur.result.findings.some(f=>f.transfer===t.id)).id)} is the broken sale:</b> legally the defect already existed on ${valid}, yet the register could not reveal it until ${ur.find(t=>cur.result.findings.some(f=>f.transfer===t.id)).recorded}. Anyone who checked in between would have been told the chain was clean.`:'')
+    :later.length?`<b>On file but not yet in effect on ${valid}:</b> ${later.map(t=>esc(t.id)).join(', ')}. Looking back from ${known}, these deeds are known, but they were signed after ${valid}, so they do not count.`
+    :`Everything signed by ${valid} is on the register by ${known}.`;
+  const ex=bestGap();$('ttex').hidden=!ex;
+  $('tchips').innerHTML=ts.map(t=>{const hap=t.effective<=valid,seen=t.recorded<=known,cls=!hap?'off':!seen?'unrec':'';return `<span class="tc ${cls} ${bad.has(t.id)?'bad':''} ${gp.has(t.id)?'gap':''}" title="signed ${t.effective} · recorded ${t.recorded}">${esc(t.id)}</span>`}).join('')}
+function bestGap(){const ts=sortedTs(cur),flagged=new Set([...cur.result.findings,...cur.result.missing].map(f=>f.transfer));let b=null,g=-1;
+  ts.forEach(t=>{const d=(new Date(t.recorded)-new Date(t.effective))/864e5+(flagged.has(t.id)?1e6:0);if(t.recorded>t.effective&&d>g&&cur.kdates.some(k=>k<t.recorded&&k>=t.effective)){g=d;b=t}});return b}
+function showGap(){const t=bestGap();if(!t)return;LOCK=false;vstep=cur.vdates.indexOf(t.effective);if(vstep<0)vstep=idxLE(cur.vdates,t.effective);
+  let k=0;cur.kdates.forEach((d,j)=>{if(d<t.recorded)k=j});step=k;syncSliders();sel=null;render();$('timecard').scrollIntoView({block:'nearest',behavior:'smooth'})}
 
 /* ---- agents ---- */
 function race(){renderTrace();$('racecard').style.display=(cur.split==='pasted'||cur.split==='real')?'none':'';const c=cur,a=c.agents||{},cell=(k,t)=>{const r=a[k];if(!r)return`<div class="arm"><b class="t">${t}</b><div class="mut">no recorded run for this case</div></div>`;
@@ -438,17 +481,20 @@ function bench(){const B=window.VESTIGIUM_BENCH||[];
 
 /* ---- wiring ---- */
 $('pick').onchange=e=>pick(e.target.value);
-$('slider').oninput=e=>{clearInterval(slideT);step=+e.target.value;render()};
-$('strip').onclick=e=>{if(e.target.dataset.i){clearInterval(slideT);step=+e.target.dataset.i;$('slider').value=step;render()}};
+$('slider').oninput=e=>{clearInterval(slideT);step=+e.target.value;if(LOCK)vstep=idxLE(cur.vdates,cur.kdates[step]);syncSliders();render()};
+$('vslider').oninput=e=>{clearInterval(slideT);vstep=+e.target.value;if(LOCK)step=idxLE(cur.kdates,cur.vdates[vstep]);syncSliders();render()};
+$('lock').onchange=e=>{LOCK=e.target.checked;if(LOCK){vstep=idxLE(cur.vdates,cur.kdates[step]);syncSliders();render()}};
+$('heat').onclick=e=>{const d=e.target.dataset;if(d.v!==undefined){clearInterval(slideT);vstep=+d.v;step=+d.k;LOCK=cur.vdates[vstep]===cur.kdates[step];syncSliders();render()}};
+$('ttex').onclick=showGap;
 $('findings').onclick=e=>{const f=e.target.closest('.finding');if(f){sel=+f.dataset.i;render()}};
 $('fixbtn').onclick=()=>{$('fix').innerHTML=`<div class="pass fixed" style="margin-top:14px">Adding <b style="color:var(--hi)">${esc(cur.fix)}</b> to a throwaway copy of the graph and rerunning every check → ${V(cur.fix_verdict)}</div>`};
 $('pp').onclick=()=>{pack='property';setSeg();fill()};
 $('pv').onclick=()=>{pack='vehicle';setSeg();fill()};
 $('pr').onclick=()=>{pack='real';setSeg();fill()};
 $('g1').onclick=()=>{$('chaincard').scrollIntoView({block:'center'});const b=document.querySelector('.tb.bad,.tb.gap');if(b){b.animate([{transform:'translateY(-3px) scale(1)'},{transform:'translateY(-3px) scale(1.07)'},{transform:'translateY(-3px) scale(1)'}],{duration:700,iterations:2})}};
-$('g2').onclick=()=>{if(step!==cur.timeline.length-1){step=cur.timeline.length-1;$('slider').value=step}sel=sel??0;render();$('proofcard').scrollIntoView({block:'nearest',behavior:'smooth'})};
-$('g3').onclick=()=>{clearInterval(slideT);const n=cur.timeline.length-1;if(n<1)return;$('chaincard').scrollIntoView({block:'start'});step=0;$('slider').value=0;render();slideT=setInterval(()=>{if(step>=n){clearInterval(slideT);return}step++;$('slider').value=step;render()},520)};
-$('g4').onclick=()=>{if(step!==cur.timeline.length-1){step=cur.timeline.length-1;$('slider').value=step;render()}$('proofcard').scrollIntoView({block:'nearest',behavior:'smooth'});$('fixbtn').click()};
+$('g2').onclick=()=>{if(!atEnd())toEnd();sel=sel??0;render();$('proofcard').scrollIntoView({block:'nearest',behavior:'smooth'})};
+$('g3').onclick=()=>{clearInterval(slideT);const n=cur.kdates.length-1;if(n<1)return;$('chaincard').scrollIntoView({block:'start'});LOCK=true;step=0;vstep=idxLE(cur.vdates,cur.kdates[0]);syncSliders();render();slideT=setInterval(()=>{if(step>=n){clearInterval(slideT);toEnd();render();return}step++;vstep=idxLE(cur.vdates,cur.kdates[step]);syncSliders();render()},520)};
+$('g4').onclick=()=>{if(!atEnd()){toEnd();render()}$('proofcard').scrollIntoView({block:'nearest',behavior:'smooth'});$('fixbtn').click()};
 
 /* ---- paste or upload (needs `uv run python -m vestigium.serve`; falls back with a note on static hosting) ---- */
 let SERVER=false;fetch('/api/ping').then(r=>r.ok&&r.json()).then(j=>{SERVER=!!(j&&j.ok)}).catch(()=>{});
@@ -709,5 +755,6 @@ if(P.get('tab'))labTab(P.get('tab'));
 if(P.get('remove'))labRemove(P.get('remove'));
 if(P.get('walk'))walkStart();
 if(P.get('graph')||P.get('remove')||P.get('walk'))setTimeout(()=>$('graphcard').scrollIntoView({block:'start'}),250);
-if(P.get('step')!==null){step=Math.min(+P.get('step'),cur.timeline.length-1);$('slider').value=step;render()}
+if(P.get('step')!==null||P.get('valid')!==null){if(P.get('step')!==null)step=Math.min(+P.get('step'),cur.kdates.length-1);if(P.get('valid')!==null){vstep=Math.min(+P.get('valid'),cur.vdates.length-1);LOCK=false}else vstep=idxLE(cur.vdates,cur.kdates[step]);syncSliders();render()}
+if(P.get('gap'))showGap();
 </script></body></html>

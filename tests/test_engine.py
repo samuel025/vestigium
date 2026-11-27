@@ -59,3 +59,15 @@ def test_later_sales_that_rest_on_a_broken_one_are_reported():
     assert all(d["depends_on"] == ["T5"] for d in r["downstream"])
     early = run_checks(build(c), c["asset"], "2019-06-01", pack=c["pack"])  # valid-time before T6: nothing rests on T5 yet
     assert early["downstream"] == []
+
+
+def test_two_kinds_of_time_are_separate_questions():
+    from vestigium.generator import all_cases
+    from vestigium.whatif import build
+    from vestigium.engine import two_times
+    c = next(x for x in all_cases() if x["id"] == "prop-014")
+    g = two_times(build(c), c)
+    v, k = g["vdates"].index("2019-05-01"), g["kdates"].index("2019-05-01")   # T5 signed 2019-05-01, recorded 2019-05-04
+    assert g["grid"][v][k][0] == 0                                          # legally defective already, but not yet knowable
+    assert g["grid"][v][g["kdates"].index("2019-05-04")] == [1, "PROP-AUTH@T5"]   # once filed, the check fires
+    assert g["grid"][-1][-1][0] == 1

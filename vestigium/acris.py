@@ -178,7 +178,9 @@ def app_case(k, deeds, cid, title, place, notes, group, headline, short):
     r = run_checks(build(case), "A1", case["as_of"], pack="property")
     dates = sorted({d["recorded"] for d in deeds} | {case["as_of"]})
     tl = [(d, run_checks(build(case), "A1", case["as_of"], known=d, pack="property")["verdict"]) for d in dates]
-    return dict(id=cid, domain="property", label=None, split="real", as_of=case["as_of"], kind="real-flag" if r["findings"] else "real-clean",
+    from .engine import two_times
+    tt = two_times(build(case), case, "property")
+    return dict(id=cid, domain="property", label=None, split="real", as_of=case["as_of"], kind="real-flag" if r["findings"] else "real-clean", **tt,
                 title=title, group=group, headline=headline, short=short, asset="A1",
                 nodes=[dict(label=l, **p) for l, p in case["nodes"]], rels=case["rels"], result=r, timeline=tl,
                 proof=[dict(rule=x["rule"], transfer=x["transfer"], passages=x.get("passages", []), records_total=x.get("records_total", 0)) for x in proofs(case, r)],

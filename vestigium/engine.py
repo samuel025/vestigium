@@ -59,3 +59,24 @@ def downstream(db, params, flagged):
 def timeline(db, asset, dates, as_of):
     """Verdict across known-as-of dates (valid-as-of fixed): e.g. clean until a late-recorded deed arrives."""
     return [(d, run_checks(db, asset, as_of, known=d)["verdict"]) for d in dates]
+
+
+CODE = {"clean": 0, "defective": 1, "inconclusive": 2}
+
+
+def two_times(db, case, pack=None):
+    """The verdict for every pair of dates: legally true on V (which sales had been signed) x known on K (which deeds had
+    reached the register). V runs over the signing dates, K over the signing and recording dates (so 'signed, not yet filed' is always visible), both ending at the case's as-of date.
+    Returns vdates, kdates and grid[v][k] = [verdict code, "RULE@T,..."] (compact, for the static demo)."""
+    pack = pack or case.get("pack", "property")
+    tr = [p for l, p in case["nodes"] if l == "Transfer"]
+    vdates = sorted({p["effective"] for p in tr if p.get("effective") and p["effective"] <= case["as_of"]} | {case["as_of"]})
+    kdates = sorted({p[k] for p in tr for k in ("recorded", "effective") if p.get(k) and p[k] <= case["as_of"]} | {case["as_of"]})
+    grid = []
+    for v in vdates:
+        row = []
+        for k in kdates:
+            r = run_checks(db, case["asset"], v, known=k, pack=pack)
+            row.append([CODE[r["verdict"]], ",".join(f"{f['rule']}@{f['transfer']}" for f in r["findings"] + r["missing"])])
+        grid.append(row)
+    return dict(vdates=vdates, kdates=kdates, grid=grid)

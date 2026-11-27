@@ -5,7 +5,7 @@ Every extracted fact is shown back to the user so the reading step can be checke
 """
 import copy
 from datetime import date, timedelta
-from .engine import run_checks
+from .engine import run_checks, two_times, CODE
 from .extract import read_rules, read_llm, assemble
 from .whatif import build
 from .proof import proofs
@@ -101,6 +101,7 @@ def package(case, ir=None, text="", used="", stats=None, fix=None):
     return dict(id=case.get("id", "pasted"), domain=case["pack"], label=None, split="pasted", as_of=case["as_of"], kind="pasted dossier",
                 title=f"{case['pack'].title()} · pasted dossier · {len(transfers)} transfers",
                 nodes=[dict(label=l, **p) for l, p in case["nodes"]], rels=case["rels"], result=res, timeline=tl, proof=pf,
+                **(two_times(build(case), case, case["pack"]) if transfers else dict(vdates=[case["as_of"]], kdates=[case["as_of"]], grid=[[[CODE[res["verdict"]], ""]]])),
                 fix=fx and fx["describe"], fix_verdict=fx and fx["verdict"], documents=text, agents={},
                 reader=used, tokens=stats.get("tokens", 0), warnings=warnings, evidence_text={e: passages.get(e, "") for e in sorted(cited)},
                 extracted=[{k: v for k, v in r.items() if k != "text"} for r in (ir or {}).get("records", []) if r.get("type") != "other"])

@@ -34,7 +34,7 @@ Open **<https://vestigium-demo.vercel.app/app.html>**. It starts on a property w
 1. **Read the verdict** at the top right, and the one-line reason under the title.
 2. **Find the broken sale** in the ownership chain: each box is one sale; the red one is where a rule failed, and the striped ones after it are later sales that rest on it.
 3. **Open the proof** (right panel): the rule, the sentence of the deed it rests on, and how few records that took.
-4. **Travel through time** with the slider: see what was known on any date. Sales recorded late change the answer.
+4. **Use the two kinds of time**: *legally true on* (what had happened) and *known on* (what was on the public register). Press **Show a sale signed but not yet on file** to see a defect that existed legally but could not yet be found.
 5. **Break a link in the graph** (step 5 in *Try this*): remove one relationship and watch the verdict change.
 6. **Switch to the *Real* tab** to browse real, anonymised deeds from New York and Philadelphia.
 
@@ -64,7 +64,7 @@ Then ask *"Use vestigium to check the dossier for prop-014 and explain the verdi
 ### 4. Check our claims
 
 ```bash
-uv run pytest -q                          # 46 tests, no network needed
+uv run pytest -q                          # 48 tests, no network needed
 uv run python -m vestigium.cli prop-014   # one case in the terminal: verdict, rule, evidence, fix, timeline
 uv run python -m vestigium.metamorphic    # 1,600 fresh cases + invariance checks
 uv run python -m vestigium.philly fetch --n 10000 && uv run python -m vestigium.philly   # the real Philadelphia test (~8 min)
@@ -128,7 +128,7 @@ Everything runs offline except the LLM parts (benchmark arms A to C, the Gemini 
 | **What else it breaks** | when a sale fails, every later sale whose chain of title passes through it is marked *rests on T5*: one graph walk over `FOLLOWS`, shown in the chain, the proof panel and the graph |
 | **Minimal proof** | the smallest set of records a finding rests on (1.8 of a 10.3-record dossier on average) |
 | **The graph itself** | the real nodes and relationships, a Cypher console with the exact rule queries (and your own, read-only), a chain walk, and *remove a relationship* to watch the verdict change |
-| **Two-date replay** | slide the *known-as-of* date and watch the verdict change, e.g. clean until a late-recorded deed arrives |
+| **Two kinds of time** | two separate controls: *legally true on* (which sales had been signed) and *known on* (which deeds had reached the register), plus a grid of the verdict for every pair of dates. E.g. on `prop-014` the broken sale was signed on 1 May but filed on 4 May: legally defective, yet an investigator checking in between was told *clean* |
 | **What would fix it** | copy the graph, add a hypothetical record (a release, a ratifying authority, a missing link), rerun every check |
 | **Honest "inconclusive"** | a missing record is named, never guessed |
 | **Paste a dossier** | any wording; a reader extracts, the rules decide; every extracted fact is listed to check |
