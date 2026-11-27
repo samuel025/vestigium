@@ -18,7 +18,7 @@ h1{font-weight:500;color:var(--hi);margin:0 0 6px;font-size:28px}.mut{color:var(
 .q{font-size:18px;color:var(--hi);margin:18px 0 12px}
 .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@media(max-width:700px){.opts{grid-template-columns:1fr}}
 button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 14px;text-align:left;background:var(--chip);color:var(--tx);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 0 1px var(--line)}
-button:hover{box-shadow:0 0 0 1px var(--hi)}button.on{box-shadow:0 0 0 2px var(--hi);color:var(--hi)}
+button:hover{background:#26272a}button.on{box-shadow:0 0 0 2px var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--chip));color:var(--hi)}button.on::after{content:'  ✓ your answer';color:var(--ok);font-size:12.5px}
 button kbd{font:600 12px var(--mono);background:var(--well);border-radius:6px;padding:2px 7px;margin-right:8px;color:var(--hi)}
 .nav{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}.nav button{padding:8px 14px}
 .bar{height:8px;border-radius:9999px;background:var(--well);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);margin-top:10px}.bar i{display:block;height:100%;background:var(--ok)}
