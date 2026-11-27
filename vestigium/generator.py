@@ -316,3 +316,58 @@ def authority_cases(seed=23):
 def demo_cases():
     """Everything the app, the server and the MCP tools offer: the 80 benchmark cases plus the authority cases."""
     return all_cases() + authority_cases()
+
+
+
+# ---------------- the hard tier: written AFTER the rules were frozen (results/rules_frozen.json); all held out ----------------
+HARD_PLAN = [("multi", 8), ("valid-suspicious", 8), ("abstain", 6), ("scope", 6), ("conflict", 6), ("early-defect", 6)]
+RED_HERRING = ["NOTICE FROM A NEIGHBOUR: I heard the previous owner never really owned this house.",
+               "NEWS CLIPPING: lenders in the area have been accused of filing liens they never released.",
+               "EMAIL: are we sure the agent who signed was allowed to? Someone should check."]
+
+
+def make_hard_case(i, rng, kind):
+    """Harder cases than the 80-case benchmark: several defects in one chain, sound chains that look suspicious,
+    missing records under a reassuring summary, a valid power that does not cover a sale, contradictory records filed
+    on different dates, and a defect followed by a long run of clean-looking sales."""
+    label, key = "defective", dict(transfer=None, transfers=[], missing=None, fix=None, rule=None, fix_type=None)
+    if kind in ("scope",) or (kind == "conflict" and rng.random() < .5):
+        c = make_auth_case(i, rng, "PROP-AUTH-SCOPE" if kind == "scope" else "revoked-late")
+        c.update(id=f"hard-{i:03d}", kind=kind, split="hard", hard=True)
+        c["key"]["transfers"] = [c["key"]["transfer"]]
+        return c
+    n = rng.randint(10, 12) if kind == "early-defect" else rng.randint(5, 11)
+    c = _chain(rng, n)
+    if kind == "multi":
+        kinds = rng.sample(["PROP-CHAIN", "PROP-AUTH", "PROP-DATE", "PROP-DEATH", "PROP-LIEN"], 2)
+        ks = rng.sample(range(2, n), 2)
+        keys = [_mutate(c, rng, kd, k) for kd, k in zip(kinds, ks)]
+        key.update(keys[0]); key["transfers"] = [x["transfer"] for x in keys]; key["fix_types"] = [x.get("fix_type") for x in keys]
+    elif kind == "valid-suspicious":
+        _suspicious_clean(c, rng); label = "clean"
+        k = rng.randint(2, n); t = _node(c, f"T{k}")                         # a deed filed very late, but nothing wrong with it
+        t["recorded"] = iso(date.fromisoformat(t["effective"]) + timedelta(days=rng.randint(120, 300)))
+        nxt = [p for _, p in c["nodes"] if p.get("id") == f"T{k+1}"]
+        if nxt and nxt[0]["effective"] <= t["recorded"]: t["recorded"] = iso(date.fromisoformat(nxt[0]["effective"]) - timedelta(days=1))
+        c["distractors_extra"] = rng.choice(RED_HERRING)
+    elif kind == "abstain":
+        kd = rng.choice(["PROP-GAP", "PROP-AUTH-MISSING"]); key.update(_mutate(c, rng, kd)); label = "inconclusive"
+        key["transfers"] = [key["transfer"]]
+        c["distractors_extra"] = "TITLE SEARCH SUMMARY: title is clear and marketable, free of all liens and encumbrances."
+    elif kind == "conflict":
+        key.update(_mutate(c, rng, "PROP-DUP")); key["transfers"] = [key["transfer"]]
+        c["distractors_extra"] = "TITLE SEARCH SUMMARY: title is clear and marketable, free of all liens and encumbrances."
+    elif kind == "early-defect":
+        kd = rng.choice(["PROP-CHAIN", "PROP-AUTH", "PROP-DEATH"]); key.update(_mutate(c, rng, kd, rng.randint(2, 3))); key["transfers"] = [key["transfer"]]
+    _distractors(c, rng)
+    if c.get("distractors_extra"): c["distractors"].append(dict(id="XA", doc="summary", text=c.pop("distractors_extra")))
+    last = max(date.fromisoformat(c["ts"][-1]["effective"]) + timedelta(days=60), _latest_recorded(c) + timedelta(days=1))
+    return dict(id=f"hard-{i:03d}", domain="property", pack="property", kind=kind, label=label, adversarial=kind in ("abstain", "conflict"),
+                hard=True, asset="A1", as_of=iso(last), n_transfers=n, key=key, nodes=c["nodes"], rels=c["rels"], distractors=c["distractors"], split="hard")
+
+
+def hard_cases(seed=2026):
+    rng = random.Random(seed)
+    plan = [k for k, m in HARD_PLAN for _ in range(m)]
+    rng.shuffle(plan)
+    return [make_hard_case(i, rng, k) for i, k in enumerate(plan)]

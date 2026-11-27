@@ -1,7 +1,7 @@
 """One-command rerun:  uv run python -m vestigium.bench --arms D            (no key needed)
                       GEMINI_API_KEY=... uv run python -m vestigium.bench --arms A B C D --repeats 3 --split heldout"""
 import argparse, json, statistics, time, pathlib
-from .generator import all_cases
+from .generator import all_cases, hard_cases
 from .whatif import build
 from .arms import ARMS
 from .llm import DailyQuotaExhausted
@@ -9,24 +9,46 @@ from .llm import DailyQuotaExhausted
 def valid_passages(case):
     return {p["id"] for l, p in case["nodes"] if l == "Passage"} | {d["id"] for d in case["distractors"]}
 
+def fix_ok(key, out):
+    """Scored only when a planted defect has a standard fix. With several defects, naming the fix for any of them counts;
+    a defect with no standard fix (e.g. a seller who was not the owner) is answered correctly by 'none'."""
+    types = key.get("fix_types") or [key.get("fix_type")]
+    if not any(types): return None
+    return (out.get("fix_type") or "none") in {t or "none" for t in types}
+
+
 def score(case, out):
     out = out or {}
     v = out.get("verdict"); lab = case["label"]; key = case["key"]
     ev = set(out.get("evidence") or []); ok = valid_passages(case)
     return dict(correct=v == lab, false_clean=((v == "clean") if lab == "defective" else None),
                 abstained_ok=(v == "inconclusive") if lab == "inconclusive" else None,
-                localized=(out.get("transfer") == key["transfer"]) if lab != "clean" else None,
+                localized=(out.get("transfer") in (key.get("transfers") or [key["transfer"]])) if lab != "clean" else None,
                 citations_valid=all(e in ok for e in ev) if ev else None,
                 missing_found=(bool(out.get("missing")) if lab == "inconclusive" else None),
-                fix_correct=((out.get("fix_type") == key.get("fix_type")) if key.get("fix_type") else None))
+                fix_correct=fix_ok(key, out))
+
+def check_frozen():
+    """The hard tier may only be scored against the rules as they were frozen before it was written."""
+    import hashlib
+    root = pathlib.Path(__file__).resolve().parent.parent
+    frozen = json.loads((root / "results" / "rules_frozen.json").read_text())
+    for f, h in frozen["sha256"].items():
+        if hashlib.sha256((root / f).read_bytes()).hexdigest() != h:
+            raise SystemExit(f"{f} changed since the rules were frozen (commit {frozen['commit']}); the hard tier cannot be scored against new rules.")
+
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arms", nargs="+", default=["D"]); ap.add_argument("--repeats", type=int, default=1)
-    ap.add_argument("--split", default="heldout", choices=["dev", "heldout", "all"]); ap.add_argument("--limit", type=int)
+    ap.add_argument("--split", default="heldout", choices=["dev", "heldout", "all", "hard"]); ap.add_argument("--limit", type=int)
     ap.add_argument("--out", default="results")
     a = ap.parse_args()
-    cases = [c for c in all_cases() if a.split == "all" or c["split"] == a.split][: a.limit]
+    if a.split == "hard":
+        check_frozen()
+        cases = hard_cases()[: a.limit]
+    else:
+        cases = [c for c in all_cases() if a.split == "all" or c["split"] == a.split][: a.limit]
     out = pathlib.Path(a.out); out.mkdir(exist_ok=True)
     f = out / f"{a.split}.jsonl"
     rows = [json.loads(l) for l in f.read_text().splitlines()] if f.exists() else []  # resume
@@ -54,7 +76,7 @@ def report(rows, cases, a):
     print(f"{'arm':6}{'n':>4}{'acc':>7}{'false-clean':>13}{'abstain':>9}{'localize':>10}{'fix-acc':>9}{'cite-ok':>9}{'hard-acc':>10}{'tokens':>9}")
     for arm in a.arms:
         for dom in ["all", "property", "vehicle"]:
-            R = [r for r in rows if r["arm"] == arm and r["case"] in ids and (dom == "all" or r["case"].startswith({"property": "prop-", "vehicle": "veh-"}[dom]))]
+            R = [r for r in rows if r["arm"] == arm and r["case"] in ids and (dom == "all" or r["case"].startswith({"property": ("prop-", "hard-"), "vehicle": "veh-"}[dom]))]
             if not R: continue
             hard = [r for r in R if r["hard"]]
             tok = int(statistics.mean((r["stats"] or {}).get("tokens", 0) for r in R))

@@ -36,8 +36,9 @@ def arm_b(case):
     db = build(case)
     def read_cypher(query: str) -> list:
         """Run a read-only Cypher query on the ownership graph. Nodes: Asset{id}, Party{name,died}, Transfer{id,effective,recorded,by_agent,odometer,title_branded},
-        Claim{kind(lien|brand),holder,effective}, Authority{agent,valid_from,valid_to}, Document, Passage{id,text}. Rels: FROM(Party->Transfer), TO(Transfer->Party),
-        MOVES, FOLLOWS(Transfer->previous Transfer), AGAINST, CLEARED_BY, ACTED_UNDER, EVIDENCED_BY, CONTAINS."""
+        Transfer may also have signer (who signed as agent). Claim{kind(lien|brand),holder,effective}, Authority{agent,valid_from,valid_to,scope(sell|management)},
+        Document{kind(release|revocation),effective,recorded}, Passage{id,text}. Rels: FROM(Party->Transfer), TO(Transfer->Party), MOVES, FOLLOWS(Transfer->previous Transfer),
+        AGAINST, CLEARED_BY, ACTED_UNDER(Transfer->Authority), GRANTED_BY(Authority->Party who gave it), REVOKED_BY(Authority->Document), EVIDENCED_BY, CONTAINS."""
         if any(w in query.upper() for w in ("CREATE", "DELETE", "SET ", "MERGE", "REMOVE")):
             return {"error": "read-only"}
         return plain(db.execute(query).data()[:50])
