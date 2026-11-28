@@ -1,6 +1,6 @@
 # Vestigium
 
-**Would you buy this property?** Every document can look in order, and a summary can say the title is clear, while one sale years ago was never valid. Vestigium rebuilds the ownership history as a **Relate graph**, checks every past sale against the evidence it needed *at the time*, and tells you exactly where the chain breaks, which record proves it, and which later owners it affects. When a record is missing, it says so instead of guessing.
+**Would you buy this property?** Every document can look in order, and a summary can say the title is clear, while one sale years ago was never valid. Vestigium rebuilds the ownership history as a **Relate graph**, checks every past sale against the evidence it needed *at the time*, and tells you exactly where the chain breaks, which record proves it, and which later owners it affects. When a record is missing, it says so instead of guessing. **It works the same way for used vehicles**: is the seller the titled owner, was the lender paid off, did a salvage brand quietly disappear, does the odometer run backwards?
 
 **▶ Try it, no install: [vestigium-demo.vercel.app](https://vestigium-demo.vercel.app/)** · [open a 60-second investigation](https://vestigium-demo.vercel.app/app.html?case=prop-014) · built on [Relate by Neo4j](https://relatedb.ai)
 
@@ -12,7 +12,7 @@
 
 | We tested it… | Result |
 |---|---|
-| against an AI agent reading the same documents | rule-backed agent **100%** vs **56%**; it called **0** defective chains clean (the plain agent: 1 in 3) |
+| against an AI agent reading the same documents (properties and vehicles) | rule-backed agent **100%** vs **56%**; it called **0** defective chains clean (the plain agent: 1 in 3) |
 | on 40 harder cases written *after* the rules were frozen | **100% in all 3 repeats**; the plain agent called a missing record "clean" **18 times out of 18** |
 | on two model families (Gemini and Gemma) | **100%** with the rules, on both tiers, with both models |
 | on 48 cases written by an independent author | **95.8%** end to end, **0** defective chains called clean, abstained on **every** missing record |
@@ -39,6 +39,7 @@ Open the [demo case](https://vestigium-demo.vercel.app/app.html?case=prop-014): 
 ## What makes it different
 
 - **It investigates authority, not just documents.** Most broken chains break where someone signs *for* the owner. Five rules check the power of attorney the way a title examiner would, each as a graph pattern (`GRANTED_BY` must point at the seller; `REVOKED_BY` must not predate the signing, *as known on the date you ask*). [The rules →](docs/rules.md)
+- **Property and vehicles, one engine.** 12 property rules (chain, double sale, unreleased mortgage, five authority checks, gaps) and 6 vehicle rules (titled owner, unreleased lien, a salvage brand dropped from a later title, an odometer that goes backwards, gaps). Same graph model, same verdicts, same proof trail.
 - **It follows the damage.** One broken sale is not the end of it: a graph walk along `FOLLOWS` marks every later sale whose chain of title passes through it.
 - **It keeps two kinds of time.** Every fact has the date it took effect and the date it reached the register. Two controls and a verdict grid show the difference, which is exactly where buyers get caught out.
 - **It says "I don't know" when it doesn't.** A missing record gives *inconclusive*, names the missing record, and accuses no one.
@@ -86,7 +87,7 @@ flowchart LR
 
 ### 1. A graph alone does not make an AI agent reliable. A graph with deterministic checks does.
 
-Same model (`gemini-3.5-flash-lite`), same evidence, held-out synthetic cases, 3 repeats each:
+Same model (`gemini-3.5-flash-lite`), same evidence, held-out synthetic cases, 3 repeats each. The main benchmark has 80 cases, 60 property and 20 vehicle (40 held out); the hard tier is property:
 
 | | Main benchmark (40 cases) | Hard tier (40 cases written *after* the rules were frozen) |
 |---|---|---|
@@ -94,7 +95,7 @@ Same model (`gemini-3.5-flash-lite`), same evidence, held-out synthetic cases, 3
 | B: graph, agent writes its own Cypher | 54.2% · at 39× the tokens of A | 48.3% · calls 47% of defective chains clean |
 | **C: graph + rule engine as tools** | **100% · 0 defective chains called clean** | **100% in all 3 repeats · abstains on every missing record** |
 
-Giving the agent the graph and letting it write its own Cypher did *not* help. Giving it the rules did. The hard tier holds the cases that trip people up: two defects in one chain, sound chains that look suspicious, a missing record under a "title is clear" summary, a power of attorney that does not cover a sale, contradictory filings, and an early defect followed by a long run of clean sales. The rules were frozen, with fingerprints the benchmark checks, *before* those cases existed.
+Property and vehicles show the same pattern (documents only 55% / 57%, rule engine 100% / 100%). Giving the agent the graph and letting it write its own Cypher did *not* help. Giving it the rules did. The hard tier holds the cases that trip people up: two defects in one chain, sound chains that look suspicious, a missing record under a "title is clear" summary, a power of attorney that does not cover a sale, contradictory filings, and an early defect followed by a long run of clean sales. The rules were frozen, with fingerprints the benchmark checks, *before* those cases existed.
 
 **Not a quirk of one model.** Rerun with **Gemma 4 26B**, a different model family: documents only 66.7% (held-out) and 77.5% (hard tier, never abstaining on a missing record); with the rule engine as tools, **100% on both tiers and no defective chain called clean**. [Full benchmark →](docs/benchmark.md)
 
@@ -157,6 +158,7 @@ uv run python -m vestigium.serve         # then open http://127.0.0.1:8000/app.h
 | **Lien** | a claim on the property, usually a loan, that should be released before a sale |
 | **Power of attorney** | written permission for someone to sign for the owner, valid only between set dates |
 | **Recorded** | the date a deed reached the public register, often weeks after it was signed |
+| **Salvage brand** | a mark on a vehicle title saying it was written off; it must stay on every later title |
 | **Rule** | one named check, e.g. `PROP-CHAIN`: the seller must be the previous buyer ([all 18](docs/rules.md)) |
 
 </details>
@@ -165,6 +167,7 @@ uv run python -m vestigium.serve         # then open http://127.0.0.1:8000/app.h
 
 - **The main benchmarks are synthetic, and the rules and cases share an author.** So 100% there shows the engine does what its rules say. That is why the hard tier was written after a rule freeze, why 48 cases were written by an independent author (95.8%), and why the chain rule is measured on real records against blind human labels. The independent author was another Gemini model, not another model family.
 - **Real records can only test the chain and date rules.** Public registers hold neither a power of attorney's terms nor which payoff released which mortgage, so the authority and lien rules are tested on synthetic and independently written cases. The blind test has one labeller and 150 links; a flag on real data means "worth a look", not a proven defect.
+- **Vehicles are tested on synthetic cases only** (20 held out, plus the fresh-seed and invariance checks): the hard tier, the independent author and the real records are all property.
 - **Small samples, small models:** 40 + 40 held-out cases and 48 independent ones, on free-tier Gemini and Gemma; the own-Cypher arm ran on Gemini only (Gemma's free tier was overloaded).
 - **Scans are tested on synthetic pages:** clean PDFs and phone photos read perfectly; poor photos are right 95–97.5% of the time, and a misread both reads share still gets through.
 - **Not legal advice.** The rules are generic and the jurisdiction is fictional.
