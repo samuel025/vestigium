@@ -42,7 +42,7 @@ Open the [demo case](https://vestigium-demo.vercel.app/app.html?case=prop-014): 
 | B: graph, agent writes its own Cypher | 54.2% · at 39× the tokens of A | 48.3% · calls 47% of defective chains clean |
 | **C: graph + rule engine as tools** | **100% · 0 defective chains called clean** | **100% in all 3 repeats · abstains on every missing record** |
 
-The hard tier holds the cases that trip people up: two defects in one chain, sound chains that look suspicious, a missing record under a "title is clear" summary, a power of attorney that does not cover a sale, contradictory filings, and an early defect followed by a long run of clean sales. The rules were frozen (with fingerprints) *before* those cases existed. [Full benchmark →](docs/benchmark.md)
+The hard tier holds the cases that trip people up: two defects in one chain, sound chains that look suspicious, a missing record under a "title is clear" summary, a power of attorney that does not cover a sale, contradictory filings, and an early defect followed by a long run of clean sales. The rules were frozen (with fingerprints) *before* those cases existed. **Not a quirk of one model.** Rerun with **Gemma 4 26B**, a different model family: documents only 66.7% (held-out) and 77.5% (hard), never abstaining on a missing record; with the rule engine as tools, **100% on both tiers and no defective chain called clean**. [Full benchmark →](docs/benchmark.md)
 
 **Cases we did not write.** So we are not grading our own homework, another model wrote 48 property files from one-line, plain-English situations, never seeing our rules, record wording or schema. Vestigium end to end (our reader, then the frozen rules): **95.8%, no defective chain called clean, and it abstained on every missing record.** Documents only: 84.0%, 12.5% of defective chains called clean, and it missed every unreleased mortgage. Both of Vestigium's misses are audited and published (one is our name matcher not expanding "Wm."). [Details →](docs/benchmark.md#cases-written-by-an-independent-author)
 
@@ -117,7 +117,7 @@ uv run python -m vestigium.serve         # then open http://127.0.0.1:8000/app.h
 
 - **The main benchmarks are synthetic, and the rules and cases share an author.** So 100% there shows the engine does what its rules say. That is why the hard tier was written after a rule freeze, why 48 cases were written by an **independent author** (95.8%), and why the chain rule is also measured **on real records against blind human labels** (above). The independent author was another Gemini model, not another model family.
 - **Real records can only test the chain and date rules.** Public registers hold neither a power of attorney's terms nor which payoff released which mortgage, so the authority and lien rules are tested on synthetic cases. The blind test has one labeller and 150 links; a flag on real data means "worth a look", not a proven defect.
-- **Small samples, one small model:** 40 + 40 held-out cases on Gemini's free tier.
+- **Small samples, small models:** 40 + 40 held-out cases and 48 independent ones, on free-tier Gemini and Gemma; the own-Cypher arm ran on Gemini only.
 - **Scans are tested on synthetic pages:** clean PDFs and phone photos read perfectly; poor photos are right 95–97.5% of the time, and a misread both reads share still gets through.
 - **Not legal advice.** The rules are generic and the jurisdiction is fictional.
 

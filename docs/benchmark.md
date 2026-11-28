@@ -57,6 +57,17 @@ We froze the rules first (`results/rules_frozen.json`, commit `c1f06c0`, before 
 
 **Reading it.** The sharpest result: shown a chain with a missing record and a summary saying the title is clear, the documents-only agent answered **clean all 18 times**. The agent with the rule engine abstained every time and named the missing record. Writing its own Cypher did not rescue the agent either (48.3% over 3 repeats, at 30 times the tokens of A, and it called 47% of defective chains clean). Documents alone did well where the defect is stated in plain words (a power "authorising the management only"), which is fair to report. The usual caveat holds: the rules and the cases have one author, so C and D at 100% show the engine doing what its rules say, not that the rules are right for any real jurisdiction; the freeze makes sure the rules were not adjusted to these cases. B ran 3 times like A and C (about 12 model calls per case). Raw runs: `results/hard.jsonl`.
 
+## A second model family (Gemma)
+
+Is the result a quirk of one Gemini model? We reran the documents-only arm (A) and the rule-tools arm (C) with **Gemma 4 26B** (`gemma-4-26b-a4b-it`, an open-weights model from a different family), on both the held-out tier and the hard tier, unchanged prompts and tools, one repeat:
+
+| Gemma 4 26B | Held-out: accuracy | Held-out: defective called clean | Hard tier: accuracy | Hard tier: defective called clean | Hard tier: abstains on a missing record |
+|---|---|---|---|---|---|
+| A: documents only | 66.7% | 36.0% | 77.5% | 11.5% | **0%** |
+| C: graph + rule tools | **100%** | **0%** | **100%** | **0%** | **100%** |
+
+The same pattern as Gemini: on its own the model calls about a third of the defective held-out chains clean and never abstains on a missing record under a "title is clear" summary; with the rule engine as tools it is right every time. Arm B (own Cypher) could not be run on Gemma: each case needs about 12 consecutive model calls, and Gemma's free tier answered "high demand" (503) to all 9 attempts, so we report no B number rather than a partial one. One held-out A run never got an answer after retries, so held-out A has 39 runs. Raw runs: `results/model2_gemma/`.
+
 ## Cases written by an independent author
 
 Every case above was written by the same people who wrote the rules. To stop grading our own homework, a different model (`gemini-3.6-flash`; we wanted Gemma, another model family, but it was overloaded on the day) wrote **48 property files** from a one-line, plain-English description of each of 12 situations ("one sale was signed by an agent whose power of attorney only allowed managing and renting the property"). The author never saw our rules, generator, record wording or graph schema; it chose its own document formats, date styles, abbreviations, irrelevant paperwork and "title is clear" cover letters. The answer key comes from the situation, not from our engine (`vestigium/indep.py`).
@@ -102,7 +113,7 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
 - **The rules and the generator were written together by the same people.** 100% for C and D is expected and is not evidence the rules are right for the real world. Arm D exists to show this: it is the ceiling of the rules themselves, and it is the agent-free baseline. The [independent-author test](#cases-written-by-an-independent-author) addresses this (95.8%, 0 defective chains called clean); its author was another Gemini model, not another model family, and it has 48 cases.
 - **The real-record test is deeds-only** (30,803 deeds, two cities, see *Real records*); it shows how the rules behave on real data, not whether any flagged property has a real defect. Everything else is synthetic.
 - **The original held-out split is a flag, not a time gap.** Every third of the 80 cases is marked held-out and not used to tune, but those cases were not written after a rule freeze. The 40-case **hard tier** was: the rules were frozen first (`results/rules_frozen.json`) and the benchmark refuses to score it against changed rules.
-- **One small model.** A stronger model might narrow the gap for A and B.
+- **Two small models.** Gemini 3.5 Flash-Lite for every arm, and Gemma 4 26B for A and C (B could not run on Gemma's overloaded free tier). A stronger model might narrow the gap for A and B.
 - **Arms A-D assume a correct graph.** Extraction is scored separately (section above), not chained into the four-arm table. Not scored: per-case fix-by-copy accuracy for agent-proposed records
   (we score the *type* of record the agent names against the answer key; each answer-key fix is separately verified to turn its case clean).
 - **The graph lab's edge removal is limited** to `FOLLOWS`, `ACTED_UNDER`, `CLEARED_BY`, `GRANTED_BY` and `REVOKED_BY` (the relationships the rules can notice); outcomes are precomputed for every demo and real case, and editing or running your own Cypher, or removing from a pasted dossier, needs the local server. Custom queries run on a throwaway Relate store opened with `read_only=True`, so Relate itself refuses any write (tested).

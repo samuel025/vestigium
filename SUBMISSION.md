@@ -50,6 +50,8 @@ An **AI agent** investigates the graph, calls the checks and explains the result
 
 **A harder tier** of 40 more held-out cases, written only after the rules were frozen (multi-defect chains, sound chains that look suspicious, missing records under a 'title is clear' summary, powers that do not cover a sale, contradictory filings): documents only 72.5%, graph with its own Cypher 48.3%, graph with the rule engine **100% in all three repeats** (own Cypher: 48.3% over three repeats, 47% of defective chains called clean). Shown a missing record under a 'title is clear' summary, the documents-only agent said clean 18 times out of 18; the rule-backed agent abstained every time and named the missing record.
 
+**A second model family.** Rerun with Gemma 4 26B: documents only 66.7% (held-out) and 77.5% (hard tier, never abstaining on a missing record); graph with the rule engine **100% on both tiers, no defective chain called clean**. The result is not a quirk of one model.
+
 **Cases we did not write.** Another model wrote 48 property files from one-line, plain-English situations, never seeing our rules, record wording or schema. Vestigium end to end (our reader, then the frozen rules) scored **95.8%, called no defective chain clean and abstained on every missing record**; a documents-only agent scored 84.0%, called 12.5% of defective chains clean and missed every unreleased mortgage. Both of Vestigium's misses are audited in the repo: one is our name matcher not expanding "Wm." to "William", the other a case whose answer key is debatable.
 
 **On real records, against blind human labels.** No public register has an answer key, so a person labelled 150 real Philadelphia seller-to-buyer links without seeing the engine's answers. The rule engine caught **all 45 real breaks** (100% recall) with 30 false alarms, every one a typo in the register. Gemini reading the same names was more accurate overall (93.9%) but missed 2 breaks. With the rules deciding and the AI only labelling flags, nothing is missed and 27 of the 30 false alarms arrive marked "probable spelling variant".
@@ -69,6 +71,6 @@ parameters from the model and unfairly hurt Arm B, which is the kind of error a 
 
 ## What's next
 
-Test scans on real paperwork and true handwriting (so far only synthetic pages), catch the misreads both scan reads share, check liens on real records by linking each satisfaction to its mortgage (ACRIS publishes these references), check liens and authorities on real records too (the real test covers deeds only), add more cities, run the benchmark with a stronger model and more repeats, and run the whole demo in the browser with Relate's WebAssembly build.
+Test scans on real paperwork and true handwriting (so far only synthetic pages), catch the misreads both scan reads share, check liens on real records by linking each satisfaction to its mortgage (ACRIS publishes these references), check liens and authorities on real records too (the real test covers deeds only), add more cities, run the benchmark with a stronger model, more repeats and the own-Cypher arm on Gemma, and run the whole demo in the browser with Relate's WebAssembly build.
 
 **Built with:** Relate (Neo4j), Python, Cypher, Google Gemini, Claude Code
