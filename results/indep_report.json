@@ -1,9 +1,9 @@
 {
  "A": {
-  "runs": 108,
-  "accuracy": 81.5,
-  "defective_called_clean": 14.3,
-  "abstains_on_missing": null,
+  "runs": 144,
+  "accuracy": 84.0,
+  "defective_called_clean": 12.5,
+  "abstains_on_missing": 87.5,
   "by_situation": {
    "clean": 83.3,
    "clean-tricky": 100.0,
@@ -13,15 +13,19 @@
    "expired-poa": 100.0,
    "poa-wrong-person": 100.0,
    "poa-scope": 100.0,
-   "poa-revoked": 100.0
+   "poa-revoked": 100.0,
+   "dead-seller": 100.0,
+   "missing-link": 75.0,
+   "missing-poa": 100.0
   },
-  "errors": 0
+  "errors": 0,
+  "retried_after_network_error": 0
  },
  "V": {
-  "runs": 36,
-  "accuracy": 94.4,
+  "runs": 48,
+  "accuracy": 95.8,
   "defective_called_clean": 0.0,
-  "abstains_on_missing": null,
+  "abstains_on_missing": 100.0,
   "by_situation": {
    "clean": 75.0,
    "clean-tricky": 100.0,
@@ -31,9 +35,13 @@
    "expired-poa": 100.0,
    "poa-wrong-person": 100.0,
    "poa-scope": 100.0,
-   "poa-revoked": 100.0
+   "poa-revoked": 100.0,
+   "dead-seller": 100.0,
+   "missing-link": 100.0,
+   "missing-poa": 100.0
   },
-  "errors": 0
+  "errors": 0,
+  "retried_after_network_error": 1
  },
  "V_disagreements": [
   {
@@ -55,8 +63,8 @@
    ]
   }
  ],
- "cases": 36,
+ "cases": 48,
  "authors": {
-  "gemini-3.6-flash": 36
+  "gemini-3.6-flash": 48
  }
 }

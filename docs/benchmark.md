@@ -40,22 +40,44 @@ We froze the rules first (`results/rules_frozen.json`, commit `c1f06c0`, before 
 | Arm | Runs | Accuracy | Defective called clean | Abstains correctly | Localizes¹ | Fix type | Citations valid | Tokens / case |
 |---|---|---|---|---|---|---|---|---|
 | A: documents only | 3 × 40 | 72.5% (identical in all 3 repeats) | 15.4% | **0%** | 0% | 55% | 98% | 721 |
-| B: graph + own Cypher | 1 × 40 | 50.0% | 46.2% | 33% | 50% | 68% | 81% | 21,797 |
+| B: graph + own Cypher | 3 × 40 | 48.3% (52.5%, 50%, 42.5%) | 47.4% | 11% | 47% | 59% | 79% | 21,857 |
 | C: graph + rule tools | 3 × 40 | **100%** (every repeat) | **0%** | **100%** | 100% | 89% | 100% | 3,805 |
 | D: rules alone | 1 × 40 | 100% | 0% | 100% | 100% | 100% | 100% | 0 |
 
 | Kind of case | A | B | C | D |
 |---|---|---|---|---|
-| Two defects in one chain | 75% | 75% | 100% | 100% |
-| Sound chain that looks suspicious | 88% | 62% | 100% | 100% |
-| Missing record under "title is clear" | **0%** | 33% | 100% | 100% |
-| Power valid but not covering a sale | 100% | 33% | 100% | 100% |
-| Contradictory records, different filing dates | 100% | 50% | 100% | 100% |
-| Early defect, then a long clean run | 67% | 33% | 100% | 100% |
+| Two defects in one chain | 75% | 54% | 100% | 100% |
+| Sound chain that looks suspicious | 88% | 79% | 100% | 100% |
+| Missing record under "title is clear" | **0%** | 11% | 100% | 100% |
+| Power valid but not covering a sale | 100% | 28% | 100% | 100% |
+| Contradictory records, different filing dates | 100% | 67% | 100% | 100% |
+| Early defect, then a long clean run | 67% | 39% | 100% | 100% |
 
 ¹ Arm A sees only the documents, which cite passage ids (`P5`) and never transfer ids (`T5`), so it cannot name the transfer by construction; this is the same in the main table.
 
-**Reading it.** The sharpest result: shown a chain with a missing record and a summary saying the title is clear, the documents-only agent answered **clean all 18 times**. The agent with the rule engine abstained every time and named the missing record. Writing its own Cypher did not rescue the agent either (50%, at 30 times the tokens of A, and it called 46% of defective chains clean). Documents alone did well where the defect is stated in plain words (a power "authorising the management only"), which is fair to report. The usual caveat holds: the rules and the cases have one author, so C and D at 100% show the engine doing what its rules say, not that the rules are right for any real jurisdiction; the freeze makes sure the rules were not adjusted to these cases. B ran once (about 12 model calls per case). Raw runs: `results/hard.jsonl`.
+**Reading it.** The sharpest result: shown a chain with a missing record and a summary saying the title is clear, the documents-only agent answered **clean all 18 times**. The agent with the rule engine abstained every time and named the missing record. Writing its own Cypher did not rescue the agent either (48.3% over 3 repeats, at 30 times the tokens of A, and it called 47% of defective chains clean). Documents alone did well where the defect is stated in plain words (a power "authorising the management only"), which is fair to report. The usual caveat holds: the rules and the cases have one author, so C and D at 100% show the engine doing what its rules say, not that the rules are right for any real jurisdiction; the freeze makes sure the rules were not adjusted to these cases. B ran 3 times like A and C (about 12 model calls per case). Raw runs: `results/hard.jsonl`.
+
+## Cases written by an independent author
+
+Every case above was written by the same people who wrote the rules. To stop grading our own homework, a different model (`gemini-3.6-flash`; we wanted Gemma, another model family, but it was overloaded on the day) wrote **48 property files** from a one-line, plain-English description of each of 12 situations ("one sale was signed by an agent whose power of attorney only allowed managing and renting the property"). The author never saw our rules, generator, record wording or graph schema; it chose its own document formats, date styles, abbreviations, irrelevant paperwork and "title is clear" cover letters. The answer key comes from the situation, not from our engine (`vestigium/indep.py`).
+
+- **A**, a documents-only agent (`gemini-3.5-flash-lite`), reads each file and answers, 3 repeats.
+- **V** is Vestigium end to end: our Gemini reader turns the prose into graph facts and the frozen rules decide (once per case; the rules are deterministic).
+
+| | A: documents only (3 × 48) | V: Vestigium (48) |
+|---|---|---|
+| Accuracy | 84.0% | **95.8%** |
+| Defective chains called clean | 12.5% | **0%** |
+| Abstains when a record is missing | 87.5% | **100%** |
+| Unreleased mortgage | **0%** | 100% |
+| Seller who never owned it | 50% | 75% |
+| Every power-of-attorney situation, sold twice, dead seller | 100% | 100% |
+
+**Every disagreement, audited by hand.** V disagreed with the answer key twice:
+1. `ind-clean-1`, **our error.** The file names the buyer "Wm. H. Vance" in one deed and "William H. Vance" in the next; the name matcher does not expand abbreviations, so the chain rule raised a false alarm. We have not fixed it, because a fix made after seeing the test would make this number meaningless; any later fix will be reported as made after the test.
+2. `ind-not-owner-2`, **the answer key is debatable.** The author left out the deed the unauthorised seller claimed to have acquired through, so the file shows a gap rather than a proven non-owner. Vestigium answered *inconclusive* and named the missing deed; we count it as wrong anyway.
+
+One V run failed on a network error and passed on retry; nothing else was rerun. Cases: `results/indep_cases.jsonl`; runs: `results/indep_runs.jsonl`; summary: `results/indep_report.json`.
 
 ## Robustness checks (no LLM, no answer key needed for the first two)
 
@@ -75,9 +97,9 @@ What this does *not* show: that the rules are right for any real jurisdiction. I
 - **Arm B is noisy.** Its three repeats scored 52.5%, 62.5% and 47.5%, so its spread is wide; the free-tier quota meant B (about 12.6 requests per case) took two days to finish. Rerun with
   `./run_benchmark.sh` (`REPEATS=3`); it resumes and fills the gaps. One C case (prop-011) failed on a malformed answer in the first run; we removed that row, added a JSON repair retry to the harness
   and reran it (correct in all 3 repeats). Across the 120 C runs the repair retry fired once (prop-050, repeat 3) and the repaired answer was correct.
-- **Small samples.** 40 held-out cases in the main benchmark (3 inconclusive and 4 clean per pack-side are few) and 40 in the hard tier, one model, so the percentages for A and B are rough. On the hard tier, Arm B ran once (about 12 model calls per case), not three times.
+- **Small samples.** 40 held-out cases in the main benchmark (3 inconclusive and 4 clean per pack-side are few) and 40 in the hard tier, one model, so the percentages for A and B are rough.
 - **Real-record check, blind:** the chain rule was also measured on 150 real Philadelphia links against blind human labels (recall 100%, precision 60%, every false alarm a register typo; see [real records](real-records.md#a-benchmark-on-real-records-against-blind-human-labels)).
-- **The rules and the generator were written together by the same people.** 100% for C and D is expected and is not evidence the rules are right for the real world. Arm D exists to show this: it is the ceiling of the rules themselves, and it is the agent-free baseline.
+- **The rules and the generator were written together by the same people.** 100% for C and D is expected and is not evidence the rules are right for the real world. Arm D exists to show this: it is the ceiling of the rules themselves, and it is the agent-free baseline. The [independent-author test](#cases-written-by-an-independent-author) addresses this (95.8%, 0 defective chains called clean); its author was another Gemini model, not another model family, and it has 48 cases.
 - **The real-record test is deeds-only** (30,803 deeds, two cities, see *Real records*); it shows how the rules behave on real data, not whether any flagged property has a real defect. Everything else is synthetic.
 - **The original held-out split is a flag, not a time gap.** Every third of the 80 cases is marked held-out and not used to tune, but those cases were not written after a rule freeze. The 40-case **hard tier** was: the rules were frozen first (`results/rules_frozen.json`) and the benchmark refuses to score it against changed rules.
 - **One small model.** A stronger model might narrow the gap for A and B.

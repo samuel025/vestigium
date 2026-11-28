@@ -128,7 +128,8 @@ def report():
         for r in R: by[cases[r["case"]]["kind"]].append(r["verdict"] == cases[r["case"]]["label"])
         out[arm] = dict(runs=len(R), accuracy=pct([r["verdict"] == cases[r["case"]]["label"] for r in R]),
                         defective_called_clean=pct([r["verdict"] == "clean" for r in D]), abstains_on_missing=pct([r["verdict"] == "inconclusive" for r in I]),
-                        by_situation={k: pct(v) for k, v in by.items()}, errors=sum(1 for r in rows if r["arm"] == arm and r.get("error")))
+                        by_situation={k: pct(v) for k, v in by.items()}, errors=len({(r["case"], r["rep"]) for r in rows if r["arm"] == arm and r.get("error")} - {(r["case"], r["rep"]) for r in R}),
+                        retried_after_network_error=sum(1 for r in rows if r["arm"] == arm and r.get("error")))
     out["V_disagreements"] = [dict(case=r["case"], kind=cases[r["case"]]["kind"], expected=cases[r["case"]]["label"], got=r["verdict"], rules=r.get("rules"))
                               for r in rows if r["arm"] == "V" and not r.get("error") and r["verdict"] != cases[r["case"]]["label"]]
     out["cases"] = len(cases); out["authors"] = dict(Counter(c.get("author") for c in cases.values()))

@@ -70,10 +70,11 @@ def ask(system, prompt, tools=(), max_calls=12, model=None, temperature=0.2):
     and tool calls are hard-capped at max_calls. Returns (parsed_json|None, stats)."""
     fns = {t.__name__: t for t in tools}
     st = dict(tool_calls=0, tool_errors=0, tokens=0, model_calls=0, error_log=[], trace=[])
+    gemma = "gemma" in (model or MODEL)
     cfg = types.GenerateContentConfig(
-        system_instruction=None if (model and "gemma" in model) else system, temperature=temperature, tools=list(tools) or None,
+        system_instruction=None if gemma else system, temperature=temperature, tools=list(tools) or None,
         automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True))
-    if model and "gemma" in model: prompt = system + "\n\n" + prompt          # Gemma takes no system instruction
+    if gemma: prompt = system + "\n\n" + prompt          # Gemma takes no system instruction
     contents = [types.Content(role="user", parts=[types.Part(text=prompt)])]
     text = ""
     for _ in range(max_calls + 2):
